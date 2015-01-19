@@ -55,7 +55,6 @@ ROOT_URLCONF = 'helpdeskunl.urls'
 
 WSGI_APPLICATION = 'helpdeskunl.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
