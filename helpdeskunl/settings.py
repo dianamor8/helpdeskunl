@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'helpdeskunl.apps.tiposoporte',
+    'helpdeskunl.apps.incidencia',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -83,9 +84,13 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
+#
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
+
+#SERVIDOR DE MEDIOS
+MEDIA_ROOT = os.path.normpath(os.path.join(BASE_DIR, 'helpdeskunl/media/'))
+MEDIA_URL = '/media/'
