@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'helpdeskunl.apps.tiposoporte',
     'helpdeskunl.apps.incidencia',
+    'helpdeskunl.apps.centro_asistencia',
 )
 
 MIDDLEWARE_CLASSES = (

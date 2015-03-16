@@ -1,6 +1,58 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 
+#Para categorizar producto con falla
+class Categoria_Equipo(models.Model):
+	nombre = models.CharField(max_length=100)
+	class Meta:
+		verbose_name = "Categoria del equipo"
+		verbose_name_plural = "Categorias"
+		db_table = 'Categoria_Equipo'
+	def __unicode__(self):
+		return self.nombre
+
+#Determina la marca del equipo
+class Marca_Equipo(models.Model):
+	nombre = models.CharField(max_length=100)
+	class Meta:
+		verbose_name = "Marca"
+		verbose_name_plural = "Marcas"
+		db_table = 'Marca_Equipo'
+	def __unicode__(self):
+		return self.nombre
+
+#
+class Equipo(models.Model):	
+	categoria = models.ForeignKey('Categoria_Equipo') #Impresora, Infocus, 
+	marca = models.ForeignKey('Marca_Equipo') #epson, genius
+	modelo = models.CharField(max_length=250, null=True, blank=True) #12345, 1232131	
+	class Meta:
+		verbose_name = "Equipo"
+		verbose_name_plural = "Lista de equipos"
+		db_table = 'Equipo'
+	def __unicode__(self):
+		return u'%s %s %s'%(self.categoria, self.marca, self.modelo)
+
+#Para el registro de códigos de bodega de los equipos de la UNL
+class Codigo_Bodega(models.Model):
+	codigo = models.CharField(max_length=50)
+	equipo = models.ForeignKey('Equipo')
+	class Meta:
+		verbose_name = "Codigo de Bodega"
+		verbose_name_plural = "Codigos de Bodega"
+	def __unicode__(self):
+		return u'%s - %s'%(self.equipo, self.codigo)
+
+class Detalle_Equipos(models.Model):
+	codigo_bodega = models.ForeignKey('Codigo_Bodega', null=True, blank=True)
+	equipo = models.ForeignKey('Equipo')
+	incidencia = models.ForeignKey('Incidencia')
+	class Meta:
+		verbose_name = "Detalle Equipo"
+		verbose_name_plural = "Detalle de Equipos"
+	def __unicode__(self):
+		return u'%s %s %s'%(self.codigo_bodega, self.equipo, self.incidencia)
+    
 
 # Create your models here.
 class Dependencia(models.Model):
@@ -38,7 +90,6 @@ ESTADO_CHOICES = (
 )
 
 class Incidencia(models.Model):
-
 	titulo = models.CharField(max_length=100)	
 	fecha = models.DateTimeField(auto_now=True)
 	dependencia = models.ForeignKey('Dependencia')	
@@ -46,17 +97,14 @@ class Incidencia(models.Model):
 	urgencia = models.CharField(choices=URGENCIA_CHOICES, max_length=100) #Si selecciona URGENTE el campo justif_urgencia debe ser obligatorio
 	justif_urgencia = models.CharField(null=True,max_length=150)
 	prioridad_asignada = models.CharField(choices=URGENCIA_CHOICES, max_length=100, default=UR_NORMAL) #Este campo lo puede modificar el administrador
-	estado = models.CharField(choices=ESTADO_CHOICES, max_length=100)
+	estado = models.CharField(choices=ESTADO_CHOICES, max_length=100)	
 	#ES ASIGNADO A MUCHOS USUARIOS OPERADORES
-	#
 	class Meta:
 		verbose_name = "Incidencia"
 		verbose_name_plural = "Incidencias"
 		db_table = ('Incidencia')
 	def __unicode__(self):
 		return self.titulo
-
-
 
 #CREAR COMO CLASE PARA PORDER ASIGNAR USUARIOS A UN DEPARTAMENTO.
 #AREA_SOPORTE = '0'	

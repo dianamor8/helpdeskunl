@@ -15,6 +15,7 @@ class Migration(migrations.Migration):
             name='Dependencia',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('nombre', models.CharField(max_length=250)),
                 ('detalle', models.CharField(max_length=250)),
             ],
             options={
