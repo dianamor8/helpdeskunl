@@ -1,15 +1,10 @@
-<html>
-<head>
-	<title>Hola mundo help desk</title>
-	<link rel="stylesheet" type="text/css" href="/media/bootstrap-3.3.2/css/bootstrap.css">
-	<script type="text/javascript" src='/media/js/jquery.js'></script>
-	<script type="text/javascript" src='/media/bootstrap-3.3.2/js/jquery.js'></script>
-</head>
-<body>
+{% extends "base/base_general.html" %}
+{% block title %}
+{% endblock title %}
+{% block contenido %}
 	<p>creando helpdesk</p>
 	<h1>holah1</h1>
 	<h2>holah2</h2>
 	{{user.username}}
 	<img src="/media/images/amor.jpg">
-</body>
-</html>
+{% endblock contenido %}
