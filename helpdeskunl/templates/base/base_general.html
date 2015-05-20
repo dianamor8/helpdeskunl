@@ -8,7 +8,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">	
 	<title>{% block title %}{% endblock title %}</title>	
 	<!--BLOQUE DE REFERENCIA A HOJAS DE ESTILO CSS-->
-	<link rel="stylesheet" type=P"text/css" href="/media/bootstrap-3.3.2/css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="/media/bootstrap-3.3.2/css/bootstrap.css">
 	<link rel="stylesheet" href="/media/bootstrap-3.3.2/css/bootstrap.min.css">
 	{% block files_css %}{% endblock files_css %}
 	<!--BLOQUE DE REFERENCIA A ARCHIVOS JS-->
@@ -16,12 +16,17 @@
 	<script type="text/javascript" src="/media/js/jquery.min.js" charset="utf-8" async defer></script>
 	<script type="text/javascript" src='/media/bootstrap-3.3.2/js/bootstrap.min.js'></script> 
 	{% block files_js %}{% endblock files_js %}
-
-</head>
-	<body style="background-color:#D8DBDC">
-		<div class="container bs-docs-container" style="background-color:#ADCC86">
-			{% block contenido %}{% endblock contenido %}
-		</div>		
-	</body>
+</head> 
+	<body>
+		<div class="container-fluid">
+			<div class="container" id="padre">
+				<header>{% block header %}{% endblock header %}</header>
+				<div class="bs-docs-container">
+					{% block contenido %}{% endblock contenido %}
+				</div>				
+			</div>
+		</div>	
+		<footer class="footer">{% block footer %}{% endblock footer %}</footer>				
+	</body>	
 </html>
 

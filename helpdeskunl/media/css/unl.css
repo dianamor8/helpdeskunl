@@ -1,0 +1,151 @@
+html,body{
+	background-color: #D8DBDC;
+	height: 100%;
+	/*style="background-color:#ADCC86*/
+}
+/** {margin: 0;padding: 0;border: 0;}*/
+
+/*div de id padre para base_general.html*/
+#padre{
+	background: #D8DBDC;	
+	position: relative;	
+}
+/*tamaño de la imagen del banner-unl*/
+.banner_unl{
+	width: 100%;
+}
+
+/*NAVBAR VERDE*/
+.navbar-default {
+  background-color: #14a639;
+  border-color: #5cd97c;
+}
+.navbar-default .navbar-brand {
+  color: #151414;
+}
+.navbar-default .navbar-brand:hover, .navbar-default .navbar-brand:focus {
+  color: #0b0b0b;
+}
+.navbar-default .navbar-text {
+  color: #151414;
+}
+.navbar-default .navbar-nav > li > a {
+  color: #151414;
+}
+.navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
+  color: #0b0b0b;
+}
+.navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > .active > a:focus {
+  color: #0b0b0b;
+  background-color: #5cd97c;
+}
+.navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:hover, .navbar-default .navbar-nav > .open > a:focus {
+  color: #0b0b0b;
+  background-color: #5cd97c;
+}
+.navbar-default .navbar-toggle {
+  border-color: #5cd97c;
+}
+.navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus {
+  background-color: #5cd97c;
+}
+.navbar-default .navbar-toggle .icon-bar {
+  background-color: #151414;
+}
+.navbar-default .navbar-collapse,
+.navbar-default .navbar-form {
+  border-color: #151414;
+}
+.navbar-default .navbar-link {
+  color: #151414;
+}
+.navbar-default .navbar-link:hover {
+  color: #0b0b0b;
+}
+
+@media (max-width: 767px) {
+  .navbar-default .navbar-nav .open .dropdown-menu > li > a {
+    color: #151414;
+  }
+  .navbar-default .navbar-nav .open .dropdown-menu > li > a:hover, .navbar-default .navbar-nav .open .dropdown-menu > li > a:focus {
+    color: #0b0b0b;
+  }
+  .navbar-default .navbar-nav .open .dropdown-menu > .active > a, .navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover, .navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {
+    color: #0b0b0b;
+    background-color: #5cd97c;
+  }
+}
+/*Para hacer 0.5% el margen superior e inferior*/
+nav{	
+	padding: 0.5%;
+}
+
+/*NAV BAR BOOTSTRAP JUSTIFICADO
+.navbar-nav.nav-justified >li{ 
+  float:none;
+}*/
+
+#a_sose{
+  font-family: 'Oswald', sans-serif;
+}
+
+.Roboto{
+  font-family: 'Roboto', sans-serif;
+}
+
+/*FUENTES RESPONSIVAS*/
+/* responsive text queries */
+@media screen and (max-width: 992px) {
+  p,.btn,input,div,span,h4{
+    font-size: 95%;
+  }
+  h1 {
+    font-size: 24px;  
+  }
+  h2 {
+    font-size: 22px;  
+  }
+  h3 {
+    font-size: 18px;  
+  }
+  #a_sose{
+    font-size: 30px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  p,.btn,input,div,span,h4{
+    font-size: 90%;
+  }
+  h1 {
+    font-size: 20px;  
+  }
+  h2 {
+    font-size: 18px;  
+  }
+  h3 {
+    font-size: 16px;  
+  }
+  /*tamaño del boton del navbar index.html*/
+  #a_sose{
+    font-size: 18px;
+  }
+}
+
+/*class footer para index.html*/
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;  
+  height: 6%;  
+  padding-bottom: 2%;
+  text-align: center;
+  background-color: #D8DBDC; /*  #6F5642*/
+}
+
+/*color de la letra del footer para la plantilla de usuario*/
+.footer.user p{
+  color: white;
+}
+
+

@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 from django.db import models
+from django.conf import settings
 
 # Create your models here.
 
 class Centro_Asistencia(models.Model):
 	nombre = models.CharField(max_length=100)
 	descripcion = models.CharField(max_length=250)
+	administrador = models.ForeignKey(settings.AUTH_USER_MODEL)# administrador = Jefe De Departamento
 	class Meta:
 		verbose_name = "Centro de Asistencia"
 		verbose_name_plural = "Centros de Asistencia"

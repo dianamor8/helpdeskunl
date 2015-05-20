@@ -27,7 +27,12 @@ DEBUG = True
 TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
+
 # Application definition
+#PARA QUE EL USUARIO SEA MANEJADO POR PERFIL
+#AUTH_PROFILE_MODULE = 'helpdeskunl.apps.usuarios.Perfil'
+AUTH_USER_MODEL='usuarios.Perfil'
+
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -37,7 +42,9 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'helpdeskunl.apps.tiposoporte',
     'helpdeskunl.apps.incidencia',
+    'helpdeskunl.apps.home',
     'helpdeskunl.apps.centro_asistencia',
+    'helpdeskunl.apps.usuarios',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -47,7 +54,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',    
 )
 
 ROOT_URLCONF = 'helpdeskunl.urls'
@@ -67,6 +74,9 @@ DATABASES = {
         'PORT':'5432',
     }
 }
+
+
+
 
 TEMPLATE_DIRS = os.path.join(BASE_DIR,'helpdeskunl/templates'),
 #os.path.join(os.path.dirname(__file__),'templates'),
@@ -92,3 +102,8 @@ STATIC_URL = '/static/'
 #SERVIDOR DE MEDIOS
 MEDIA_ROOT = os.path.normpath(os.path.join(BASE_DIR, 'helpdeskunl/media/'))
 MEDIA_URL = '/media/'
+
+
+#PARA DECORADOR DE LOGIN_URL
+LOGIN_URL = '/login/' # HASTA MIENTRAS 11759072 25 DE MAYO 11:30 CONSULTA GENERAL. 
+LOGIN_REDIRECT_URL = '/'

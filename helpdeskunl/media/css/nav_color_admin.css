@@ -1,0 +1,77 @@
+.navbar-default {
+  background-color: #4c423b;
+  border-color: #6f5642;
+}
+.navbar-default .navbar-brand {
+  color: #f5ebd1;
+}
+.navbar-default .navbar-brand:hover, .navbar-default .navbar-brand:focus {
+  color: #c6b174;
+}
+.navbar-default .navbar-text {
+  color: #f5ebd1;
+}
+.navbar-default .navbar-nav > li > a {
+  color: #f5ebd1;
+}
+.navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
+  color: #c6b174;
+}
+.navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > .active > a:focus {
+  color: #c6b174;
+  background-color: #6f5642;
+}
+.navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:hover, .navbar-default .navbar-nav > .open > a:focus {
+  color: #c6b174;
+  background-color: #6f5642;
+}
+.navbar-default .navbar-toggle {
+  border-color: #6f5642;
+}
+.navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus {
+  background-color: #6f5642;
+}
+.navbar-default .navbar-toggle .icon-bar {
+  background-color: #f5ebd1;
+}
+.navbar-default .navbar-collapse,
+.navbar-default .navbar-form {
+  border-color: #f5ebd1;
+}
+.navbar-default .navbar-link {
+  color: #f5ebd1;
+}
+.navbar-default .navbar-link:hover {
+  color: #c6b174;
+}
+
+@media (max-width: 767px) {
+  .navbar-default .navbar-nav .open .dropdown-menu > li > a {
+    color: #f5ebd1;
+  }
+  .navbar-default .navbar-nav .open .dropdown-menu > li > a:hover, .navbar-default .navbar-nav .open .dropdown-menu > li > a:focus {
+    color: #c6b174;
+  }
+  .navbar-default .navbar-nav .open .dropdown-menu > .active > a, .navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover, .navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {
+    color: #c6b174;
+    background-color: #6f5642;
+  }
+}
+
+/*HACER EL NAV MAS GRANDE*/
+nav{  
+  padding: 0.3%;  
+}
+
+.fondo_panel_derecho{
+  background-color: #4c423b;
+}
+
+.nav-sidebar > li > a:hover{
+  color: black; 
+  background-color: #f5ebd1;
+} 
+
+.nav-sidebar > li > a{
+  color: white;  
+} 

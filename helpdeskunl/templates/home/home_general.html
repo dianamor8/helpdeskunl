@@ -1,0 +1,34 @@
+{% extends "base/base_panel.html" %}
+{% block files_css %} 
+	<!--COLOR CSS POR ROL DE USUARIO-->	
+	{% for grupo in  user.groups.all %}
+		{% if grupo.name == 'Jefe Departamento'%}
+			<link rel="stylesheet" type="text/css" href="/media/css/estilo_admin.css">	
+			<link rel="stylesheet" type="text/css" href="/media/css/nav_color_admin.css">		
+			{{ break }}
+		{% elif grupo.name == 'Usuario Final'%}
+			<link rel="stylesheet" type="text/css" href="/media/css/estilo_cliente.css">	
+			<link rel="stylesheet" type="text/css" href="/media/css/nav_color_cliente.css">				
+			{{ break }}
+		{% elif grupo.name == 'Técnico Operativo'%}
+			<link rel="stylesheet" type="text/css" href="/media/css/estilo_operativo.css">	
+			<link rel="stylesheet" type="text/css" href="/media/css/nav_color_operativo.css">	
+		{% endif %}
+	{% endfor %}	
+{% endblock files_css %}
+{% block navbar_dinamico %}	
+{% endblock navbar_dinamico %}
+
+{% block contenido %}
+HOLI AL INICIO
+{% endblock contenido %}
+
+{% block menu_navegacion %}
+	{% include "base/base_sidebar.html" %}
+{% endblock menu_navegacion %}
+
+{% block footer %}
+	<div class="container">
+		<p>Tesista: Diana Alexandra Morocho Puchaicela - 0990493445</p>
+	</div>	
+{% endblock footer %}

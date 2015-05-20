@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<!--COMPATIBLE CON NAVEGADORES INTERNET EXPLORER-->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">	
+	<!--DISEÑO WEB RESPONSIVE CON BOOTSTRAP-->
+	<meta name="viewport" content="width=device-width, initial-scale=1">	
+	<title>{% block title %}{% endblock title %}</title>	
+	<!--BLOQUE DE REFERENCIA A HOJAS DE ESTILO CSS-->
+	<link rel="stylesheet" type="text/css" href="/media/bootstrap-3.3.2/css/bootstrap.css">
+	<link rel="stylesheet" href="/media/bootstrap-3.3.2/css/bootstrap.min.css">
+	{% block files_css %}{% endblock files_css %}
+	<!--BLOQUE DE REFERENCIA A ARCHIVOS JS-->
+	<script type="text/javascript" src='/media/js/jquery.js'></script>
+	<script type="text/javascript" src="/media/js/jquery.min.js" charset="utf-8" async defer></script>
+	<script type="text/javascript" src='/media/bootstrap-3.3.2/js/bootstrap.min.js'></script> 
+	{% block files_js %}{% endblock files_js %}
+</head> 
+	<body>
+		<div class="container">
+			<!--<div class="container-fluid" id="divpadre">-->
+				<header>
+					<nav class="navbar navbar-default">
+							<div class="container-fluid">
+								<div class="navbar-header">
+									<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+										<span class="sr-only">Cambiar Navegación</span>
+										<span class="icon-bar"></span>
+										<span class="icon-bar"></span>
+										<span class="icon-bar"></span>
+									</button>
+									<!--Si es administrador tiene que ir al home de admin
+										Si es operador al home de operador y así para todos los usuarios.
+										user.get_profile()
+										{% url 'view_panel' dni=user.dni as url_home_usuario %}
+									-->									
+									{% url 'view_home' as url_home_usuario %}
+									<a class="navbar-brand" href="{{url_home_usuario}}">
+										<span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+										Inicio</a>
+								</div>		
+								<div id="navbar" class="navbar-collapse collapse">
+									<ul class="nav navbar-nav navbar-right">
+										{% block navbar_dinamico %}{% endblock navbar_dinamico %}
+										<li class="dropdown">
+											<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+												<b>{{user.nombres}}</b>
+												<b class="caret"></b>
+											</a>
+											<ul class="dropdown-menu">
+												<li>
+													<a href="{% url 'django.contrib.auth.views.logout' %}">Cerrar sesión</a>										
+												</li>
+											</ul>	
+										</li>			
+									</ul>	
+								</div><!--/.nav-collapse -->	
+							</div><!--/.container-fluid -->			
+					</nav>					
+				</header>								
+				<div class="container-fluid">
+					<div class="row">
+						<div class="col-sm-8 col-md-8 col-lg-9 fondo_trabajo">
+							<div class="fondo_trabajo">
+								{% block contenido %}{% endblock contenido %}
+							</div>
+						</div>
+						<div id="panel_derecho" class="col-sm-4 col-lg-3 color_fondo_body">
+							<div class="col-md-offset-1 col-md-11 fondo_panel_derecho sidebar">
+								{% block menu_navegacion %}{% endblock menu_navegacion %}
+							</div>
+						</div>
+					</div>					
+				</div>
+			<!--</div>-->
+		</div>	
+		<footer class="footer">{% block footer %}{% endblock footer %}</footer>				
+	</body>	
+</html>
+
