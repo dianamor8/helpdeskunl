@@ -26,6 +26,16 @@ class PerfilUserManager(BaseUserManager):
 		user.save(using=self._db)
 		return user
 
+# MANAGER PARA USUARIOS DE TIPO 
+class Jefe_Departamento_Manager(models.Manager):
+	def get_queryset(self):
+		return super(Jefe_Departamento_Manager, self).get_queryset().filter(groups__name='JEFE DEPARTAMENTO')
+
+class Asesor_Tecnico_Manager(models.Manager):
+	def get_queryset(self):
+		return super(Asesor_Tecnico_Manager, self).get_queryset().filter(groups__name='ASESOR TECNICO')
+
+
 # Create your models here.
 class Perfil(AbstractBaseUser, PermissionsMixin):	
 	#usuario = models.OneToOneField(settings.AUTH_USER_MODEL)	
@@ -41,6 +51,8 @@ class Perfil(AbstractBaseUser, PermissionsMixin):
 	is_admin = models.BooleanField(default=False, verbose_name='Usuario Administrador')	
 	
 	objects = PerfilUserManager()
+	jefes_departamento = Jefe_Departamento_Manager()
+	asesores_tecnicos = Asesor_Tecnico_Manager()
 
 	class Meta:
 		verbose_name = "Perfil"
@@ -55,10 +67,13 @@ class Perfil(AbstractBaseUser, PermissionsMixin):
 		return self.dni
 	def __unicode__(self):
 		return self.dni
-	def has_perm(self, perm, obj=None):
-		#"Does the user have a specific permission?"
-		# Simplest possible answer: Yes, always
-		return True
+	# def has_perm(self, perm, obj=None):
+	# 	#"Does the user have a specific permission?"
+	# 	# Simplest possible answer: Yes, always
+	# 	if self.user_permissions.all():
+	# 		return True
+	# 	else:
+	# 		return False
 	def has_module_perms(self, app_label):
 		#"Does the user have permissions to view the app `app_label`?"
 		# Simplest possible answer: Yes, always

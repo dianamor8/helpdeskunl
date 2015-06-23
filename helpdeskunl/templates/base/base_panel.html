@@ -12,9 +12,8 @@
 	<link rel="stylesheet" href="/media/bootstrap-3.3.2/css/bootstrap.min.css">
 	{% block files_css %}{% endblock files_css %}
 	<!--BLOQUE DE REFERENCIA A ARCHIVOS JS-->
-	<script type="text/javascript" src='/media/js/jquery.js'></script>
-	<script type="text/javascript" src="/media/js/jquery.min.js" charset="utf-8" async defer></script>
-	<script type="text/javascript" src='/media/bootstrap-3.3.2/js/bootstrap.min.js'></script> 
+	<script type="text/javascript" src='/media/js/jquery.js'></script>	
+	<script type="text/javascript" src='/media/bootstrap-3.3.2/js/bootstrap.js'></script> 
 	{% block files_js %}{% endblock files_js %}
 </head> 
 	<body>
@@ -64,6 +63,7 @@
 						<div class="col-sm-8 col-md-8 col-lg-9 fondo_trabajo">
 							<div class="fondo_trabajo">
 								{% block contenido %}{% endblock contenido %}
+								{% block incluir_html %}{% endblock incluir_html %}
 							</div>
 						</div>
 						<div id="panel_derecho" class="col-sm-4 col-lg-3 color_fondo_body">
@@ -73,9 +73,11 @@
 						</div>
 					</div>					
 				</div>
+
 			<!--</div>-->
 		</div>	
-		<footer class="footer">{% block footer %}{% endblock footer %}</footer>				
+		{% block footer %}{% endblock footer %}		
+
 	</body>	
 </html>
 

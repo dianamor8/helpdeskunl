@@ -1,0 +1,136 @@
+
+{% extends "home/home_general.html" %}
+{% block files_js %}
+	<script type="text/javascript" src="/media/js/jquery.form.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/centro_asistencia.js"></script>
+{% endblock files_js %}
+{% load tags %}
+{% load validadores_template %}
+{% block contenido %}
+	<div class='page-header'>
+		<h3>
+			{{ object.nombre }}
+			<br>
+			<small>{{ object.descripcion }}</small>
+		</h3>
+	</div>
+	<div class="panel panel-default">
+		<div class="container-fluid panel-heading">
+			<div class="col-sm-9 col-md-10" style="padding: 1%;">
+				<h3 class="panel-title" ><b>Usuarios Administradores</b></h3>					
+			</div>
+			<div class="col-sm-3 col-md-2">				
+				<!--VENTANA PARA BUSCAR USUARIOS ASESORES TÉCNICOS-->
+				<a class= 'btn btn-success'>					
+					Buscar Usuario
+				</a>
+			</div>	
+		</div>
+		<div class="panel-body">					
+			{% if jefes_departamento %}
+				<table class='table table-bordered table-hover table-condensed'>
+					<thead>
+						<tr>
+							<th>Cédula</th>
+							<th>Nombres</th>
+							<th>Departamento</th>
+						</tr>
+					</thead>
+					{% for usuario in jefes_departamento%}					
+						<tbody>
+							<tr>
+								<td>{{usuario.dni}}</td>
+								<td>{{usuario.get_full_name}}</td>
+								<td>{{usuario.departamento}}</td>					
+							</tr>
+						</tbody>
+					{% endfor %}
+				</table>
+			{% else %}
+				<i><h5>Aún no se han agregado usuarios administradores para este centro.</h5></i>	
+			{% endif %}			
+		</div>
+	</div>	
+	
+	<div class="panel panel-default">		
+		<div class="container-fluid panel-heading">
+			<div class="col-sm-9 col-md-10" style="padding: 1%;">
+				<h3 class="panel-title" ><b>Asesores Técnicos</b></h3>					
+			</div>
+			<div class="col-sm-3 col-md-2">				
+				<!--VENTANA PARA BUSCAR USUARIOS ASESORES TÉCNICOS-->
+				<a class= 'btn btn-success'>Buscar Usuario</a>				
+			</div>	
+		</div>
+		<div class="panel-body">
+			{% if asesores_tecnicos %}
+				<table class='table table-bordered table-hover table-condensed'>
+					<thead>
+						<tr>
+							<th>Cédula</th>
+							<th>Nombres</th>
+							<th>Departamento</th>
+						</tr>
+					</thead>
+					{% for tecnico in asesores_tecnicos%}
+						<tbody>
+							<tr>
+								<td>{{tecnico.dni}}</td>
+								<td>{{tecnico.get_full_name}}</td>
+								<td>{{tecnico.departamento}}</td>					
+							</tr>
+						</tbody>
+					{% endfor %}
+				</table>
+			{% else %}
+				<i><h5>Aún no se han agregado usuarios asesores técnicos para este centro.</h5></i>	
+			{% endif %}
+		</div>
+	</div>
+
+	<div class="panel panel-default">		
+		<div class="container-fluid panel-heading">
+			<div class="col-sm-9 col-md-10" style="padding: 1%;">
+				<h3 class="panel-title" ><b>Servicios Disponibles</b></h3>					
+			</div>
+			<div class="col-sm-3 col-md-2">
+				{% if perms.centro_asistencia.add_servicio %}
+					<!--MODAL PARA AGREGAR SERVICIO-->
+					<a class= 'btn btn-primary'>Agregar Nuevo</a>
+				{% endif %}
+			</div>	
+		</div>	
+		<div class="panel-body">
+			{% if object.servicio_set.all %}
+				<table class='table table-bordered table-hover'>
+					<thead>
+						<tr>
+							<th>Servicio</th>
+							<th>Descripción</th>						
+						</tr>
+					</thead>
+					{% for servicio in object.servicio_set.all %}					
+						<tbody>
+							<tr id="tr_servicio{{servicio.id}}">						
+								<td>
+									{% url 'servicio_update' pk=servicio.id as url_edit_servicio %}
+									<a data-toggle="modal" href="{{url_edit_servicio}}" data-target="#modal" title="Editar Servicio" data-tooltip>
+									{{servicio.nombre}}</a></td>
+								<td>{{servicio.descripcion}}</td>					
+							</tr>
+						</tbody>
+					{% endfor %}
+				</table>
+			{% else %}
+				<i><h5>Aún no se han agregado servicios.</h5></i>	
+			{% endif %}			
+		</div>
+	</div>
+
+<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">		
+		</div>
+	</div> 		
+</div> 
+{% endblock contenido %}

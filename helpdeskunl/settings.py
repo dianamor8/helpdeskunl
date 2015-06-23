@@ -23,10 +23,9 @@ SECRET_KEY = '(usi7)r_az-w+gf@7u9(892^1a)ji1cf4+sz75m83n&o_67-8)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
 TEMPLATE_DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 #PARA QUE EL USUARIO SEA MANEJADO POR PERFIL
@@ -39,7 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'django.contrib.staticfiles',    
     'helpdeskunl.apps.tiposoporte',
     'helpdeskunl.apps.incidencia',
     'helpdeskunl.apps.home',

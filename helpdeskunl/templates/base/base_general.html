@@ -12,9 +12,8 @@
 	<link rel="stylesheet" href="/media/bootstrap-3.3.2/css/bootstrap.min.css">
 	{% block files_css %}{% endblock files_css %}
 	<!--BLOQUE DE REFERENCIA A ARCHIVOS JS-->
-	<script type="text/javascript" src='/media/js/jquery.js'></script>
-	<script type="text/javascript" src="/media/js/jquery.min.js" charset="utf-8" async defer></script>
-	<script type="text/javascript" src='/media/bootstrap-3.3.2/js/bootstrap.min.js'></script> 
+	<script type="text/javascript" src='/media/js/jquery.js'></script>		
+	<script type="text/javascript" src='/media/bootstrap-3.3.2/js/bootstrap.min.js'></script> 		
 	{% block files_js %}{% endblock files_js %}
 </head> 
 	<body>
@@ -27,6 +26,7 @@
 			</div>
 		</div>	
 		<footer class="footer">{% block footer %}{% endblock footer %}</footer>				
+		{% block incluir_html %}{% endblock incluir_html %}
 	</body>	
 </html>
 

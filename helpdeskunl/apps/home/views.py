@@ -47,11 +47,11 @@ def panel_view(request, dni):
 		grupos = usuario.groups.values_list('name',flat=True)
 		for grupo in grupos:			
 			grupo.encode('utf-8')			
-			if grupo == u'Jefe Departamento':
+			if grupo == u'JEFE DEPARTAMENTO':
 				return render(request,'home/home_admin.html')
-			if grupo == u'Técnico Operativo':
+			if grupo == u'ASISTENTE TECNICO':
 				return render(request,'home/home_operativo.html')
-			if grupo == u'Usuario Final':
+			if grupo == u'USUARIO FINAL':
 				return render(request,'home/home_cliente.html')
 		return render(request,'home/home_cliente.html')			
 	else:

@@ -1,10 +1,12 @@
 {% extends "home/home_general.html" %}
+{% block files_js %}
+	<script type="text/javascript" src="/media/js/helpdeskunl/centro_asistencia.js"></script>
+{% endblock files_js %}
 {% load tags %}
-{% block contenido %}	
-	{# <p>AQUI EL NOMBRE DEL GRUPO {{user.groups.all}} </p>	 #}
-	 <!--{% csrf_token %}
-	{%agregar_centro_asistencia%} -->	
+{% load validadores_template %}
+{% block contenido %}
 	<br>	
+	{# {{perms.centro_asistencia}}	 #}
 	<div class="panel panel-default">
 		<div class="panel-heading">
 			<div class="container-fluid">
@@ -12,42 +14,87 @@
 					<b><h3 class="panel-title" >CENTRO DE ASISTENCIA</h3></b>					
 				</div>
 				<div class="col-sm-3 col-md-2">
-					<a id ="modalAgregar" data-target="#centro_asistencia_modal" data-toggle="modal" class="btn btn-primary">Agregar Nuevo</a>			
+
+					{% if perms.centro_asistencia.add_centro_asistencia %}
+						<a id ="modalAgregar" data-target="#centro_asistencia_modal" data-toggle="modal" class="btn btn-primary">Agregar Nuevo</a>
+					{% endif %}
 				</div>	
 			</div>			
 		</div><!--FIN PANEL-HEADING-->
 		<div class="panel-body">
 			<div class="table-responsive">
-				
+				{% if centros_asistencia %}
+					<table class="table table-bordered table-striped" id="tabla_centro_asistencia">
+						<thead>
+							<tr>
+								<th>Nombre</th>
+								<th>Descripción</th>
+								<!--{# {% if user|tiene_grupo:"JEFE DEPARTAMENTO" %}
+									<th>Administrar</th>
+								{% endif %}	#}-->
+								{% if perms.centro_asistencia.delete_centro_asistencia %}
+									<th>Acción</th>									
+								{% endif %}
 
+							</tr>
+						</thead>
+						<tbody>
+							{% for centro in centros_asistencia %}
+								<tr>
+									<td>
+										{% if perms.centro_asistencia.change_centro_asistencia %}
+											<a href="{{centro.get_absolute_url}}">{{centro.nombre}}</a>
+										{% else %}
+											{{centro.nombre}}
+										{% endif %}
+									</td>									
+									<td>{{centro.descripcion}}</td>									
+									{% if perms.centro_asistencia.delete_centro_asistencia %}
+										<td><a href="" class="btn btn-danger">
+											<span class="glyphicon glyphicon-trash"></span> 
+											Eliminar
+										</a></td>
+									{% endif %}		
+								</tr>
+							{% endfor %}
+							
+						</tbody>
+
+					</table>
+
+				{% else %} 				
+					<i><h5>No hay centros de asistencia que mostrar</h5></i>
+				{% endif %}
 			</div>			
-			<div class="modal fade" id="centro_asistencia_modal">
-				<div class="modal-dialog">
-					<div class="modal-content">					
-						<div class="modal-body">										
-							<div class="modal-header">
-								<button type="button" class="close" data-dismiss="modal">&times;</button>
-								<h3>Agregar Centro de Asistencia</h3>
-							</div>
-							<br>
-							<div id='id_mensaje_centro_asistencia'></div>
-							<br>
-							<form id="add_centro_asistencia_form" method="post" class="form-horizontal left">
-								{%csrf_token%}
-								{%agregar_centro_asistencia%}						
-								<div class="control-group modal-footer">
-									<div class='controls'>
-										<input id='crear' type="submit" value='Guardar' class='btn btn-primary'>
-										<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>	
-									</div>							
-								</div>								
-							</form>					
-						</div>				
-					</div>	
-				</div>		
-			</div>
-			<!--%%%-->
+			
+			
 		</div>
+	</div>
+	<!--%%MODAL AGREGAR CENTRO_ASISTENCIA%%-->
+	<div class="modal fade" id="centro_asistencia_modal" role="dialog" aria-labelledby="centro_asistencia_modalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">					
+				<div class="modal-body">										
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">&times;</button>
+						<h3>Agregar Centro de Asistencia</h3>
+					</div>
+					<br>
+					<div id='id_mensaje_centro_asistencia'></div>
+					<br>
+					<form id="add_centro_asistencia_form" method="post" class="form-horizontal left">
+						{%csrf_token%}
+						{%agregar_centro_asistencia%}						
+						<div class="control-group modal-footer">
+							<div class='controls'>
+								<input id='crear' type="submit" value='Guardar' class='btn btn-primary'>
+								<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>	
+							</div>							
+						</div>								
+					</form>					
+				</div>				
+			</div>	
+		</div>		
 	</div>
 
 {% endblock contenido %}
