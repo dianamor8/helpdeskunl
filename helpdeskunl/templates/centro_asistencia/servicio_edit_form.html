@@ -1,32 +1,27 @@
-<!--<html>
-<head>	
-	<script type="text/javascript" src="/media/js/jquery.form.js"></script>
-	<script type="text/javascript" src="/media/js/helpdeskunl/centro_asistencia.js"></script>
-	<script type="text/javascript" src='/media/js/jquery.js'></script>		
-	<script type="text/javascript" src='/media/bootstrap-3.3.2/js/bootstrap.min.js'></script> 
-</head>
-<body>
-<div class="modal-dialog">
-<div class="modal-content">-->
-{% url 'servicio_update' pk=servicio.id as url_edit_servicio %}
-<form id="servicio_update_form" method='post' class="form form-horizontal" role="form" action='{{url_edit_servicio}}'>
-	<div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-		<h4 class="modal-title" id="myModalLabel">Editar Servicio</h4>
-	</div>
+{% if servicio.id %}
+	{% url 'servicio_update' pk=servicio.id as url_edit_servicio %}
+	<form id="servicio_update_form" method='post' class="form form-horizontal" role="form" action='{{url_edit_servicio}}'>
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			<h4 class="modal-title" id="myModalLabel">Editar Servicio</h4>
+		</div>
+{% else %}
+	{% url 'servicio_add' centro=centro as url_add_servicio %}
+	<form id="servicio_create_form" method='post' class="form form-horizontal" role="form" action='{{url_add_servicio}}'>
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			<h4 class="modal-title" id="myModalLabel">Nuevo Servicio</h4>
+		</div>
+{% endif %}	
 	<div class="modal-body">		
 		{% csrf_token %}		
 		{% for formulario in form%}	 
 			{% if formulario.errors %}
 				<div class="alert alert-warning alert-dismissable">
-					<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> 
-					<ul class="form-errors">
-						{% for error in formulario.errors %} 
-							<li><span class="help-block"></span>
-								{{error}}								
-							</li>
-						{% endfor %}					
-					</ul>
+					<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> 					
+					{% for error in formulario.errors %} 				
+						<small>{{error}}</small>
+					{% endfor %}					
 				</div>
 			{% endif %} 
 			<div class="form-group">
@@ -47,19 +42,32 @@
 <script> 
 	var form_options = { 
 		target: '.modal-content',
-		success: function(data){			
-			alert("Servicio actualizado con éxito.");
-			jQuery('#modal').modal('hide');			
+		success: function(data){						
 			if (data.respuesta) {
-				var fila = document.getElementById("tr_servicio"+data.id);				
-				fila.innerHTML = data.fila;
-			}			
+				if(data.respuesta == 'create'){
+					jQuery('#modal').modal('hide');			
+					// SI NO CONTIENE DATOS AGREGADOS AGREGAR LA TABLA
+					if(document.getElementById("tbl_servicios")==null){						
+						var tabla = '<table id="tbl_servicios" class="table table-bordered table-hover"><thead><tr><th>Servicio</th><th>Descripción</th><th>Acción</th></tr></thead>';
+						$('#div_servicios').html(tabla);					
+					}					
+					//AGREGAR LA NUEVA FILA AL DOM	
+					if(document.getElementById("tr_servicio"+data.id)==null){						
+						$('#tbl_servicios tr:last').after(data.fila);
+					}					
+				}
+				if(data.respuesta == 'update'){
+					jQuery('#modal').modal('hide');			
+					// REEMPLAZO DE LA FILA ACTUALIZADA EN EL DOM
+					var fila = document.getElementById("tr_servicio"+data.id);				
+					fila.innerHTML = data.fila;					
+				}				
+			}
 		},
 	}
 	// EJECUTAR LA FUNCIÓN DE AJAX
 	$('#servicio_update_form').ajaxForm(form_options);	
+	$('#servicio_create_form').ajaxForm(form_options);	
 	// LIMPIAR CAMPOS DEL MODAL
 	$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
 </script>
-<!--</body>
-</html>-->

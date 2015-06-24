@@ -95,18 +95,20 @@
 			</div>
 			<div class="col-sm-3 col-md-2">
 				{% if perms.centro_asistencia.add_servicio %}
-					<!--MODAL PARA AGREGAR SERVICIO-->
-					<a class= 'btn btn-primary'>Agregar Nuevo</a>
+					<!--MODAL PARA AGREGAR SERVICIO-->					
+					{% url 'servicio_add' centro=object.id as url_add_servicio %}
+					<a class='btn btn-primary' data-toggle="modal" href="{{url_add_servicio}}" data-target="#modal" title="Nuevo Servicio">Agregar Nuevo</a>
 				{% endif %}
 			</div>	
 		</div>	
-		<div class="panel-body">
+		<div id="div_servicios"  class="panel-body">
 			{% if object.servicio_set.all %}
-				<table class='table table-bordered table-hover'>
+				<table id="tbl_servicios" class='table table-bordered table-hover'>
 					<thead>
 						<tr>
 							<th>Servicio</th>
-							<th>Descripción</th>						
+							<th>Descripción</th>
+							<th>Acción</th>	
 						</tr>
 					</thead>
 					{% for servicio in object.servicio_set.all %}					
@@ -116,7 +118,13 @@
 									{% url 'servicio_update' pk=servicio.id as url_edit_servicio %}
 									<a data-toggle="modal" href="{{url_edit_servicio}}" data-target="#modal" title="Editar Servicio" data-tooltip>
 									{{servicio.nombre}}</a></td>
-								<td>{{servicio.descripcion}}</td>					
+								<td>{{servicio.descripcion}}</td>
+
+								<td>
+									{% url 'servicio_delete' pk=servicio.id as url_delete_servicio %}
+									<a href="{{url_delete_servicio}}" role="button" class="btn btn-danger delete" data-toggle="modal" data-target="#delele_modal" title="Eliminar Servicio" data-nombre="{{servicio.nombre}}" data-id='{{servicio.id}}'>
+									<span class="glyphicon glyphicon-trash"></span></a>
+								</td>
 							</tr>
 						</tbody>
 					{% endfor %}
@@ -126,11 +134,18 @@
 			{% endif %}			
 		</div>
 	</div>
-
+<!--MODAL PARA EDITAR-->
 <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 	<div class="modal-dialog">
 		<div class="modal-content">		
 		</div>
 	</div> 		
 </div> 
+<!--MODAL PARA ELIMINAR-->
+<div id="delele_modal" class="modal fade" role="dialog" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">		
+	<div class="modal-dialog">
+		<div class="modal-content">		
+		</div>
+	</div>
+</div>
 {% endblock contenido %}

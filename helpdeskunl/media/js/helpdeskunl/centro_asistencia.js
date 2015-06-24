@@ -1,7 +1,11 @@
 $(document).ready(function() {
 	// FORMULARIOS
 	centro_asistencia_add($('#add_centro_asistencia_form'),'#centro_asistencia_modal', '/centro_asistencia/add');
-	clear_data_modal('#centro_asistencia_modal');		
+	clear_data_modal('#centro_asistencia_modal');	
+
+	// CARGAR DATA-
+	modalDatosEliminar('.delete');
+	
 });
 
 function clear_data_modal (idModal) {
@@ -49,5 +53,13 @@ function centro_asistencia_add (idForm, idModal, url_rest) {
 		});
 		
 	});	
+}
+
+
+function modalDatosEliminar (modalDelete) {
+	$(document.body).on('click', modalDelete, function(){		
+		var nombre = $(this).data('nombre');		
+		$('#modal_nombre').text(nombre);		
+	});	 
 }
 

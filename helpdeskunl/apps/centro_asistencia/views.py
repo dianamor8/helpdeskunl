@@ -82,7 +82,95 @@ class Centro_Asistencia_DetailView(DetailView):
 	def dispatch(self, *args, **kwargs):
 		return super(Centro_Asistencia_DetailView, self).dispatch(*args, **kwargs)
 		
+##################
+# MODEL SERVICIO #
+##################
 
+class ServicioCreate(CreateView):
+	model = Servicio
+	template_name = 'centro_asistencia/servicio_edit_form.html'
+	form_class = ServicioForm
+
+	def get_context_data(self, **kwargs):
+		ctx = super(ServicioCreate, self).get_context_data(**kwargs)
+		ctx['centro'] = self.kwargs['centro']
+		return ctx
+
+	def dispatch(self, *args, **kwargs):		
+		self.servicio_centro = Centro_Asistencia.objects.get(pk=self.kwargs['centro'])		
+		return super(ServicioCreate, self).dispatch(*args, **kwargs)		
+
+	def form_valid(self, form):		
+		print "entra"
+		self.object = form.save(commit=False)
+		centro = Centro_Asistencia.objects.get(pk=self.kwargs['centro'])
+		self.object.centro = centro		
+	 	self.object.save()
+	 	servicio = self.object
+	 	if self.request.is_ajax():	 		
+	 		fila = '<tr id="tr_servicio%s"><td><a data-toggle="modal" href="/servicio/%s" data-target="#modal" title="Editar Servicio" data-tooltip>%s</a></td><td> %s</td> '\
+	 				'<td><a href="/servicio/%s/delete" role="button" class="btn btn-danger delete" data-toggle="modal" data-target="#delele_modal" title="Eliminar Servicio" data-nombre="%s" data-id="%s">'\
+	 				'<span class="glyphicon glyphicon-trash"></span></a></td></tr>' % (servicio.id, servicio.id, servicio.nombre, servicio.descripcion, servicio.id, servicio.nombre,servicio.id)	 		
+	 		ctx = {'respuesta':'create', 'fila':fila, 'id':servicio.id,}	
+	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
+	 	else:
+	 		return super(ServicioCreate, self).form_valid(form)
+
+class ServicioUpdate(UpdateView):
+	model = Servicio
+	template_name = 'centro_asistencia/servicio_edit_form.html'
+	form_class = ServicioForm 	
+
+	def dispatch(self, *args, **kwargs):		
+		self.servicio_id = kwargs['pk']
+		return super(ServicioUpdate, self).dispatch(*args, **kwargs)	
+
+	def form_valid(self, form):		
+	 	form.save()	 	
+	 	if self.request.is_ajax():	 		
+	 		servicio = self.object
+	 		fila = '<tr id="tr_servicio%s"><td><a data-toggle="modal" href="/servicio/%s" data-target="#modal" title="Editar Servicio" data-tooltip>%s</a></td><td> %s</td> '\
+	 				'<td><a href="/servicio/%s/delete" role="button" class="btn btn-danger delete" data-toggle="modal" data-target="#delele_modal" title="Eliminar Servicio" data-nombre="%s" data-id="%s">'\
+	 				'<span class="glyphicon glyphicon-trash"></span></a></td></tr>' % (servicio.id, servicio.id, servicio.nombre, servicio.descripcion, servicio.id, servicio.nombre,servicio.id)
+	 		id_servicio = servicio.id
+	 		ctx = {'respuesta':'update', 'fila':fila, 'id':id_servicio,}	
+	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
+	 	else:
+	 		return super(ServicioUpdate, self).form_valid(form)
+
+class ServicioDelete(DeleteView):
+	model = Servicio
+
+	def delete(self, request, *args, **kwargs):	
+		self.object = self.get_object()
+		id_servicio = self.object.id
+		self.object.delete()
+		ctx = {'respuesta': 'ok', 'id':id_servicio,}
+		return HttpResponse(json.dumps(ctx), content_type='application/json')
+
+
+	# def get_success_url(self):		
+	# 	return '/centro_asistencia/%i' %(self.object.centro.id)
+	
+	# 	servicio = Servicio.objects.get(id=self.servicio_id)
+	# 	centro_asistencia = Centro_Asistencia.objects.get(pk=servicio_centro_id)
+	# 	return HttpResponse(render_to_string('centro_asistencia/servicio_edit_form_success.html', {'servicio': servicio}))	
+	
+	### PUEDE LLEGAR A SERVIR ###
+	# fields = ['nombre', 'descripcion',]
+	# form_class = forms.models.modelform_factory(Servicio, 
+	# 	fields={'nombre', 'descripcion', },
+	# 	widgets={
+	# 		'nombre': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Nombre del servicio.',}),
+	# 		'descripcion': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Descripción del servicio.',})
+	# 	}, 
+	# 	labels ={
+	# 		'nombre' : 'Nombre:',
+	# 		'descripcion' : 'Descripción:',
+	# 	},)
+	# def get_form_class(self):		
+	# 	print self.form_class._meta.fields
+	# 	return self.form_class
 
 # def areas_de_produccion_view(request):
 # 	if request.user.is_authenticated():	
@@ -105,53 +193,3 @@ class Centro_Asistencia_DetailView(DetailView):
 # http://laempresaconsoftwareabierto.blogspot.com/2013/09/jquery-autocomplete-en-django.html
 
 ##############
-class ServicioCreate(CreateView):
-	model = Servicio
-	fields = ['nombre', 'descripcion',]
-
-class ServicioUpdate(UpdateView):
-	model = Servicio
-	template_name = 'centro_asistencia/servicio_edit_form.html'
-	form_class = ServicioForm 	
-
-	def dispatch(self, *args, **kwargs):		
-		self.servicio_id = kwargs['pk']
-		return super(ServicioUpdate, self).dispatch(*args, **kwargs)
-
-	# def get_success_url(self):		
-	# 	return '/centro_asistencia/%i' %(self.object.centro.id)
-
-	def form_valid(self, form):		
-	 	form.save()	 	
-	 	if self.request.is_ajax():	 		
-	 		servicio = self.object
-	 		fila = '<tr id="tr_servicio%s"><td><a data-toggle="modal" href="/servicio/%s" data-target="#modal" title="Editar Servicio" data-tooltip>%s</a></td><td> %s</td></tr>' % (servicio.id, servicio.id, servicio.nombre, servicio.descripcion)
-	 		id_servicio = servicio.id
-	 		ctx = {'respuesta':'success.', 'fila':fila, 'id':id_servicio,}	
-	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
-	 	else:
-	 		return super(ServicioUpdate, self).form_valid(form)
-
-	# 	servicio = Servicio.objects.get(id=self.servicio_id)
-	# 	centro_asistencia = Centro_Asistencia.objects.get(pk=servicio_centro_id)
-	# 	return HttpResponse(render_to_string('centro_asistencia/servicio_edit_form_success.html', {'servicio': servicio}))	
-	
-	### PUEDE LLEGAR A SERVIR ###
-	# fields = ['nombre', 'descripcion',]
-	# form_class = forms.models.modelform_factory(Servicio, 
-	# 	fields={'nombre', 'descripcion', },
-	# 	widgets={
-	# 		'nombre': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Nombre del servicio.',}),
-	# 		'descripcion': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Descripción del servicio.',})
-	# 	}, 
-	# 	labels ={
-	# 		'nombre' : 'Nombre:',
-	# 		'descripcion' : 'Descripción:',
-	# 	},)
-	# def get_form_class(self):		
-	# 	print self.form_class._meta.fields
-	# 	return self.form_class
-
-class ServicioDelete(DeleteView):
-	model = Servicio
-	success_url = reverse_lazy('/lista/centro_asistencia')
