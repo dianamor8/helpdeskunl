@@ -56,6 +56,16 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',    
 )
 
+# TEMPLATE_CONTEXT_PROCESSORS = (
+#     "django.contrib.auth.context_processors.auth",
+#     "django.core.context_processors.debug",
+#     "django.core.context_processors.i18n",
+#     "django.core.context_processors.media",
+#     "django.core.context_processors.static",
+#     "django.core.context_processors.tz",
+#     "django.contrib.messages.context_processors.messages")
+
+
 ROOT_URLCONF = 'helpdeskunl.urls'
 
 WSGI_APPLICATION = 'helpdeskunl.wsgi.application'
@@ -106,3 +116,5 @@ MEDIA_URL = '/media/'
 #PARA DECORADOR DE LOGIN_URL
 LOGIN_URL = '/login/' # HASTA MIENTRAS 11759072 25 DE MAYO 11:30 CONSULTA GENERAL. 
 LOGIN_REDIRECT_URL = '/'
+
+# MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'

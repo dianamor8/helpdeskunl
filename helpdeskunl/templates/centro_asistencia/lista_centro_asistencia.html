@@ -7,88 +7,93 @@
 {% block contenido %}
 	<br>	
 	{# {{perms.centro_asistencia}}	 #}
+<!--{# 	{% if messages %}
+		<ul class="messages">
+			{% for message in messages %}
+				<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+			{% endfor %}
+		</ul>
+	{% endif %} #}-->
 	<div class="panel panel-default">
-		<div class="panel-heading">
-			<div class="container-fluid">
-				<div class="col-sm-9 col-md-10" style="padding: 1%;">
-					<b><h3 class="panel-title" >CENTRO DE ASISTENCIA</h3></b>					
-				</div>
-				<div class="col-sm-3 col-md-2">
-
-					{% if perms.centro_asistencia.add_centro_asistencia %}
-						<a id ="modalAgregar" data-target="#centro_asistencia_modal" data-toggle="modal" class="btn btn-primary">Agregar Nuevo</a>
-					{% endif %}
-				</div>	
-			</div>			
-		</div><!--FIN PANEL-HEADING-->
-		<div class="panel-body">
-			<div class="table-responsive">
-				{% if centros_asistencia %}
-					<table class="table table-bordered table-striped" id="tabla_centro_asistencia">
-						<thead>
-							<tr>
-								<th>Nombre</th>
-								<th>Descripción</th>
-								<!--{# {% if user|tiene_grupo:"JEFE DEPARTAMENTO" %}
-									<th>Administrar</th>
-								{% endif %}	#}-->
-								{% if perms.centro_asistencia.delete_centro_asistencia %}
-									<th>Acción</th>									
-								{% endif %}
-
-							</tr>
-						</thead>
-						<tbody>
-							{% for centro in centros_asistencia %}
-								<tr>
-									<td>
-										{% if perms.centro_asistencia.change_centro_asistencia %}
-											<a href="{{centro.get_absolute_url}}">{{centro.nombre}}</a>
-										{% else %}
-											{{centro.nombre}}
-										{% endif %}
-									</td>									
-									<td>{{centro.descripcion}}</td>									
-									{% if perms.centro_asistencia.delete_centro_asistencia %}
-										<td><a href="" class="btn btn-danger">
-											<span class="glyphicon glyphicon-trash"></span> 
-											Eliminar
-										</a></td>
-									{% endif %}		
-								</tr>
-							{% endfor %}
-							
-						</tbody>
-
-					</table>
-
-				{% else %} 				
-					<i><h5>No hay centros de asistencia que mostrar</h5></i>
+		<div class="panel-heading container-fluid">			
+			<div class="col-sm-9 col-md-10" style="padding: 1%;">
+				<h3 class="panel-title" ><b>Centro de Asistencia</b></h3>					
+			</div>
+			<div class="col-sm-3 col-md-2">
+				{% if perms.centro_asistencia.add_centro_asistencia %}
+					<!--<a id ="modalAgregar" data-target="#centro_asistencia_modal" data-toggle="modal" class="btn btn-primary">Agregar Nuevo</a>-->					
+					{% url 'centro_asistencia_add' as url_add_centro_asistencia %}
+					<a class='btn btn-primary' data-toggle="modal" href="{{url_add_centro_asistencia}}" data-target="#modal_centro_asistencia" title="Nuevo Centro de Asistencia">Agregar Nuevo</a>
 				{% endif %}
-			</div>			
-			
-			
+			</div>
+		</div><!--FIN PANEL-HEADING-->
+		<div class="panel-body" id= "div_centros">			
+			{% if centros_asistencia %}
+				<table class="table table-bordered table-hover" id="tbl_centros">
+					<thead>
+						<tr>
+							<th>Nombre</th>
+							<th>Descripción</th>							
+							{% if perms.centro_asistencia.delete_centro_asistencia or perms.centro_asistencia.change_centro_asistencia %}
+								<th>Acción</th>									
+							{% endif %}
+						</tr>
+					</thead>
+					{% for centro in centros_asistencia %}
+						<tbody>						
+							<tr id="tr_centro_asistencia{{centro.id}}">
+								<td>
+									{% if perms.centro_asistencia.change_centro_asistencia %}
+										<a href="{{centro.get_absolute_url}}">{{centro.nombre}}</a>
+									{% else %}
+										{{centro.nombre}}
+									{% endif %}
+								</td>									
+								<td>{{centro.descripcion}}</td>									
+								<td>
+									<div class="row-fluid">
+										<div class="col-sm-5">
+											{% if perms.centro_asistencia.change_centro_asistencia %}
+												{% url 'centro_asistencia_update' pk=centro.id as url_edit_centro_asistencia %}
+												<a data-toggle="modal" href="{{url_edit_centro_asistencia}}" data-target="#modal_centro_asistencia" title="Editar" data-tooltip class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span>
+												</a>						
+											{% endif %}
+										</div>
+										<div class="col-sm-5">
+											{% if perms.centro_asistencia.delete_centro_asistencia %}
+												{% url 'centro_asistencia_delete' pk=centro.id as url_delete_centro_asistencia %}
+												<a data-toggle="modal" href="{{url_delete_centro_asistencia}}" data-target="#delele_modal_ca" title="Eliminar" data-tooltip class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span>
+												</a>						
+											{% endif %}										
+										</div>
+									</div>									
+								</td>
+							</tr>
+						</tbody>
+					{% endfor %}
+				</table>
+			{% else %} 				
+				<i><h5>No hay centros de asistencia que mostrar</h5></i>
+			{% endif %}			
 		</div>
 	</div>
 	<!--%%MODAL AGREGAR CENTRO_ASISTENCIA%%-->
 	<div class="modal fade" id="centro_asistencia_modal" role="dialog" aria-labelledby="centro_asistencia_modalLabel" aria-hidden="true">
 		<div class="modal-dialog">
 			<div class="modal-content">					
-				<div class="modal-body">										
-					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal">&times;</button>
-						<h3>Agregar Centro de Asistencia</h3>
-					</div>
-					<br>
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h3>Agregar Centro de Asistencia</h3>
+				</div>
+				<div class="modal-body">					
 					<div id='id_mensaje_centro_asistencia'></div>
-					<br>
 					<form id="add_centro_asistencia_form" method="post" class="form-horizontal left">
 						{%csrf_token%}
 						{%agregar_centro_asistencia%}						
 						<div class="control-group modal-footer">
 							<div class='controls'>
-								<input id='crear' type="submit" value='Guardar' class='btn btn-primary'>
 								<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>	
+								<input id='crear' type="submit" value='Guardar' class='btn btn-primary'>
 							</div>							
 						</div>								
 					</form>					
@@ -97,5 +102,20 @@
 		</div>		
 	</div>
 
+<!--MODAL PARA EDITAR CENTRO DE ASISTENCIA-->
+	<div class="modal fade" id="modal_centro_asistencia" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">		
+			</div>
+		</div> 		
+	</div>
+
+<!--MODAL PARA ELIMINAR CENTRO DE ASISTENCIA-->
+<div id="delele_modal_ca" class="modal fade" role="dialog" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">		
+	<div class="modal-dialog">
+		<div class="modal-content">		
+		</div>
+	</div>
+</div>
 {% endblock contenido %}
 

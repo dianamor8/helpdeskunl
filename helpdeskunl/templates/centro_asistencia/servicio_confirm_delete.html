@@ -26,10 +26,10 @@
 						$('#div_servicios').html(parrafo);
 					}
 				}
+				$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
 			},
 		}
 		// EJECUTAR LA FUNCIÓN DE AJAX
-		$('#servicio_delete_form').ajaxForm(form_options);	
-		// LIMPIAR CAMPOS DEL MODAL
-		$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
+		$('#servicio_delete_form').ajaxForm(form_options);			
+		
 </script>

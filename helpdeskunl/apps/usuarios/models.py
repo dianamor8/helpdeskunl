@@ -28,7 +28,7 @@ class PerfilUserManager(BaseUserManager):
 
 # MANAGER PARA USUARIOS DE TIPO 
 class Jefe_Departamento_Manager(models.Manager):
-	def get_queryset(self):
+	def get_queryset(self):		
 		return super(Jefe_Departamento_Manager, self).get_queryset().filter(groups__name='JEFE DEPARTAMENTO')
 
 class Asesor_Tecnico_Manager(models.Manager):

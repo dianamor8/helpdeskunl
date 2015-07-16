@@ -1,12 +1,12 @@
-
 {% extends "home/home_general.html" %}
-{% block files_js %}
-	<script type="text/javascript" src="/media/js/jquery.form.js"></script>
+{% block files_js %}	
 	<script type="text/javascript" src="/media/js/helpdeskunl/centro_asistencia.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/usuarios.js"></script>
 {% endblock files_js %}
 {% load tags %}
 {% load validadores_template %}
-{% block contenido %}
+{% block contenido %}	
+	<input id='centro_asistencia_pk' type="hidden" value='{{object.id}}'>
 	<div class='page-header'>
 		<h3>
 			{{ object.nombre }}
@@ -19,11 +19,11 @@
 			<div class="col-sm-9 col-md-10" style="padding: 1%;">
 				<h3 class="panel-title" ><b>Usuarios Administradores</b></h3>					
 			</div>
-			<div class="col-sm-3 col-md-2">				
-				<!--VENTANA PARA BUSCAR USUARIOS ASESORES TÉCNICOS-->
-				<a class= 'btn btn-success'>					
-					Buscar Usuario
-				</a>
+			<div class="col-sm-3 col-md-2">			
+				{% if perms.centro_asistencia.add_personal_operativo %}
+					<!--VENTANA PARA BUSCAR USUARIOS USUARIOS ADMINISTRADORES-->
+					<a id= 'btn_buscar_usuario_admin' href="#buscar_usuarios" class='btn btn-info' data-toggle='modal'><i class='icon-search'></i>Buscar Usuario</a>				
+				{% endif %}
 			</div>	
 		</div>
 		<div class="panel-body">					
@@ -34,6 +34,7 @@
 							<th>Cédula</th>
 							<th>Nombres</th>
 							<th>Departamento</th>
+							<th>Acción</th>
 						</tr>
 					</thead>
 					{% for usuario in jefes_departamento%}					
@@ -41,7 +42,10 @@
 							<tr>
 								<td>{{usuario.dni}}</td>
 								<td>{{usuario.get_full_name}}</td>
-								<td>{{usuario.departamento}}</td>					
+								<td>{{usuario.departamento}}</td>
+								<td>
+									<a class="btn btn-danger eliminar-usuario" role="button" title="Eliminar Usuario" data-nombre='{{usuario.get_full_name}}' data-id='{{usuario.dni}}' data-tipousuario='JEFE DEPARTAMENTO'><span class="glyphicon glyphicon-trash"></span></a>
+								</td>
 							</tr>
 						</tbody>
 					{% endfor %}
@@ -58,8 +62,10 @@
 				<h3 class="panel-title" ><b>Asesores Técnicos</b></h3>					
 			</div>
 			<div class="col-sm-3 col-md-2">				
-				<!--VENTANA PARA BUSCAR USUARIOS ASESORES TÉCNICOS-->
-				<a class= 'btn btn-success'>Buscar Usuario</a>				
+				{% if perms.centro_asistencia.add_personal_operativo %}
+					<!--VENTANA PARA BUSCAR USUARIOS ASESORES TÉCNICOS-->
+					<a id="btn_buscar_usuario_asesor" href="#buscar_usuarios" class='btn btn-info' data-toggle='modal'><i class='icon-search'></i>Buscar Usuario</a>
+				{% endif %}
 			</div>	
 		</div>
 		<div class="panel-body">
@@ -70,6 +76,7 @@
 							<th>Cédula</th>
 							<th>Nombres</th>
 							<th>Departamento</th>
+							<th>Acción</th>
 						</tr>
 					</thead>
 					{% for tecnico in asesores_tecnicos%}
@@ -77,7 +84,10 @@
 							<tr>
 								<td>{{tecnico.dni}}</td>
 								<td>{{tecnico.get_full_name}}</td>
-								<td>{{tecnico.departamento}}</td>					
+								<td>{{tecnico.departamento}}</td>
+								<td>
+									<a class="btn btn-danger eliminar-usuario" role="button" title="Eliminar Usuario" data-nombre='{{tecnico.get_full_name}}' data-id='{{tecnico.dni}}' data-tipousuario='ASESOR TECNICO'><span class="glyphicon glyphicon-trash"></span></a>
+								</td>
 							</tr>
 						</tbody>
 					{% endfor %}
@@ -148,4 +158,5 @@
 		</div>
 	</div>
 </div>
+{% include "usuario/buscar_usuarios.html" %}
 {% endblock contenido %}

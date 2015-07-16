@@ -2,6 +2,7 @@
 # HTTP
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.shortcuts import redirect
 from django.template.loader import render_to_string
 import json
 from django.core import serializers
@@ -18,21 +19,17 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.core.urlresolvers import reverse_lazy
 from django import forms
+from django.contrib import messages
 #METODOS DECORADORES
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
+# ERRORES Y EXCEPCIONES
+from django.forms.util import ErrorList
+from django.db import IntegrityError
 
-
-# from functools import partial
-# permission_required = partial(permission_required, raise_exception=True)
-
-# https://github.com/luchitoflores/ekklesia/blob/master/ciudades/views.py
-# CRUD DJANGO CON VIEWS... 
-# https://rayed.com/wordpress/?p=1266
-# Create your views here.
-
-#DECORADORES 
-#https://github.com/django/django/blob/master/django/contrib/auth/decorators.py
+##############################
+# MODEL CENTRO DE ASISTENCIA #
+##############################
 
 def permiso_requerido(user):
 	agregar = user.has_perm('centro_asistencia.add_centro_asistencia')
@@ -69,9 +66,11 @@ def lista_centro_asistencia(request):
 class Centro_Asistencia_DetailView(DetailView):		
 	model = Centro_Asistencia
 	def get_context_data(self, **kwargs):    
-		context = super(Centro_Asistencia_DetailView, self).get_context_data(**kwargs)						
-		context['jefes_departamento'] = Perfil.jefes_departamento.filter(centro_asistencia__id=self.object.id)
-		context['asesores_tecnicos'] = Perfil.asesores_tecnicos.filter(centro_asistencia__id=self.object.id)
+		context = super(Centro_Asistencia_DetailView, self).get_context_data(**kwargs)	
+		context['jefes_departamento'] = Perfil.objects.filter(personal_operativo__centro_asistencia__id=self.object.id, personal_operativo__grupo__name='JEFE DEPARTAMENTO').distinct()
+		###->context['jefes_departamento'] = Perfil.jefes_departamento.filter(centro_asistencia__id=self.object.id)
+		###->context['asesores_tecnicos'] = Perfil.asesores_tecnicos.filter(centro_asistencia__id=self.object.id)
+		context['asesores_tecnicos'] = Perfil.objects.filter(personal_operativo__centro_asistencia__id=self.object.id, personal_operativo__grupo__name='ASESOR TECNICO').distinct()
 		return context
 		# self.object -> ES EL OBJETO DEL QUE SE HABLA EN EL DETAILVIEW		
 		# context['user_jefes_list'] = Perfil.jefes_departamento.all()		
@@ -81,6 +80,101 @@ class Centro_Asistencia_DetailView(DetailView):
 	# AGREGAR UN PERMISO -> ASIGNAR USUARIOS @method_decorator(permission_required('centro_asistencia.change_centro_asistencia'))
 	def dispatch(self, *args, **kwargs):
 		return super(Centro_Asistencia_DetailView, self).dispatch(*args, **kwargs)
+
+
+class Centro_AsistenciaCreate(CreateView):
+	model = Centro_Asistencia
+	template_name = 'centro_asistencia/centro_asistencia_edit_form.html'
+	form_class = form_agregar_centro_asistencia
+		
+	def form_valid(self, form):		
+		centro_existente = Centro_Asistencia.objects.filter(nombre=form.cleaned_data['nombre'])
+		if centro_existente:
+			raise forms.ValidationError('Ya existe este centro')
+					
+		self.object = form.save()	 	
+	 	centro_asistencia = self.object	 	
+	 	usuario = self.request.user
+	 	if usuario.has_perm('centro_asistencia.change_centro_asistencia'):	 		
+	 		link = '<a href='+centro_asistencia.get_absolute_url()+'>%s</a>' % (centro_asistencia.nombre)
+	 		editar = '<div class="col-sm-5"><a data-toggle="modal" href="/centro_asistencia/edit/%s" data-target="#modal_centro_asistencia" title="Editar Centro de Asistencia" data-tooltip class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span></a></div>' % (centro_asistencia.id)
+	 	else:
+	 		link = '%s' % (centro_asistencia.nombre)
+	 		editar = ''
+
+	 	if usuario.has_perm('centro_asistencia.delete_centro_asistencia'):	 				 		
+	 		eliminar = '<div class="col-sm-5"><a data-toggle="modal" href="/centro_asistencia/%s/delete" data-target="#delele_modal_ca" title="Eliminar" data-tooltip class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span></a></div>' % (centro_asistencia.id)
+	 	else:		 		
+	 		eliminar = ''
+
+	 	if self.request.is_ajax():	 		
+	 		fila = '<tr id="tr_centro_asistencia%s"><td>%s</td><td> %s</td><td><div class="row-fluid">%s %s</div></td></tr>' % (centro_asistencia.id, link, centro_asistencia.descripcion, editar, eliminar)
+	 		ctx = {'respuesta':'create', 'fila':fila, 'id':centro_asistencia.id,}
+	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
+	 	else:
+	 		return super(Centro_AsistenciaCreate, self).form_valid(form)
+
+
+
+class Centro_AsistenciaUpdate(UpdateView):
+	model = Centro_Asistencia
+	template_name = 'centro_asistencia/centro_asistencia_edit_form.html'
+	form_class = Centro_Asistencia_UpdateForm	
+
+	@method_decorator(login_required)
+	@method_decorator(permission_required('centro_asistencia.change_centro_asistencia', raise_exception=permission_required))
+	def dispatch(self, *args, **kwargs):		
+		self.centro_asistencia_id = kwargs['pk']
+		return super(Centro_AsistenciaUpdate, self).dispatch(*args, **kwargs)
+		
+	def form_valid(self, form):
+		try:
+			form.registro_nombre_duplicado(id_centro= self.object.id)		
+		except ValidationError:			
+			form._errors["nombre"] = ErrorList([u"Ya existe un centro de asistencia con ese nombre."])						
+			return super(Centro_AsistenciaUpdate, self).form_invalid(form)
+		if self.request.is_ajax():
+			form.save()
+			centro_asistencia = self.object	 	
+	 		usuario = self.request.user
+		 	
+		 	if usuario.has_perm('centro_asistencia.change_centro_asistencia'):	 		
+		 		link = '<a href='+centro_asistencia.get_absolute_url()+'>%s</a>' % (centro_asistencia.nombre)
+		 		editar = '<div class="col-sm-5"><a data-toggle="modal" href="/centro_asistencia/edit/%s" data-target="#modal_centro_asistencia" title="Editar Centro de Asistencia" data-tooltip class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span></a></div>' % (centro_asistencia.id)
+		 	else:
+		 		link = '%s' % (centro_asistencia.nombre)
+		 		editar = ''
+
+		 	if usuario.has_perm('centro_asistencia.delete_centro_asistencia'):	 				 		
+		 		eliminar = '<div class="col-sm-5"><a data-toggle="modal" href="/centro_asistencia/%s/delete" data-target="#delele_modal_ca" title="Eliminar" data-tooltip class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span></a></div>' % (centro_asistencia.id)
+		 	else:		 		
+		 		eliminar = ''
+
+	 		fila = '<tr id="tr_centro_asistencia%s"><td>%s</td><td> %s</td><td><div class="row-fluid">%s %s </div></td></tr>' % (centro_asistencia.id, link, centro_asistencia.descripcion, editar, eliminar)	 				
+			ctx = {'respuesta':'update', 'fila':fila, 'id':centro_asistencia.id,}
+	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
+	 	else:
+	 		return super(Centro_AsistenciaUpdate, self).form_valid(form)
+
+class Centro_AsistenciaDelete(DeleteView):
+	model = Centro_Asistencia
+	
+	@method_decorator(login_required)
+	@method_decorator(permission_required('centro_asistencia.delete_centro_asistencia', raise_exception=permission_required))
+	def dispatch(self, *args, **kwargs):
+		return super(Centro_AsistenciaDelete, self).dispatch(*args, **kwargs)	
+
+	def delete(self, request, *args, **kwargs):	
+		self.object = self.get_object()
+		id_centro_asistencia = self.object.id
+		try:
+			self.object.delete()
+		except IntegrityError:
+			self.object.estado = False
+			self.object.save()		
+		ctx = {'respuesta': 'ok', 'id':id_centro_asistencia,}
+		return HttpResponse(json.dumps(ctx), content_type='application/json')
+ 	
 		
 ##################
 # MODEL SERVICIO #
@@ -96,12 +190,13 @@ class ServicioCreate(CreateView):
 		ctx['centro'] = self.kwargs['centro']
 		return ctx
 
-	def dispatch(self, *args, **kwargs):		
-		self.servicio_centro = Centro_Asistencia.objects.get(pk=self.kwargs['centro'])		
+	@method_decorator(login_required)
+	@method_decorator(permission_required('centro_asistencia.add_servicio', raise_exception=permission_required))
+	def dispatch(self, *args, **kwargs):
+		self.servicio_centro = Centro_Asistencia.objects.get(pk=self.kwargs['centro'])
 		return super(ServicioCreate, self).dispatch(*args, **kwargs)		
 
-	def form_valid(self, form):		
-		print "entra"
+	def form_valid(self, form):
 		self.object = form.save(commit=False)
 		centro = Centro_Asistencia.objects.get(pk=self.kwargs['centro'])
 		self.object.centro = centro		
@@ -121,12 +216,13 @@ class ServicioUpdate(UpdateView):
 	template_name = 'centro_asistencia/servicio_edit_form.html'
 	form_class = ServicioForm 	
 
+	@method_decorator(login_required)
+	@method_decorator(permission_required('centro_asistencia.change_servicio', raise_exception=permission_required))
 	def dispatch(self, *args, **kwargs):		
-		self.servicio_id = kwargs['pk']
-		return super(ServicioUpdate, self).dispatch(*args, **kwargs)	
-
+		self.servicio_id = kwargs['pk']		
+		return super(ServicioUpdate, self).dispatch(*args, **kwargs)
 	def form_valid(self, form):		
-	 	form.save()	 	
+	 	form.save()
 	 	if self.request.is_ajax():	 		
 	 		servicio = self.object
 	 		fila = '<tr id="tr_servicio%s"><td><a data-toggle="modal" href="/servicio/%s" data-target="#modal" title="Editar Servicio" data-tooltip>%s</a></td><td> %s</td> '\
@@ -141,12 +237,19 @@ class ServicioUpdate(UpdateView):
 class ServicioDelete(DeleteView):
 	model = Servicio
 
+	@method_decorator(login_required)
+	@method_decorator(permission_required('centro_asistencia.delete_servicio', raise_exception=permission_required))
+	def dispatch(self, *args, **kwargs):
+		return super(ServicioDelete, self).dispatch(*args, **kwargs)	
+
+
 	def delete(self, request, *args, **kwargs):	
 		self.object = self.get_object()
 		id_servicio = self.object.id
 		self.object.delete()
 		ctx = {'respuesta': 'ok', 'id':id_servicio,}
 		return HttpResponse(json.dumps(ctx), content_type='application/json')
+
 
 
 	# def get_success_url(self):		
@@ -193,3 +296,20 @@ class ServicioDelete(DeleteView):
 # http://laempresaconsoftwareabierto.blogspot.com/2013/09/jquery-autocomplete-en-django.html
 
 ##############
+
+# === OPCIONES PARA VER ERRORES DE FORMULARIO 
+# form._errors.get('nombre', ErrorList())
+# self._errors['field1'] = self._errors.get('field1', ErrorList())
+
+
+
+# from functools import partial
+# permission_required = partial(permission_required, raise_exception=True)
+
+# https://github.com/luchitoflores/ekklesia/blob/master/ciudades/views.py
+# CRUD DJANGO CON VIEWS... 
+# https://rayed.com/wordpress/?p=1266
+# Create your views here.
+
+#DECORADORES 
+#https://github.com/django/django/blob/master/django/contrib/auth/decorators.py

@@ -1,0 +1,35 @@
+{% url 'centro_asistencia_delete' pk=centro_asistencia.id as url_delete_centro_asistencia %}
+<form id="centro_asistencia_delete_form" method='post' class="form form-horizontal" role="form" action='{{url_delete_centro_asistencia}}'>
+	{% csrf_token %}
+	<div class="modal-header">
+		<h3 id= "myModalLabel">Eliminar Centro de Asistencia</h3>
+	</div>
+	<div class="modal-body">
+		<!--<p>¿Realmente desea eliminar: <strong><span id="modal_nombre"></span></strong>?</p>-->
+		<p>¿Realmente desea eliminar <strong>{{object}}</strong> ?</p>
+	</div>
+	<div class="modal-footer">
+		<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancelar" />
+		<input type="submit" class="btn btn-danger" value="Eliminar" style="margin-bottom: 5px;"/>
+	</div>
+</form>
+<script>
+	var form_options = { 
+			target: '.modal-content',
+			success: function(data){				
+				if (data.respuesta) {
+					jQuery('#delele_modal_ca').modal('hide');					
+					$('#tr_centro_asistencia'+data.id).remove();
+					var rowCount = $('#tbl_centros tr').length;
+					if(rowCount==1){
+						var parrafo = '<i><h5>Aún no se han agregado centros de asistencia.</h5></i>';
+						$('#div_centros').html(parrafo);
+					}
+				}
+			},
+		}
+		// EJECUTAR LA FUNCIÓN DE AJAX
+		$('#centro_asistencia_delete_form').ajaxForm(form_options);	
+		// LIMPIAR CAMPOS DEL MODAL
+		$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
+</script>

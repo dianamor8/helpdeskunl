@@ -41,8 +41,9 @@
 <!---->
 <script> 
 	var form_options = { 
-		target: '.modal-content',
-		success: function(data){						
+		target: '#modal .modal-content',
+		success: function(data, response){
+			console.log('entra on success' + response);
 			if (data.respuesta) {
 				if(data.respuesta == 'create'){
 					jQuery('#modal').modal('hide');			
@@ -61,9 +62,9 @@
 					// REEMPLAZO DE LA FILA ACTUALIZADA EN EL DOM
 					var fila = document.getElementById("tr_servicio"+data.id);				
 					fila.innerHTML = data.fila;					
-				}				
+				}	
 			}
-		},
+		},		
 	}
 	// EJECUTAR LA FUNCIÓN DE AJAX
 	$('#servicio_update_form').ajaxForm(form_options);	

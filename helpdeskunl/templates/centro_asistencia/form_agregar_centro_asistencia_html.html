@@ -1,4 +1,14 @@
-{% for form in form_agregar_centro_asistencia%}	 
+{{form_agregar_centro_asistencia.errors}}
+
+{% for form in form_agregar_centro_asistencia%}
+	{% if form.errors %}
+		<div class="alert alert-warning alert-dismissable">
+			<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+			{% for error in form.errors %} 				
+				<small>{{error}}</small>
+			{% endfor %}					
+		</div>
+	{% endif %} 
 	<div class="form-group">
 		<label class="control-label col-sm-3">
 			{{form.label}}

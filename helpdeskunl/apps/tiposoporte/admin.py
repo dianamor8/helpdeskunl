@@ -1,3 +1,5 @@
 from django.contrib import admin
+from helpdeskunl.apps.tiposoporte.models import *
 
-# Register your models here.
+admin.site.register(Centro)
+admin.site.register(Operativo)

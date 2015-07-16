@@ -1,0 +1,54 @@
+<!--{# {% extends "home/home_general.html" %} #}-->
+<!--{# {% block files_js %} #}-->
+	<!--<script type="text/javascript" src="/media/js/helpdeskunl/usuarios.js"></script>-->
+<!--{# {% endblock files_js %} #}-->
+<!--{# {% block contenido %}	 #}-->
+<div class="modal fade" id="buscar_usuarios" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title"><strong>Búsqueda de Usuarios</strong></h4>
+			</div>
+
+			<div class="modal-body">
+				<div class="container-fluid">
+					<div>
+						<div class="input-group">
+							<div class="input-group-btn">				
+								<button id="button" class="btn">Opciones.</button>
+								<button class="btn dropdown-toggle" data-toggle="dropdown">
+									<span class="caret"></span>
+								</button>
+								<ul id="menu_criterio" class="dropdown-menu" role="menu">
+									<li><a>Cédula</a></li>
+									<li><a>Nombres</a></li>
+									<li><a>Apellidos</a></li>					
+								</ul>
+							</div>
+							<input type="text" placeholder="Seleccione una opción de búsqueda." id="buscar_usuario" class="form-control" disabled>
+						</div>			
+					</div>	
+					<br>					
+					<table id="tbl-usuarios" class="table table-bordered table-hover table-condensed" cellspacing="0" width="100%">
+						<thead >
+							<tr>
+								<th>DNI</th>
+								<th>Nombres</th>
+								<th>Apellidos</th>
+								<th>Departamento</th>
+							</tr>
+						</thead>
+						<tbody id="tbody-usuarios">			
+						</tbody>
+					</table>					
+				</div>				
+			</div>			
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+				<button id="btn_importar_usuario" type="button" class="btn btn-info" disabled>Importar Usuario</button>
+			</div>
+		</div>
+	</div> 		
+</div> 
+<!--{# {% endblock contenido %} #}-->
