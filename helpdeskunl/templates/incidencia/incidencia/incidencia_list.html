@@ -1,0 +1,91 @@
+{% extends "home/home_general.html" %}
+{% block files_js %}	
+	<script type="text/javascript" src="/media/js/helpdeskunl/centro_asistencia.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/usuarios.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/incidencia.js"></script>
+{% endblock files_js %}
+{% block contenido %}
+	<br>
+	<div class="panel panel-default">
+		<div class="panel-heading container-fluid">
+			<div class="col-sm-9 col-md-10" style="padding: 1%;">
+				<h3 class="panel-title">
+					<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;
+					<b>Mis incidencias Registradas</b>
+				</h3>					
+			</div>
+			<div class="col-sm-3 col-md-2">
+				{% if perms.incidencia.add_incidencia %}
+					{% url 'incidencia_add' as url_add_incidencia %}
+					<a class='btn btn-primary' href="{{url_add_incidencia}}" title="Nueva Incidencia">Agregar Nueva</a>
+				{% endif %}				
+			</div>
+		</div>
+		<br>
+		<div class="panel-body" id="div_incidencias">
+			{% if incidencias %}
+				<table id="tbl-incidencias" class="table table-bordered table-hover table-condensed" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th class = 'col-sm-1'>Estado</th>
+							<th class = 'col-sm-1'>Fecha</th>
+							<th class = 'col-sm-3'>Centro</th>
+							<th class = 'col-sm-5'>Título</th>							
+							<th class = 'col-sm-2'>Acción</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for incidencia in incidencias %}
+							<tr id='tr_incidencia{{incidencia.id}}' class="small">								
+								<td class="{{incidencia.get_class_estado}}">{{incidencia.get_estado_incidencia_display}}</td>
+								<td>{{incidencia.fecha|date:"SHORT_DATE_FORMAT"}} {{incidencia.fecha|time:"H:i"}}</td>
+								<td>{{incidencia.centro_asistencia}}</td>
+								<td>{{incidencia.titulo}}</td>
+								<td>
+									<div class="row-fluid">
+										<div class="col-sm-5">
+											{% if perms.incidencia.change_incidencia %}
+												{% url 'incidencia_update' pk=incidencia.id as url_edit_incidencia %}
+												<a href="{{url_edit_incidencia}}" title="Editar Incidencia" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></a>
+											{% endif %}
+										</div>
+										<div class="col-sm-5">
+											{% if perms.incidencia.delete_incidencia %}
+												{% url 'incidencia_delete' pk=incidencia.id as url_delete_incidencia %}
+												<a data-toggle="modal" href="{{url_delete_incidencia}}" data-target="#delele_modal_i" title="Eliminar" data-tooltip class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span>
+												</a>
+											{% endif %}										
+										</div>
+								</td>							
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			{% else %}
+				<i><h5>No hay incidencias registradas que mostrar</h5></i>
+			{% endif %}			
+		</div>
+	</div>
+
+<!--MODAL PARA ELIMINAR INCIDENCIA-->
+<div id="delele_modal_i" class="modal fade" role="dialog" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">		
+	<div class="modal-dialog">
+		<div class="modal-content">		
+		</div>
+	</div>
+</div>
+{% endblock contenido %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

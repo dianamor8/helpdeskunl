@@ -49,11 +49,11 @@
 					jQuery('#modal').modal('hide');			
 					// SI NO CONTIENE DATOS AGREGADOS AGREGAR LA TABLA
 					if(document.getElementById("tbl_servicios")==null){						
-						var tabla = '<table id="tbl_servicios" class="table table-bordered table-hover"><thead><tr><th>Servicio</th><th>Descripción</th><th>Acción</th></tr></thead>';
+						var tabla = '<table id="tbl_servicios" class="table table-bordered table-hover"><thead><tr><th class="col-sm-4">Servicio</th><th class="col-sm-7">Descripción</th><th class="col-sm-1">Acción</th></tr></thead>';
 						$('#div_servicios').html(tabla);					
 					}					
 					//AGREGAR LA NUEVA FILA AL DOM	
-					if(document.getElementById("tr_servicio"+data.id)==null){						
+					if(document.getElementById("tr_servicio"+data.id)==null){
 						$('#tbl_servicios tr:last').after(data.fila);
 					}					
 				}

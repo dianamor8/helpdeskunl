@@ -14,6 +14,7 @@ if settings.DEBUG:
 		url(r'^', include('helpdeskunl.apps.incidencia.urls')),
 		url(r'^', include('helpdeskunl.apps.centro_asistencia.urls')),
 		url(r'^', include('helpdeskunl.apps.usuarios.urls')),
+		url(r'^', include('helpdeskunl.apps.base_conocimiento.urls')),
 		url(r'^media/(?P<path>.*)$', 'django.views.static.serve',{'document_root':settings.MEDIA_ROOT}),		
 	)
 handler500 = curry(server_error, template_name='500.html')

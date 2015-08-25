@@ -1,0 +1,10 @@
+/*TEXT AREA EXPANSIBLE*/
+textarea.expandable {
+  height:50px;
+}
+
+textarea.expandable:hover, textarea.expandable:focus {
+  height:80px;  
+  -webkit-transition: height 1s; /* Safari */
+  transition: height 1s;
+}

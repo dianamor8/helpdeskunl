@@ -1,0 +1,113 @@
+{% if  bien.id %}
+	{% url 'bien_update' pk=bien.id as url_edit_bien %}
+		<form id="bien_update_form" method='post' class="form form-horizontal" role="form" action="{{url_edit_bien}}">		
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				<h4 class="modal-title" id="myModalLabel">
+					<strong>Editar Bien Institucional</strong>
+				</h4>		
+			</div>	
+{% else %}
+	{% url 'bien_add' as url_add_bien %}
+		<form id="bien_create_form" method='post' class="form form-horizontal" role="form" action="{{url_add_bien}}">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				<h4 class="modal-title" id="myModalLabel">
+					<strong>Nuevo Bien Institucional</strong>
+				</h4>		
+			</div>
+{% endif %}
+	<div class="modal-body">
+		{% csrf_token %}		
+		{% for formulario in form%}	 
+			{% if formulario.errors %}
+				<div class="alert alert-warning alert-dismissable">
+					<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> 					
+					{% for error in formulario.errors %} 				
+						<small>{{error}}</small>
+					{% endfor %}					
+				</div>
+			{% endif %} 
+			<div class="form-group">
+				<label class="control-label col-sm-3">{{formulario.label}}</label>
+				<div class="col-sm-8">
+					{{formulario}}
+					<p class="help-block small">{{formulario.help_text}}</p>			
+				</div>						
+			</div>
+		{%endfor%}		
+		<legend>			
+			<div class="col-sm-8">
+				Características
+			</div>
+			<div class="col-sm-3">
+				<a href="#" class="btn btn-info add-caracteristica_bien">Agregar Característica</a>
+			</div>
+		</legend>		
+		<div class="caracteristica_bien">
+			<div>
+				{% for caracteristica_form in formset %}
+					<div id="caracteristica_bien-{{ forloop.counter0 }}">
+						{{ caracteristica_form }}
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+	<div class="modal-footer">
+
+		<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancelar" />
+		<input type="submit" class="btn btn-primary" value="Guardar" style="margin-bottom: 5px;"/>
+	</div>
+</form>
+<!---->
+<script> 
+	$('.add-caracteristica_bien').click(function(ev){
+		ev.preventDefault();
+		var count = $('.caracteristica_bien').children().length;
+		var tmplMarkup = $('#caracteristica_bien-template').html();
+		var compiledTmpl = _.template(tmplMarkup, { id : count });
+		$('div.caracteristica_bien').append(compiledTmpl);
+		// update form count
+		$('#id_caracteristica_bien-TOTAL_FORMS').attr('value', count+1);
+});
+// 	var form_options = { 
+//	http://lab305.com/news/2012/jul/19/django-inline-formset-underscore/
+// 		target: '#modal_bien .modal-content',
+// 		success: function(data){	
+// 			if(data.respuesta == 'create'){
+// 				jQuery('#modal_bien').modal('hide');			
+// 				// SI NO CONTIENE DATOS AGREGADOS AGREGAR LA TABLA
+// 				if(document.getElementById("tbl_centros")==null){						
+// 					var tabla = '<table id="tbl_centros" class="table table-bordered table-hover"><thead><tr><th class="col-sm-3">Nombre</th><th class="col-sm-7">Descripción</th><th class="col-sm-2">Acción</th></tr></thead>';
+// 					$('#div_centros').html(tabla);					
+// 				}					
+// 				//AGREGAR LA NUEVA FILA AL DOM	
+// 				if(document.getElementById("tr_centro_asistencia"+data.id)==null){	
+// 					$('#tbl_centros tr:last').after(data.fila);
+// 				}					
+// 			}					
+// 			if (data.respuesta) {				
+// 				if(data.respuesta == 'update'){					
+// 					jQuery('#modal_centro_asistencia').modal('hide');			
+// 					// REEMPLAZO DE LA FILA ACTUALIZADA EN EL DOM
+// 					var fila = document.getElementById("tr_centro_asistencia"+data.id);
+// 					fila.innerHTML = data.fila;
+// 				}				
+// 			}			
+// 		},
+// 	}
+// 	// EJECUTAR LA FUNCIÓN DE AJAX
+// 	$('#centro_asistencia_update_form').ajaxForm(form_options);	
+// 	$('#centro_asistencia_create_form').ajaxForm(form_options);	
+// 	// LIMPIAR CAMPOS DEL MODAL
+// 	$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
+</script>
+<script type="text/html" id="caracteristica_bien-template">
+  <div id="caracteristica_bien-<%= id %>">
+    <label for="id_caracteristicas-<%= id %>-title">Book Title:</label>
+    <input id="id_caracteristicas-<%= id %>-title" type="text" name="caracteristicas-<%= id %>-title" maxlength="100">
+    <input type="hidden" name="caracteristicas-<%= id %>-author" id="id_caracteristicas-<%= id %>-author">
+    <input type="hidden" name="caracteristicas-<%= id %>-id" id="id_books-<%= id %>-id">
+  </div>
+</script>

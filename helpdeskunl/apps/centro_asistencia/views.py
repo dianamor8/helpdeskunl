@@ -11,6 +11,7 @@ from helpdeskunl.settings import LOGIN_URL
 from helpdeskunl.apps.centro_asistencia.models import *
 from helpdeskunl.apps.centro_asistencia.forms import *
 from helpdeskunl.apps.usuarios.models import *
+from helpdeskunl.apps.centro_asistencia.templatetags.tags import *
 # GENERAL
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth import get_user_model
@@ -24,7 +25,7 @@ from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 # ERRORES Y EXCEPCIONES
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.db import IntegrityError
 
 ##############################
@@ -203,9 +204,9 @@ class ServicioCreate(CreateView):
 	 	self.object.save()
 	 	servicio = self.object
 	 	if self.request.is_ajax():	 		
-	 		fila = '<tr id="tr_servicio%s"><td><a data-toggle="modal" href="/servicio/%s" data-target="#modal" title="Editar Servicio" data-tooltip>%s</a></td><td> %s</td> '\
+	 		fila = '<tr id="tr_servicio%s"><td><a data-toggle="modal" href="/servicio/%s" data-target="#modal" title="Editar Servicio" data-tooltip>%s</a></td><td> %s</td> <td> %s</td> <td> %s</td> '\
 	 				'<td><a href="/servicio/%s/delete" role="button" class="btn btn-danger delete" data-toggle="modal" data-target="#delele_modal" title="Eliminar Servicio" data-nombre="%s" data-id="%s">'\
-	 				'<span class="glyphicon glyphicon-trash"></span></a></td></tr>' % (servicio.id, servicio.id, servicio.nombre, servicio.descripcion, servicio.id, servicio.nombre,servicio.id)	 		
+	 				'<span class="glyphicon glyphicon-trash"></span></a></td></tr>' % (servicio.id, servicio.id, servicio.nombre, timedeltaformat(servicio.t_minimo), timedeltaformat(servicio.t_normal), timedeltaformat(servicio.t_maximo), servicio.id, servicio.nombre,servicio.id)	 		
 	 		ctx = {'respuesta':'create', 'fila':fila, 'id':servicio.id,}	
 	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
 	 	else:
@@ -225,9 +226,9 @@ class ServicioUpdate(UpdateView):
 	 	form.save()
 	 	if self.request.is_ajax():	 		
 	 		servicio = self.object
-	 		fila = '<tr id="tr_servicio%s"><td><a data-toggle="modal" href="/servicio/%s" data-target="#modal" title="Editar Servicio" data-tooltip>%s</a></td><td> %s</td> '\
+	 		fila = '<tr id="tr_servicio%s"><td><a data-toggle="modal" href="/servicio/%s" data-target="#modal" title="Editar Servicio" data-tooltip>%s</a></td><td> %s</td> <td> %s</td> <td> %s</td> '\
 	 				'<td><a href="/servicio/%s/delete" role="button" class="btn btn-danger delete" data-toggle="modal" data-target="#delele_modal" title="Eliminar Servicio" data-nombre="%s" data-id="%s">'\
-	 				'<span class="glyphicon glyphicon-trash"></span></a></td></tr>' % (servicio.id, servicio.id, servicio.nombre, servicio.descripcion, servicio.id, servicio.nombre,servicio.id)
+	 				'<span class="glyphicon glyphicon-trash"></span></a></td></tr>' % (servicio.id, servicio.id, servicio.nombre, timedeltaformat(servicio.t_minimo), timedeltaformat(servicio.t_normal), timedeltaformat(servicio.t_maximo), servicio.id, servicio.nombre,servicio.id)
 	 		id_servicio = servicio.id
 	 		ctx = {'respuesta':'update', 'fila':fila, 'id':id_servicio,}	
 	 		return HttpResponse(json.dumps(ctx),content_type="application/json")

@@ -2,15 +2,15 @@
 <form id="centro_asistencia_delete_form" method='post' class="form form-horizontal" role="form" action='{{url_delete_centro_asistencia}}'>
 	{% csrf_token %}
 	<div class="modal-header">
-		<h3 id= "myModalLabel">Eliminar Centro de Asistencia</h3>
+		<h3 id= "myModalLabel">¿Realmente desea eliminar?</h3>
 	</div>
 	<div class="modal-body">
 		<!--<p>¿Realmente desea eliminar: <strong><span id="modal_nombre"></span></strong>?</p>-->
-		<p>¿Realmente desea eliminar <strong>{{object}}</strong> ?</p>
+		<p>Al eliminar <strong>{{object}}</strong>, se eliminarán tambien otra información donde se utilizó este centro de asistencia.</p>
 	</div>
 	<div class="modal-footer">
 		<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancelar" />
-		<input type="submit" class="btn btn-danger" value="Eliminar" style="margin-bottom: 5px;"/>
+		<input id='EliminarCA' type="submit" class="btn btn-danger" value="Eliminar" style="margin-bottom: 5px;"/>
 	</div>
 </form>
 <script>

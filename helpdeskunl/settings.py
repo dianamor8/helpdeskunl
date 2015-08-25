@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     'helpdeskunl.apps.incidencia',
     'helpdeskunl.apps.home',
     'helpdeskunl.apps.centro_asistencia',
+    'helpdeskunl.apps.base_conocimiento',
     'helpdeskunl.apps.usuarios',
 )
 
@@ -54,6 +55,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',    
+    'helpdeskunl.apps.home.current_user.CurrentUserMiddleware',
 )
 
 # TEMPLATE_CONTEXT_PROCESSORS = (

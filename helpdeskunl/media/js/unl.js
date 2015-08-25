@@ -7,3 +7,6 @@ function activarCarousel () {
 		interval : 3000
 	});	
 }
+
+// jQuery Bootstrap Multiselect Examples
+// http://loudev.com/

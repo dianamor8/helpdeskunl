@@ -32,10 +32,10 @@
 				<table class="table table-bordered table-hover" id="tbl_centros">
 					<thead>
 						<tr>
-							<th>Nombre</th>
-							<th>Descripción</th>							
+							<th class='col-sm-3'>Nombre</th>
+							<th class='col-sm-7'>Descripción</th>							
 							{% if perms.centro_asistencia.delete_centro_asistencia or perms.centro_asistencia.change_centro_asistencia %}
-								<th>Acción</th>									
+								<th class="col-sm-2">Acción</th>									
 							{% endif %}
 						</tr>
 					</thead>

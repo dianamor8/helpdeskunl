@@ -3,14 +3,18 @@
 		<form id="centro_asistencia_update_form" method='post' class="form form-horizontal" role="form" action="{{url_edit_centro_asistencia}}">		
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-				<h4 class="modal-title" id="myModalLabel">Editar Centro de Asistencia</h4>		
+				<h4 class="modal-title" id="myModalLabel">
+					<strong>Editar Centro de Asistencia</strong>
+				</h4>		
 			</div>	
 {% else %}
 	{% url 'centro_asistencia_add' as url_add_centro_asistencia %}
 		<form id="centro_asistencia_create_form" method='post' class="form form-horizontal" role="form" action="{{url_add_centro_asistencia}}">
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-				<h4 class="modal-title" id="myModalLabel">Nuevo Centro de Asistencia</h4>		
+				<h4 class="modal-title" id="myModalLabel">
+					<strong>Nuevo Centro de Asistencia</strong>
+				</h4>		
 			</div>
 {% endif %}
 	<div class="modal-body">		
@@ -47,7 +51,7 @@
 				jQuery('#modal_centro_asistencia').modal('hide');			
 				// SI NO CONTIENE DATOS AGREGADOS AGREGAR LA TABLA
 				if(document.getElementById("tbl_centros")==null){						
-					var tabla = '<table id="tbl_centros" class="table table-bordered table-hover"><thead><tr><th>Nombre</th><th>Descripción</th><th>Acción</th></tr></thead>';
+					var tabla = '<table id="tbl_centros" class="table table-bordered table-hover"><thead><tr><th class="col-sm-3">Nombre</th><th class="col-sm-7">Descripción</th><th class="col-sm-2">Acción</th></tr></thead>';
 					$('#div_centros').html(tabla);					
 				}					
 				//AGREGAR LA NUEVA FILA AL DOM	

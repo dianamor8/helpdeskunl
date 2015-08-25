@@ -1,69 +1,71 @@
 # -*- coding: utf-8 -*-
 from django.db import models
+from django.conf import settings
+from helpdeskunl.apps.centro_asistencia.models import *
+from helpdeskunl.apps.home.current_user import get_current_user
+from django.core.urlresolvers import reverse
 
-#Para categorizar producto con falla
-class Categoria_Equipo(models.Model):
-	nombre = models.CharField(max_length=100)
-	class Meta:
-		verbose_name = "Categoria del equipo"
-		verbose_name_plural = "Categorias"
-		db_table = 'Categoria_Equipo'
-	def __unicode__(self):
-		return self.nombre
 
-#Determina la marca del equipo
-class Marca_Equipo(models.Model):
-	nombre = models.CharField(max_length=100)
+class TimeStampedModel(models.Model):
+	creado_en = models.DateTimeField(auto_now_add=True)
+	actualizado_en = models.DateTimeField(auto_now_add=True)
+	estado = models.BooleanField(default=True)
+	creado_por = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='%(class)s_requests_created', default=get_current_user)
+	
 	class Meta:
-		verbose_name = "Marca"
-		verbose_name_plural = "Marcas"
-		db_table = 'Marca_Equipo'
-	def __unicode__(self):
-		return self.nombre
+		abstract = True
 
-#
-class Equipo(models.Model):	
-	categoria = models.ForeignKey('Categoria_Equipo') #Impresora, Infocus, 
-	marca = models.ForeignKey('Marca_Equipo') #epson, genius
-	modelo = models.CharField(max_length=250, null=True, blank=True) #12345, 1232131	
-	class Meta:
-		verbose_name = "Equipo"
-		verbose_name_plural = "Lista de equipos"
-		db_table = 'Equipo'
-	def __unicode__(self):
-		return u'%s %s %s'%(self.categoria, self.marca, self.modelo)
+	# def save(self):
+	# 	self.creado_por = self.request.user
+	# 	super(TimeStampedModel, self).save()
 
-#Para el registro de códigos de bodega de los equipos de la UNL
-class Codigo_Bodega(models.Model):
-	codigo = models.CharField(max_length=50)
-	equipo = models.ForeignKey('Equipo')
+INDIVIDUAL='0'
+COMPONENTE='1'
+TIPO_CHOICES = (
+	(INDIVIDUAL, 'INDIVIDUAL'),
+	(COMPONENTE, 'COMPONENTE'),
+)
+class Bien(TimeStampedModel):
+	codigo = models.CharField(max_length=250, verbose_name='Código Institucional')
+	codigo_cfn = models.CharField(max_length=250, verbose_name='Código CFN', null=True, blank=True)
+	producto = models.CharField(max_length=100, verbose_name='Equipo')	
+	validado = models.BooleanField(default=False)
+	tipo = models.CharField(choices=TIPO_CHOICES, max_length=100, verbose_name='Ingreso')
+	padre = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
+	custodio = models.ForeignKey(settings.AUTH_USER_MODEL)
+	
 	class Meta:
-		verbose_name = "Codigo de Bodega"
-		verbose_name_plural = "Codigos de Bodega"
+		verbose_name = "Bien Institucional"
+		verbose_name_plural = "Bienes Institucionales"
+		db_table = "Bien"	
+	
 	def __unicode__(self):
-		return u'%s - %s'%(self.equipo, self.codigo)
+		caracteristicas = ""
+		c = self.caracteristica_bien_set		
+		for caracteristica in c.all():
+			caracteristicas += str(caracteristica.detalle) + ","
+		return '%s:%s [%s]'%(self.codigo, self.producto, caracteristicas)
 
-class Detalle_Equipos(models.Model):
-	codigo_bodega = models.ForeignKey('Codigo_Bodega', null=True, blank=True)
-	equipo = models.ForeignKey('Equipo')
-	incidencia = models.ForeignKey('Incidencia')
+MARCA='0'
+MODELO='1'
+COLOR='2'
+OTRO='3'
+CARACTERISTICAS_CHOICES = (
+	(MARCA, 'Marca'),
+	(MODELO, 'Modelo'),
+	(COLOR, 'Color'),
+	(OTRO, 'Otro'),
+)
+class Caracteristica_Bien(TimeStampedModel):
+	tipo = models.CharField(choices=CARACTERISTICAS_CHOICES, max_length=100, verbose_name='Caracteristica')
+	detalle = models.CharField(max_length=100, verbose_name='Detalle')
+	bien = models.ForeignKey(Bien, on_delete=models.CASCADE)
 	class Meta:
-		verbose_name = "Detalle Equipo"
-		verbose_name_plural = "Detalle de Equipos"
+		verbose_name = "Caracteristica"
+		verbose_name_plural = "Caracteristicas del Bien"
+		db_table = "Caracteristicas_Bien"
 	def __unicode__(self):
-		return u'%s %s %s'%(self.codigo_bodega, self.equipo, self.incidencia)
-    
-
-# Create your models here.
-class Dependencia(models.Model):
-	nombre = models.CharField(max_length=250)
-	detalle = models.CharField(max_length=250)
-	class Meta:
-		db_table = 'Dependencia'
-		verbose_name = "Dependencia"
-		verbose_name_plural = "Dependencias"
-	def __unicode__(self):
-		return u'%s. %s'%(self.id, self.nombre)
+		return '%s - %s'%(self.tipo, self.detalle)
 
 UR_BAJO='0'
 UR_NORMAL='1'
@@ -74,37 +76,74 @@ URGENCIA_CHOICES = (
 	(UR_ALTO, 'Alto'),
 )
 
+N_INCIDENCIA='0'
+N_PROBLEMA='1'
+N_CAMBIO='2'
+NIVELES_CHOICES = (
+	(N_INCIDENCIA, 'Incidencia'),
+	(N_PROBLEMA, 'Problema'),
+	(N_CAMBIO, 'Cambio'),
+)
+
 ESTADO_NUEVA = '0'
 ESTADO_ABIERTA = '1'
 ESTADO_DELEGADA = '2'
 ESTADO_ATENDIDA = '3'
-ESTADO_DESPACHADA = '4'
-ESTADO_PENDIENTE = '5'
+ESTADO_PENDIENTE = '4'
 ESTADO_CHOICES = (
-	(ESTADO_NUEVA, 'Nueva incidencia'),
-	(ESTADO_ABIERTA, 'Abrir incidencia'),
-	(ESTADO_DELEGADA, 'Delegar incidencia'),
-	(ESTADO_ATENDIDA, 'Atender incidencia'),
-	(ESTADO_DESPACHADA, 'Cerrar incidencia'),
-	(ESTADO_PENDIENTE, 'Incidencia pendiente'),	
+	(ESTADO_NUEVA, 'Nueva'),
+	(ESTADO_ABIERTA, 'Atendiendo'),
+	(ESTADO_DELEGADA, 'Atendida'),
+	(ESTADO_ATENDIDA, 'Cerrada'),	
+	(ESTADO_PENDIENTE, 'Pendiente'),	
 )
 
-class Incidencia(models.Model):
-	titulo = models.CharField(max_length=100)	
+class Incidencia(TimeStampedModel):
+	def url(self, filename):
+		ruta = "MultimediaData/Incidencia/%s/%s"%(self.centro_asistencia, str(filename))		
+		return ruta
+
 	fecha = models.DateTimeField(auto_now=True)
-	dependencia = models.ForeignKey('Dependencia')	
+	titulo = models.CharField(max_length=100)	
 	descripcion = models.CharField(max_length=50)
-	urgencia = models.CharField(choices=URGENCIA_CHOICES, max_length=100) #Si selecciona URGENTE el campo justif_urgencia debe ser obligatorio
-	justif_urgencia = models.CharField(null=True,max_length=150)
+	solicitante = models.ForeignKey(settings.AUTH_USER_MODEL,default=get_current_user)
+	prioridad_solicitada = models.CharField(choices=URGENCIA_CHOICES, max_length=100, default=UR_NORMAL) #Si selecciona URGENTE el campo justif_urgencia debe ser obligatorio
+	justif_urgencia = models.CharField(null=True,max_length=150, blank=True)
 	prioridad_asignada = models.CharField(choices=URGENCIA_CHOICES, max_length=100, default=UR_NORMAL) #Este campo lo puede modificar el administrador
-	estado = models.CharField(choices=ESTADO_CHOICES, max_length=100)	
-	#ES ASIGNADO A MUCHOS USUARIOS OPERADORES
+	estado_incidencia = models.CharField(choices=ESTADO_CHOICES, max_length=100, default=ESTADO_NUEVA)
+	nivel = models.CharField(choices=NIVELES_CHOICES, max_length=100, default=N_INCIDENCIA)	
+	centro_asistencia = models.ForeignKey(Centro_Asistencia)
+	bienes = models.ManyToManyField(Bien, blank=True)
+	imagen = models.ImageField(upload_to=url,help_text='Seleccione una imagen.', null=True, blank=True, max_length=300)
+	#ES ASIGNADO A MUCHOS USUARIOS OPERADORES	
 	class Meta:
 		verbose_name = "Incidencia"
 		verbose_name_plural = "Incidencias"
 		db_table = ('Incidencia')
 	def __unicode__(self):
 		return self.titulo
+
+	def get_class_estado(self):		
+		switcher = {
+			0: "btn-success", #Nueva
+			1: "btn-info", #Atendiendo
+			2: "btn-primary", #Atendida
+			3: "btn-danger", #Cerrada
+			4: "btn-warning", #Pendiente
+		}		
+		return switcher.get(int(self.estado_incidencia))
+
+	def get_absolute_url(self):
+		return reverse('incidencia_update', kwargs={'pk': self.pk})
+
+	def add_bienes(self, args):
+		for bien in args:
+			self.bienes.add(bien)
+
+	def remove_bienes(self, args):
+		for bien in args:
+			self.bienes.remove(bien)
+			
 
 #CREAR COMO CLASE PARA PORDER ASIGNAR USUARIOS A UN DEPARTAMENTO.
 #AREA_SOPORTE = '0'	

@@ -31,10 +31,10 @@
 				<table class='table table-bordered table-hover table-condensed'>
 					<thead>
 						<tr>
-							<th>Cédula</th>
-							<th>Nombres</th>
-							<th>Departamento</th>
-							<th>Acción</th>
+							<th class="col-sm-1">Cédula</th>
+							<th class="col-sm-6">Nombres</th>
+							<th class="col-sm-4">Departamento</th>
+							<th class="col-sm-1 text-center">Acción</th>
 						</tr>
 					</thead>
 					{% for usuario in jefes_departamento%}					
@@ -73,10 +73,10 @@
 				<table class='table table-bordered table-hover table-condensed'>
 					<thead>
 						<tr>
-							<th>Cédula</th>
-							<th>Nombres</th>
-							<th>Departamento</th>
-							<th>Acción</th>
+							<th class="col-sm-1">Cédula</th>
+							<th class="col-sm-6">Nombres</th>
+							<th class="col-sm-4">Departamento</th>
+							<th class="col-sm-1 text-center">Acción</th>
 						</tr>
 					</thead>
 					{% for tecnico in asesores_tecnicos%}
@@ -101,7 +101,7 @@
 	<div class="panel panel-default">		
 		<div class="container-fluid panel-heading">
 			<div class="col-sm-9 col-md-10" style="padding: 1%;">
-				<h3 class="panel-title" ><b>Servicios Disponibles</b></h3>					
+				<h3 class="panel-title" ><b>S.L.A. Acuerdos de nivel de servicio.</b></h3>					
 			</div>
 			<div class="col-sm-3 col-md-2">
 				{% if perms.centro_asistencia.add_servicio %}
@@ -116,9 +116,11 @@
 				<table id="tbl_servicios" class='table table-bordered table-hover'>
 					<thead>
 						<tr>
-							<th>Servicio</th>
-							<th>Descripción</th>
-							<th>Acción</th>	
+							<th class="col-sm-5">Servicio</th>
+							<th class="col-sm-1">T. Mínimo</th>
+							<th class="col-sm-1">T. Normal</th>
+							<th class="col-sm-1">T. Máximo</th>
+							<th class="col-sm-1 text-center">Acción</th>	
 						</tr>
 					</thead>
 					{% for servicio in object.servicio_set.all %}					
@@ -128,8 +130,9 @@
 									{% url 'servicio_update' pk=servicio.id as url_edit_servicio %}
 									<a data-toggle="modal" href="{{url_edit_servicio}}" data-target="#modal" title="Editar Servicio" data-tooltip>
 									{{servicio.nombre}}</a></td>
-								<td>{{servicio.descripcion}}</td>
-
+								<td>{{servicio.t_minimo|timedeltaformat}}</td>
+								<td>{{servicio.t_normal|timedeltaformat}}</td>
+								<td>{{servicio.t_maximo|timedeltaformat}}</td>
 								<td>
 									{% url 'servicio_delete' pk=servicio.id as url_delete_servicio %}
 									<a href="{{url_delete_servicio}}" role="button" class="btn btn-danger delete" data-toggle="modal" data-target="#delele_modal" title="Eliminar Servicio" data-nombre="{{servicio.nombre}}" data-id='{{servicio.id}}'>

@@ -1,0 +1,34 @@
+{% url 'incidencia_delete' pk=incidencia.id as url_delete_incidencia %}
+<form id="incidencia_delete_form" method='post' class="form form-horizontal" role="form" action='{{url_delete_incidencia}}'>
+	{% csrf_token %}
+	<div class="modal-header">
+		<h3 id= "myModalLabel">Eliminar Incidencia</h3>
+	</div>
+	<div class="modal-body">		
+		<p>¿Realmente desea eliminar <strong>{{object}}</strong> ?</p>
+	</div>
+	<div class="modal-footer">
+		<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancelar" />
+		<input id='EliminarI' type="submit" class="btn btn-danger" value="Eliminar" style="margin-bottom: 5px;"/>
+	</div>
+</form>
+<script>
+	var form_options = { 
+			target: '.modal-content',
+			success: function(data){				
+				if (data.respuesta) {
+					jQuery('#delele_modal_i').modal('hide');					
+					$('#tr_incidencia'+data.id).remove();
+					var rowCount = $('#tbl_incidencias tr').length;
+					if(rowCount==1){
+						var parrafo = '<i><h5>Aún no se han registrado incidencias.</h5></i>';
+						$('#div_incidencias').html(parrafo);
+					}
+				}
+			},
+		}
+		// EJECUTAR LA FUNCIÓN DE AJAX
+		$('#incidencia_delete_form').ajaxForm(form_options);	
+		// LIMPIAR CAMPOS DEL MODAL
+		$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
+</script>
