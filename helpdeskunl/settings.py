@@ -45,9 +45,13 @@ INSTALLED_APPS = (
     'helpdeskunl.apps.centro_asistencia',
     'helpdeskunl.apps.base_conocimiento',
     'helpdeskunl.apps.usuarios',
+    'drealtime',
+    
 )
 
 MIDDLEWARE_CLASSES = (
+    #'django.middleware.cache.UpdateCacheMiddleware', 
+    'drealtime.middleware.iShoutCookieMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -56,6 +60,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',    
     'helpdeskunl.apps.home.current_user.CurrentUserMiddleware',
+    #'django.middleware.cache.FetchFromCacheMiddleware',
 )
 
 # TEMPLATE_CONTEXT_PROCESSORS = (
@@ -120,3 +125,14 @@ LOGIN_URL = '/login/' # HASTA MIENTRAS 11759072 25 DE MAYO 11:30 CONSULTA GENERA
 LOGIN_REDIRECT_URL = '/'
 
 # MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
+#CACHES = {
+#    'default': {
+#        'BACKEND': 'redis_cache.RedisCache',
+#        'LOCATION': '127.0.0.1:6379',
+#    # 'LOCATION': '/var/run/redis/redis.sock',
+#    # 'OPTIONS': {
+#    #     'DB': 1,
+#    #     'PASSWORD': <password-de-redis>
+#    #     },
+#   },
+#}

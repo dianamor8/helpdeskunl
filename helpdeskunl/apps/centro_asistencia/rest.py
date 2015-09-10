@@ -76,7 +76,6 @@ def agregar_usuario(request):
 @login_required
 @permission_required('centro_asistencia.delete_personal_operativo',raise_exception=True)
 def eliminar_usuario(request):
-	print 'entrando'	
 	if request.method == 'POST':		
 		try:
 			name_group = request.POST.get('tipo_usuario')

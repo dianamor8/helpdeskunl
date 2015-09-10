@@ -67,6 +67,16 @@ class Caracteristica_Bien(TimeStampedModel):
 	def __unicode__(self):
 		return '%s - %s'%(self.tipo, self.detalle)
 
+BAJO='0'
+MEDIO='1'
+CRITICO='2'
+
+PRIORIDAD_DETERMINADA_CHOICES = (
+	(CRITICO, 'Crítico'),
+	(MEDIO, 'Medio'),
+	(BAJO, 'Bajo'),
+)
+
 UR_BAJO='0'
 UR_NORMAL='1'
 UR_ALTO='2'
@@ -99,27 +109,34 @@ ESTADO_CHOICES = (
 )
 
 class Incidencia(TimeStampedModel):
+		
 	def url(self, filename):
-		ruta = "MultimediaData/Incidencia/%s/%s"%(self.centro_asistencia, str(filename))		
+		ruta = "MultimediaData/Incidencia/%s/%s"%(self.centro_asistencia.id, str(filename))
 		return ruta
 
 	fecha = models.DateTimeField(auto_now=True)
 	titulo = models.CharField(max_length=100)	
 	descripcion = models.CharField(max_length=50)
-	solicitante = models.ForeignKey(settings.AUTH_USER_MODEL,default=get_current_user)
+	solicitante = models.ForeignKey(settings.AUTH_USER_MODEL,default=get_current_user, related_name='usuario_solicitante')
 	prioridad_solicitada = models.CharField(choices=URGENCIA_CHOICES, max_length=100, default=UR_NORMAL) #Si selecciona URGENTE el campo justif_urgencia debe ser obligatorio
 	justif_urgencia = models.CharField(null=True,max_length=150, blank=True)
-	prioridad_asignada = models.CharField(choices=URGENCIA_CHOICES, max_length=100, default=UR_NORMAL) #Este campo lo puede modificar el administrador
+	prioridad_asignada = models.CharField(choices=URGENCIA_CHOICES, max_length=100) #Este campo lo puede modificar el administrador
 	estado_incidencia = models.CharField(choices=ESTADO_CHOICES, max_length=100, default=ESTADO_NUEVA)
 	nivel = models.CharField(choices=NIVELES_CHOICES, max_length=100, default=N_INCIDENCIA)	
 	centro_asistencia = models.ForeignKey(Centro_Asistencia)
+	servicio = models.ForeignKey(Servicio, on_delete=models.DO_NOTHING, null=True, blank=True)	
 	bienes = models.ManyToManyField(Bien, blank=True)
 	imagen = models.ImageField(upload_to=url,help_text='Seleccione una imagen.', null=True, blank=True, max_length=300)
 	#ES ASIGNADO A MUCHOS USUARIOS OPERADORES	
+	tecnicos = models.ManyToManyField("self", symmetrical=False, through= 'Asignacion_Incidencia')
+	ejecucion = models.CharField(choices=PRIORIDAD_DETERMINADA_CHOICES, max_length=100, null=True , blank=True)
+	duracion = models.DurationField(null=True , blank=True)
+	# agregar la fecha que caduca
 	class Meta:
 		verbose_name = "Incidencia"
 		verbose_name_plural = "Incidencias"
 		db_table = ('Incidencia')
+	
 	def __unicode__(self):
 		return self.titulo
 
@@ -143,7 +160,81 @@ class Incidencia(TimeStampedModel):
 	def remove_bienes(self, args):
 		for bien in args:
 			self.bienes.remove(bien)
-			
+
+	def get_class_prioridad_solicitada(self):		
+		switcher = {
+			0: "btn btn-default", #Bajo
+			1: "btn btn-success", #Normal
+			2: "btn btn-danger", #Alto			
+		}		
+		return switcher.get(int(self.prioridad_solicitada))
+
+	def get_class_prioridad_asignada(self):		
+		switcher = {
+			0: "btn btn-default", #Bajo
+			1: "btn btn-success", #Normal
+			2: "btn btn-danger", #Alto			
+		}		
+		return switcher.get(int(self.prioridad_asignada))
+
+	def get_gestion(self):		
+		switcher = {
+			0: "Gestión de incidentes", #Bajo
+			1: "Gestión de problemas", #Normal
+			2: "Gestión de cambios", #Alto			
+		}		
+		return switcher.get(int(self.nivel))
+
+	# CALCULO DE PRIORIDAD
+	def determinar_prioridad(self):
+
+		if self.prioridad_solicitada == '0':
+			if self.prioridad_asignada == '0':
+				return BAJO
+			if self.prioridad_asignada == '1':
+				return MEDIO
+			if self.prioridad_asignada == '2':
+				return MEDIO
+		if self.prioridad_solicitada == '1':
+			if self.prioridad_asignada == '0':
+				return MEDIO
+			if self.prioridad_asignada == '1':
+				return MEDIO
+			if self.prioridad_asignada == '2':
+				return MEDIO		
+		if self.prioridad_solicitada == '2':
+			if self.prioridad_asignada == '0':
+				return MEDIO
+			if self.prioridad_asignada == '1':
+				return MEDIO
+			if self.prioridad_asignada == '2':
+				return CRITICO
+
+	def determinar_duracion(self):
+		if self.ejecucion == '2': #CRITICO
+			return self.servicio.t_minimo
+		if self.ejecucion == '1': #MEDIO
+			return self.servicio.t_normal
+		if self.ejecucion == '0': #BAJO
+			return self.servicio.t_maximo
+
+
+
+
+class Asignacion_Incidencia(TimeStampedModel):
+	incidencia = models.ForeignKey(Incidencia, on_delete=models.DO_NOTHING)
+	tecnico = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING)
+	administrador = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, related_name='usuario_desde')
+	# servicio = models.ForeignKey(Servicio, on_delete=models.DO_NOTHING)	
+	# prioridad_asignada = models.CharField(choices=URGENCIA_CHOICES, max_length=100, default=UR_NORMAL)
+	observacion = models.CharField(max_length=150, blank=True, null=True)
+	fecha_asignacion = models.DateTimeField(auto_now_add=True)	
+	class Meta:
+		verbose_name = "Asignacion de Incidencia"
+		verbose_name_plural = "Asignaciones de Incidencias"
+		db_table = 'Asignacion_Incidencia'
+
+
 
 #CREAR COMO CLASE PARA PORDER ASIGNAR USUARIOS A UN DEPARTAMENTO.
 #AREA_SOPORTE = '0'	

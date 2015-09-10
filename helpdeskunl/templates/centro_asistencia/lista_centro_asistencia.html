@@ -1,4 +1,8 @@
 {% extends "home/home_general.html" %}
+{% block realtime %}
+	{% load drealtimetags %}	
+	{%ishout_js%}
+{% endblock realtime %}
 {% block files_js %}
 	<script type="text/javascript" src="/media/js/helpdeskunl/centro_asistencia.js"></script>
 {% endblock files_js %}
@@ -77,31 +81,7 @@
 			{% endif %}			
 		</div>
 	</div>
-	<!--%%MODAL AGREGAR CENTRO_ASISTENCIA%%-->
-	<div class="modal fade" id="centro_asistencia_modal" role="dialog" aria-labelledby="centro_asistencia_modalLabel" aria-hidden="true">
-		<div class="modal-dialog">
-			<div class="modal-content">					
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h3>Agregar Centro de Asistencia</h3>
-				</div>
-				<div class="modal-body">					
-					<div id='id_mensaje_centro_asistencia'></div>
-					<form id="add_centro_asistencia_form" method="post" class="form-horizontal left">
-						{%csrf_token%}
-						{%agregar_centro_asistencia%}						
-						<div class="control-group modal-footer">
-							<div class='controls'>
-								<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>	
-								<input id='crear' type="submit" value='Guardar' class='btn btn-primary'>
-							</div>							
-						</div>								
-					</form>					
-				</div>				
-			</div>	
-		</div>		
-	</div>
-
+	
 <!--MODAL PARA EDITAR CENTRO DE ASISTENCIA-->
 	<div class="modal fade" id="modal_centro_asistencia" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 		<div class="modal-dialog">

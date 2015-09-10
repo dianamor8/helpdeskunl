@@ -6,12 +6,15 @@ function my_ready () {
 	configuracion_tabla($('#tbl-incidencias'));	
 	hacer_visible();
 	cambiar_opcion();	
-	multiselect_bienes();
+	multiselect_bienes();	
 	$('input[type=file]').bootstrapFileInput();
 	$('.file-inputs').bootstrapFileInput();
 	// configuracion_tabla($('#example'));
 	// $('#tbl-incidencias').dataTable();
 	// $('#tbl-incidencias').removeClass( 'display' ).a$('#id').show();ddClass('table table-striped table-bordered');
+
+	// NOTIFICACIONES
+	cargar_notificaciones();
 }
 
 function hacer_visible () {
@@ -50,11 +53,8 @@ function cambiar_opcion () {
 
 function multiselect_bienes () {
 	$('#id_bienes').multiSelect();
-	$('#my-select').multiSelect();
-	
-	
-	
-	
+	$('#my-select').multiSelect();	
+	$('#id_tecnicos').multiSelect();
 }
 
 // function agregar_incidencia () {
@@ -70,3 +70,12 @@ function multiselect_bienes () {
 // 0979827152
 
 // });
+
+function cargar_notificaciones () {
+	ishout.on('notificaciones', function(data){
+		console.log("entra cargar notificaciones");
+		alert(data.msg);	
+		// popupNotification(data.msg);
+	});
+	ishout.init();
+}

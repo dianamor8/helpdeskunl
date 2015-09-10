@@ -97,6 +97,7 @@ function eliminar_usuario () {
 					})
 					.always(function(data) {
 						bootbox.alert('<strong>'+data.respuesta+ '</strong>'+data.mensaje, function(){
+							console.log("supuestamente refresca la página");
 							location.reload();
 						});
 					});	

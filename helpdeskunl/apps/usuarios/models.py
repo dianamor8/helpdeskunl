@@ -3,6 +3,10 @@ from django.db import models
 from django.contrib.auth.models import User, AbstractBaseUser, UserManager, BaseUserManager, PermissionsMixin, Group, Permission
 from django.conf import settings
 
+def upload(self, filename):
+	ruta = "MultimediaData/Usuarios/%s/%s"%(self.dni, str(filename))		
+	return ruta
+
 ADMINISTRATIVO='0'
 DOCENTE='1'
 TIPO_USUARIO_CHOICES = (
@@ -26,6 +30,8 @@ class PerfilUserManager(BaseUserManager):
 		user.save(using=self._db)
 		return user
 
+
+
 # MANAGER PARA USUARIOS DE TIPO 
 class Jefe_Departamento_Manager(models.Manager):
 	def get_queryset(self):		
@@ -36,8 +42,10 @@ class Asesor_Tecnico_Manager(models.Manager):
 		return super(Asesor_Tecnico_Manager, self).get_queryset().filter(groups__name='ASESOR TECNICO')
 
 
+
 # Create your models here.
-class Perfil(AbstractBaseUser, PermissionsMixin):	
+class Perfil(AbstractBaseUser, PermissionsMixin):
+	
 	#usuario = models.OneToOneField(settings.AUTH_USER_MODEL)	
 	dni = models.CharField(max_length=50, unique=True, verbose_name='DNI')
 	nombres = models.CharField(max_length=250, verbose_name='Nombres')
@@ -49,7 +57,8 @@ class Perfil(AbstractBaseUser, PermissionsMixin):
 	activo = models.BooleanField(default=True, verbose_name='Usuario UNL activo')
 	is_active = models.BooleanField(default=True, verbose_name='Usuario activo')
 	is_admin = models.BooleanField(default=False, verbose_name='Usuario Administrador')	
-	
+	avatar = models.ImageField(upload_to=upload,help_text='Seleccione una imagen.', null=True, blank=True, max_length=300)
+
 	objects = PerfilUserManager()
 	jefes_departamento = Jefe_Departamento_Manager()
 	asesores_tecnicos = Asesor_Tecnico_Manager()
@@ -66,7 +75,7 @@ class Perfil(AbstractBaseUser, PermissionsMixin):
 	def get_short_name(self):
 		return self.dni
 	def __unicode__(self):
-		return self.dni
+		return str(self.dni) + ':' + self.nombres + ' ' + self.apellidos
 	# def has_perm(self, perm, obj=None):
 	# 	#"Does the user have a specific permission?"
 	# 	# Simplest possible answer: Yes, always
@@ -83,6 +92,8 @@ class Perfil(AbstractBaseUser, PermissionsMixin):
 		# "Is the user a member of staff?"
 		# Simplest possible answer: All admins are staff
 		return self.is_admin
+
+	
 
 # EJEMPLOS DE AUTH 
 #https://gist.github.com/johnjwatson/5442906

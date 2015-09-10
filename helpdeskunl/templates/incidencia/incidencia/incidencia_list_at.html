@@ -10,14 +10,13 @@
 {% endblock files_js %}
 {% load validadores_template %}
 {% block contenido %}
-		
 	<br>
 	<ul class="nav nav-tabs">
 		{% url 'incidencia_list' as url_incidencias %}		
-		<li role="presentation" class="active"> <a href="{{url_incidencias}}">Mis incidencias</a></li>
+		<li role="presentation"> <a href="{{url_incidencias}}">Mis incidencias</a></li>
 		{% if user|tiene_grupo:"ASESOR TECNICO" %}
 			{% url 'incidencia_asignada_list' as url_asignada_incidencias %}		
-			<li role="presentation"><a href="{{url_asignada_incidencias}}">Incidencias Asignadas</a></li>
+			<li role="presentation"  class="active"><a href="{{url_asignada_incidencias}}">Incidencias Asignadas</a></li>
 		{% endif %}
 		{% if user|tiene_grupo:"JEFE DEPARTAMENTO" %}
 			{% url 'incidencia_centro_list' as url_centro_incidencias %}		
@@ -28,9 +27,9 @@
 	<div class="panel panel-default">
 		<div class="panel-heading container-fluid">
 			<div class="col-sm-9 col-md-10" style="padding: 1%;">
-				<h3 class="panel-title">	
-					<span class="glyphicon glyphicon-file" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;
-					<b>Mis incidencias Registradas</b>
+				<h3 class="panel-title">
+					<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;
+					<b>Incidencias asignadas para mi</b>
 				</h3>					
 			</div>
 			<div class="col-sm-3 col-md-2">

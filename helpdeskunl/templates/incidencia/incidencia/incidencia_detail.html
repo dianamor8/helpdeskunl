@@ -1,0 +1,211 @@
+{% extends "home/home_general.html" %}
+{% block realtime %}
+	{% load drealtimetags %}	
+	{%ishout_js%}
+{% endblock realtime %}
+{% block files_js %}	
+	<script type="text/javascript" src="/media/js/helpdeskunl/centro_asistencia.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/usuarios.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/incidencia.js"></script>
+{% endblock files_js %}
+{% load tags %}
+{% load validadores_template %}
+{% block contenido %}	
+	<input id='centro_asistencia_pk' type="hidden" value='{{object.id}}'>
+	<br> 
+	<div class = 'panel panel-default'>
+		<div class='panel-heading container-fluid'>
+						
+			<div class="col-sm-9">
+				<h3 class="text-center">
+					<b>{{object.titulo}}</b>				
+				</h3>
+				<br>
+				<div class="form-horizontal">					
+					<div class="form-group">						
+						<label class="col-sm-2 control-label">Descripción:</label>
+						<div class="col-sm-10">							
+							<textarea class="form-control expandable" rows="10" maxlength="50" cols="40" disabled>{{ object.descripcion }}</textarea>
+						</div>
+					</div>								
+					<div class="form-group">
+						<label class="col-sm-2 control-label">Prioridad Asignada:</label>
+						<div class="col-sm-3">
+							{% if object.prioridad_asignada %}
+								<input class="form-control {{object.get_class_prioridad_asignada}}" value = "{{object.get_prioridad_asignada_display}}" disabled>
+							{% else %}
+								<input class="form-control" value = "---" disabled>
+							{% endif %}			
+						</div>
+						<label class="col-sm-2 control-label">Prioridad Ejecución:</label>
+						<div class="col-sm-5">
+							{% if object.duracion %}
+								<input class="form-control" value = "{{object.get_ejecucion_display}} - {{object.duracion|timedeltaformat}}" disabled>
+							{% else %}
+								<input class="form-control" value = "---" disabled>
+							{% endif %}			
+						</div>
+					</div>					
+				</div>
+				<hr>
+				<div class="row-fluid text-center" style="{{render_div}}">
+					<div class="col-sm-4">
+						{% url 'asignarincidencia_update' pk=object.id as url_asignarincidencia %}
+						{% if asignar_incidencia %}
+							<a data-toggle="modal" href="{{url_asignarincidencia}}" data-target="#modal_asignarincidencia" title="Asignar Incidencia" data-tooltip class="btn btn-primary">Asignar Incidencia</a>
+						{% else %}
+							<a data-toggle="modal" href="{{url_asignarincidencia}}" data-target="#modal_asignarincidencia" title="Asignar Incidencia" data-tooltip class="btn btn-primary" disabled>Asignar Incidencia</a>
+						{% endif %}	
+					</div>
+					<div class="col-sm-4">						
+						<button type="submit" class="btn btn-info">Redirigir Incidencia</button> 
+					</div>
+					<div class="col-sm-4">
+						<button type="submit" class="btn btn-warning">Actualizar Incidencia</button>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-sm-3">
+				<div class="row">
+					<div class="thumbnail">
+						<br>
+						{% if object.solicitante.avatar %}				
+							<img class="img-circle" src="/media/{{object.solicitante.avatar}}" width="80" height="80">					
+						{% else %}				
+							<img class="img-circle" src="/media/images/user.png" width="80" height="80">
+						{% endif %}
+						<div class="caption text-center">
+							<h6><b>Solicitado por:</b><br>{{ object.solicitante.dni}}</h6>
+							<h6 class="text-center"> <a href="#">{{ object.solicitante.get_full_name }}</a></h6>					
+						</div>
+					</div>
+				</div>
+			</div>
+
+
+<!--			{# <div class="col-sm-3 text-center">				
+				{% if object.solicitante.avatar %}				
+					<img class="img-circle" src="/media/{{object.solicitante.avatar}}" width="80" height="80">					
+				{% else %}				
+					<img class="img-circle" src="/media/images/user.png" width="80" height="80">
+				{% endif %}				
+				<h6><b>Solicitado por:</b><br> <br>{{ object.solicitante.dni}}</h6>
+				<h6 class="text-center"> <a href="#">{{ object.solicitante.get_full_name }}</a></h6>
+			</div>			 #}-->
+		</div>	
+		<div class="panel-body">
+			<div class="form-horizontal">
+				<div class="form-group">
+					<label class="col-sm-2 control-label">Fecha:</label>
+					<div class="col-sm-4">
+						<input class="form-control" value = "{{object.fecha}}" disabled>
+					</div>
+					<label class="col-sm-2 control-label">Código:</label>
+					<div class="col-sm-4">
+						<input class="form-control" value = "{{object.id}}" disabled>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-sm-2 control-label">Prioridad Solicitada:</label>
+					<div class="col-sm-4">
+						<input class="form-control" value = "{{object.get_prioridad_solicitada_display}}" disabled>
+					</div>
+					<label class="col-sm-2 control-label">Nivel:</label>
+					<div class="col-sm-4">
+						<input class="form-control" value = "{{object.get_gestion}}" disabled>
+					</div>
+				</div>
+				{% if object.justif_urgencia %}
+					<div class="form-group">
+						<label class="col-sm-2 control-label">Justificación:</label>
+						<div class="col-sm-10">
+							<textarea class="form-control expandable" rows="10" maxlength="50" cols="40" disabled>{{ object.justif_urgencia }}</textarea>					
+						</div>
+					</div>						
+				{% endif %}				
+				<div class="form-group">
+					<label class="col-sm-2 control-label">Centro de Asistencia:</label>
+					<div class="col-sm-10">
+						<input class="form-control" value = "{{object.centro_asistencia.nombre}}" disabled>
+					</div>
+				</div>
+				{% if object.servicio %}
+					<div class="form-group">
+						<label class="col-sm-2 control-label">Servicio asignado:</label>
+						<div class="col-sm-10">
+							<input class="form-control" value = "{{object.servicio.nombre}}" disabled>
+						</div>
+					</div>				
+				{% endif %}
+				<div class="form-group">
+					<label class="col-sm-2 control-label">Imagen:</label>
+					<div class="col-sm-10">
+						{% if  object.imagen %}
+							<a href="/media/{{object.imagen}}">{{object.imagen}}</a>
+						{% else %}
+							<p><i>No se ha definido alguna imagen.</i></p>
+						{% endif %}
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-sm-2 control-label">Bienes:</label>						
+					<div class="col-sm-4">
+						<ul class="list-group">
+							{% if object.bienes.all %}
+								{% for bien in  object.bienes.all %}
+									<li class="list-group-item"><small>{{bien}}</small></li>
+								{% endfor %}
+							{% else %}
+								<li class="list-group-item"><small>Sin registro.</small></li>
+							{% endif %}	
+						<ul>
+					</div>
+					<label class="col-sm-2 control-label">Técnicos:</label>						
+					<div class="col-sm-4">
+						<ul class="list-group">
+							{% if object.asignacion_incidencia_set.all %}
+								{% for asignacion in  object.asignacion_incidencia_set.all %}
+									<li class="list-group-item" title = "{{asignacion.tecnico.get_full_name}}"><small><a href="#">{{asignacion.tecnico}}</a></small></li>
+								{% endfor %}
+							{% else %}
+								<li class="list-group-item"><small>Aún no se ha asignado.</small></li>
+							{% endif %}
+						<ul>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-sm-2 control-label">Acciones realizadas:</label>
+					<div id="div_acciones" class="col-sm-10">				
+						<table class='table table-bordered table-hover' id  = "tbl_acciones">
+							<thead>
+								<tr>
+									<th>Nro.</th>
+									<th>Titulo</th>
+									<th>Detalle</th>
+									<th>Acción</th>							
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>1</td>
+									<td>Asignacion de usuarios</td>
+									<td>Se asigna al usuario</td>
+									<td>Editar/ Eliminar</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+	<div class="modal fade" id="modal_asignarincidencia" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">		
+			</div>
+		</div> 		
+	</div>
+{% endblock contenido %}

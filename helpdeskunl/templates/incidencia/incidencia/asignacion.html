@@ -1,0 +1,48 @@
+{% url 'asignarincidencia_update' pk=object.id as url_asignarincidencia %}
+<form id="asignarincidencia_form" method='post' class="form form-horizontal" role="form" action="{{url_asignarincidencia}}">		
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		<h4 class="modal-title" id="myModalLabel">
+			<strong>Asignar Incidencia</strong>
+		</h4>		
+	</div>	
+	<div class="modal-body">		
+		{% csrf_token %}		
+		{% for formulario in form%}	 
+			{% if formulario.errors %}
+				<div class="alert alert-warning alert-dismissable">
+					<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> 					
+					{% for error in formulario.errors %} 				
+						<small>{{error}}</small>
+					{% endfor %}					
+				</div>
+			{% endif %} 
+			<div class="form-group">
+				<label class="control-label col-sm-3">{{formulario.label}}</label>
+				<div class="col-sm-8">
+					{{formulario}}
+					<p class="help-block small">{{formulario.help_text}}</p>			
+				</div>						
+			</div>
+		{%endfor%}		
+	</div>
+	<div class="modal-footer">
+		<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancelar" />
+		<input type="submit" class="btn btn-primary" value="Guardar" style="margin-bottom: 5px;"/>
+	</div>
+</form>
+<!---->
+<script>
+	var form_options = {target: '#modal_asignarincidencia .modal-content',
+						success: function(data){
+							if(data.respuesta == 'ok'){
+								jQuery('#modal_asignarincidencia').modal('hide');
+								location.reload();
+							}
+						},
+					}	
+	$('#asignarincidencia_form').ajaxForm(form_options);
+	$('#id_tecnicos').multiSelect();
+	// LIMPIAR CAMPOS DEL MODAL
+	$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
+</script>

@@ -21,5 +21,6 @@ class Caracteristica_BienInline(admin.TabularInline):
 class BienAdmin(admin.ModelAdmin):
 	inlines = [Caracteristica_BienInline]
 
+admin.site.register(Asignacion_Incidencia)
 admin.site.register(Incidencia)
 admin.site.register(Bien, BienAdmin)

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<!--FILE BASE_PANEL.HTML-->
+	{% block realtime %}{% endblock realtime %}
 	<meta charset="utf-8">
 	<!--COMPATIBLE CON NAVEGADORES INTERNET EXPLORER-->
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">	
@@ -24,7 +26,7 @@
 	<script type="text/javascript" src='/media/js/jquery.dataTables.min.js'></script>
 	<script type="text/javascript" src='/media/js/dataTables.bootstrap.js'></script>
 	<script type="text/javascript" src='/media/js/jquery.multi-select.js'></script>
-	<script type="text/javascript" src='/media/js/bootstrap.file-input.js.js'></script>
+	<script type="text/javascript" src='/media/js/bootstrap.file-input.js'></script>
 	
 	<!--FORMULARIOS-->
 	<script type="text/javascript" src="/media/js/jquery.form.js"></script>
@@ -34,7 +36,7 @@
 	<!--APLICACIONES-->
 	{% block files_js %}{% endblock files_js %}
 </head> 
-	<body>
+	<body>		
 		<div class="container">
 			<!--<div class="container-fluid" id="divpadre">-->
 				<header>
