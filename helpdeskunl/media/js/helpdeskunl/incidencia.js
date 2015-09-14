@@ -20,6 +20,11 @@ function my_ready () {
 
 	// NOTIFICACIONES
 	// cargar_notificaciones();
+	
+	//PARA CALCULAR VIA AJAX EL TIEMPO RESTANTE Y CADUCIDAD DE LA INCIDENCIA
+	servicio_onchange();
+	prioridad_onchange();
+
 }
 
 function hacer_visible () {
@@ -105,4 +110,39 @@ function temporizador () {
 		// 	if (key == 1) {};
 		// })
 	})
+}
+
+
+function servicio_onchange () {
+	$('#sla').change(function(event) {
+		$('#sla option:selected').each(function() {			
+			$.ajax({
+				url: '/calcularincidencia/',
+				type: 'GET',			
+				data: {servicio: $(this).val(), p_asignada: $("#p_asignada").val(), incidencia: $("#incidencia_id").val()},
+			})			
+			.always(function(data) {				
+				document.getElementById('caduca').value = data.caduca;
+				document.getElementById('duracion').value = data.duracion;			
+			});
+			
+		});
+	});		
+}
+
+function prioridad_onchange () {
+	$('#p_asignada').change(function(event) {
+		$('#p_asignada option:selected').each(function() {			
+			$.ajax({
+				url: '/calcularincidencia/',
+				type: 'GET',			
+				data: {servicio: $("#sla").val(), p_asignada: $(this).val(), incidencia: $("#incidencia_id").val()},
+			})			
+			.always(function(data) {				
+				document.getElementById('caduca').value = data.caduca;
+				document.getElementById('duracion').value = data.duracion;			
+			});
+			
+		});
+	});		
 }

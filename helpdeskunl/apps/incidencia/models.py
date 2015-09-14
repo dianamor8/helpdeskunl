@@ -2,6 +2,7 @@
 from django.db import models
 from django.conf import settings
 from helpdeskunl.apps.centro_asistencia.models import *
+from helpdeskunl.apps.usuarios.models import *
 from helpdeskunl.apps.home.current_user import get_current_user
 from django.core.urlresolvers import reverse
 
@@ -114,7 +115,7 @@ class Incidencia(TimeStampedModel):
 		ruta = "MultimediaData/Incidencia/%s/%s"%(self.centro_asistencia.id, str(filename))
 		return ruta
 
-	fecha = models.DateTimeField(auto_now=True)
+	fecha = models.DateTimeField(auto_now_add=True)
 	titulo = models.CharField(max_length=100)	
 	descripcion = models.CharField(max_length=50)
 	solicitante = models.ForeignKey(settings.AUTH_USER_MODEL,default=get_current_user, related_name='usuario_solicitante')
@@ -128,7 +129,8 @@ class Incidencia(TimeStampedModel):
 	bienes = models.ManyToManyField(Bien, blank=True)
 	imagen = models.ImageField(upload_to=url,help_text='Seleccione una imagen.', null=True, blank=True, max_length=300)
 	#ES ASIGNADO A MUCHOS USUARIOS OPERADORES	
-	tecnicos = models.ManyToManyField("self", symmetrical=False, through= 'Asignacion_Incidencia')
+	# tecnicos = models.ManyToManyField("self", symmetrical=False, through= 'Asignacion_Incidencia')
+	tecnicos = models.ManyToManyField(Perfil, through= 'Asignacion_Incidencia', through_fields = ('incidencia','tecnico'))
 	ejecucion = models.CharField(choices=PRIORIDAD_DETERMINADA_CHOICES, max_length=100, null=True , blank=True)
 	duracion = models.DurationField(null=True , blank=True)
 	# agregar la fecha que caduca
@@ -188,7 +190,7 @@ class Incidencia(TimeStampedModel):
 
 	# CALCULO DE PRIORIDAD
 	def determinar_prioridad(self):
-
+		
 		if self.prioridad_solicitada == '0':
 			if self.prioridad_asignada == '0':
 				return BAJO
@@ -228,17 +230,14 @@ class Incidencia(TimeStampedModel):
 
 class Asignacion_Incidencia(TimeStampedModel):
 	incidencia = models.ForeignKey(Incidencia, on_delete=models.DO_NOTHING)
-	tecnico = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING)
+	tecnico = models.ForeignKey(settings.AUTH_USER_MODEL)
 	administrador = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, related_name='usuario_desde')
-	# servicio = models.ForeignKey(Servicio, on_delete=models.DO_NOTHING)	
-	# prioridad_asignada = models.CharField(choices=URGENCIA_CHOICES, max_length=100, default=UR_NORMAL)
 	observacion = models.CharField(max_length=150, blank=True, null=True)
 	fecha_asignacion = models.DateTimeField(auto_now_add=True)	
 	class Meta:
 		verbose_name = "Asignacion de Incidencia"
 		verbose_name_plural = "Asignaciones de Incidencias"
 		db_table = 'Asignacion_Incidencia'
-
 
 
 #CREAR COMO CLASE PARA PORDER ASIGNAR USUARIOS A UN DEPARTAMENTO.

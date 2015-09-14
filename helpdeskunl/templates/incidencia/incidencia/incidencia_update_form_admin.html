@@ -8,7 +8,8 @@
 	<script type="text/javascript" src="/media/js/helpdeskunl/usuarios.js"></script>
 	<script type="text/javascript" src="/media/js/helpdeskunl/incidencia.js"></script>
 {% endblock files_js %}
-{% block contenido %}	
+{% block contenido %}
+	<input id='incidencia_id' type="hidden" value='{{object.id}}'>
 	<blockquote class="blockquote-reverse">
 		<h4><i><b>Actualizar solicitud de incidencia</b></i></h4>
 		<h3><b>{{object.titulo}}</b></h3>

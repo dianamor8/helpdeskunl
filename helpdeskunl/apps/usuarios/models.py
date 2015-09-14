@@ -103,3 +103,7 @@ class Perfil(AbstractBaseUser, PermissionsMixin):
 #http://buildthis.com/customizing-djangos-default-user-model/
 #http://www.lasolution.be/blog/creating-custom-user-model-django-16-part-1.html
 #https://www.caktusgroup.com/blog/2013/08/07/migrating-custom-user-model-django/
+
+
+# PARA CREAR UN COMBO DINAMICO
+# https://www.youtube.com/watch?v=TgqdAgxZAlE

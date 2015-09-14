@@ -102,9 +102,7 @@ my_default_errors = {
 }
 # PARA ACTUALIZAR POR EL ADMIN
 class IncidenciaCompleteForm(forms.ModelForm):
-	
-	# tecnicos = forms.ModelMultipleChoiceField(queryset=Perfil.objects.none(), required=True, error_messages=my_default_errors, label="Técnicos")	
-	
+		
 	def __init__(self, *args, **kwargs):		
 		my_user = kwargs.pop('my_user')
 		qs = kwargs.pop('perfiles')
@@ -112,22 +110,27 @@ class IncidenciaCompleteForm(forms.ModelForm):
 		super(IncidenciaCompleteForm, self).__init__(*args, **kwargs)		
 		self.fields['bienes'].help_text = 'Seleccione los bienes que desee reportar en esta incidencia.'
 		self.fields['bienes'].queryset = Bien.objects.filter(custodio=my_user)
-		# self.fields['tecnicos'].queryset = qs
+		self.fields['tecnicos'].help_text = 'Seleccione los técnicos que atenderán la incidencia.'
+		self.fields['tecnicos'].queryset = qs
 		self.fields['servicio'].queryset = qq		
-		self.fields['servicio'].empty_label = ">>>SELECCIONE<<<"
+		self.fields['servicio'].empty_label = ">>>SELECCIONE<<<"		
+		self.fields['caduca'].widget.attrs['readonly'] = True
+		self.fields['duracion'].widget.attrs['readonly'] = True		
+		self.fields['caduca'].widget.format = '%d/%m/%Y %H:%M:%S'
+
+
 		
 	class Meta:
 		model = Incidencia
-		fields = 'nivel', 'prioridad_solicitada', 'prioridad_asignada',  'servicio', 'caduca', 'duracion', 'bienes', 'tecnicos',
-		#exclude = 'fecha', 'estado','tecnicos', 'creado_por', 'titulo', 'descripcion', 'solicitante', 'justif_urgencia','estado_incidencia', 'centro_asistencia','imagen',
+		fields = 'nivel',  'prioridad_asignada',  'servicio','duracion',  'caduca', 'bienes', 'tecnicos',
 		
 		widgets = {			
-			'prioridad_solicitada': forms.Select(attrs={'class':'form-control required', 'disabled':'disabled',}),			
-			'prioridad_asignada': forms.Select(attrs={'class':'form-control required',}),
-			'nivel': forms.Select(attrs={'class':'form-control required',}),
-			'servicio': forms.Select(attrs={'class':'form-control required',}),		#MOSTRAR SOLO LOS SERVICIOS DEL CENTRO QUE ESCOJA	
-			'caduca': forms.TextInput(attrs={'class':'form-control', 'disabled':'disabled',}),
-			'duracion': forms.TextInput(attrs={'class':'form-control', 'disabled':'disabled',}),
+			'prioridad_solicitada': forms.Select(attrs={'class':'form-control', 'id':'p_solicitada',}),			
+			'prioridad_asignada': forms.Select(attrs={'class':'form-control', 'id':'p_asignada',}),
+			'nivel': forms.Select(attrs={'class':'form-control',}),
+			'servicio': forms.Select(attrs={'class':'form-control', 'id':'sla',}),		#MOSTRAR SOLO LOS SERVICIOS DEL CENTRO QUE ESCOJA	
+			'caduca': forms.DateInput(attrs={'class':'form-control', 'id':'caduca',}),
+			'duracion': forms.TextInput(attrs={'class':'form-control', 'id':'duracion',}),
 		}
 		labels = {			
 			'prioridad_solicitada': ('Prioridad Solicitada:'),			
@@ -137,12 +140,14 @@ class IncidenciaCompleteForm(forms.ModelForm):
 			'caduca': ('Caduca:'),		
 			'duracion': ('Duración:'),
 			'bienes': ('Bienes:'),
+			'tecnicos': ('Asesores Técnicos:'),
 		}
 		error_messages = {
 			'prioridad_solicitada': {'required': u"Seleccione una opción.",},
 			'prioridad_asignada': {'required': u"Seleccione una opción.",},			
 			'nivel': {'required': u"Seleccione una opción.",},
-			'servicio': {'required': u"Seleccione una opción.",},			
+			'servicio': {'required': u"Seleccione una opción.",},
+			'tecnicos': {'required': u"Seleccione al menos una opción.",},	
 		}	
 
 

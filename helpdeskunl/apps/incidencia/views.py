@@ -13,6 +13,8 @@ from django.views.generic import TemplateView,ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.detail import DetailView
 from django.core.urlresolvers import reverse_lazy
+from django.views.generic.edit import ModelFormMixin
+
 # METODOS DECORADORES
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
@@ -367,8 +369,7 @@ class RedirigirIncidencia(UpdateView):
 class IncidenciaCompleteUpdate(UpdateView):
 	model = Incidencia
 	template_name = 'incidencia/incidencia/incidencia_update_form_admin.html'
-	form_class = IncidenciaCompleteForm
-	success_url = reverse_lazy('incidencia_list')
+	form_class = IncidenciaCompleteForm	
 
 	@method_decorator(login_required)
 	@method_decorator(permission_required('incidencia.change_incidencia', raise_exception=permission_required))
@@ -383,12 +384,54 @@ class IncidenciaCompleteUpdate(UpdateView):
 	
 	def get_form_kwargs(self):
 		kwargs = super(IncidenciaCompleteUpdate, self).get_form_kwargs()
-		kwargs.update({'my_user': self.request.user})
+		kwargs.update({'my_user': self.object.solicitante})
 		perfiles = Perfil.objects.filter(personal_operativo__centro_asistencia__id=self.object.centro_asistencia.id, personal_operativo__grupo__name='ASESOR TECNICO').distinct()		
 		servicios = Servicio.objects.filter(centro__id=self.object.centro_asistencia.id)
 		kwargs.update({'perfiles': perfiles})
 		kwargs.update({'servicios': servicios})
 		return kwargs
+
+
+	def form_valid(self, form):
+		self.object = form.save(commit=False)
+		tecnicos = form.cleaned_data['tecnicos']
+		asignaciones = self.object.asignacion_incidencia_set.all()
+		incidencia_test = get_object_or_404(Incidencia, pk=self.object.id)
+		tecnicos_existentes = list()		
+		
+		for asignacion in asignaciones:			
+			if asignacion.tecnico not in tecnicos:								
+				asignacion.delete()				
+			else:
+				tecnicos_existentes.append(asignacion.tecnico)		
+
+		for tecnico in tecnicos: #TECNICOS SELECCIONADOS	
+			if tecnico not in tecnicos_existentes:				
+				t = Asignacion_Incidencia()
+				t.incidencia= incidencia_test
+				t.tecnico = tecnico
+				t.administrador= self.request.user
+				t.observacion='Creado por actualización'
+				t.save()
+
+				notificacion = Notificacion(remitente=self.request.user, destinatario = tecnico, tipo = '1')					
+				notificacion.save()						
+				notificacion.construir_notificacion()										
+				notificacion.notificar()
+				
+		incidencia = self.object
+		self.object.ejecucion = self.object.determinar_prioridad()		
+		self.object.duracion = self.object.determinar_duracion()		
+		self.object.caduca = self.object.calcular_caducidad()		
+		self.object.save()		
+		# return super(IncidenciaCompleteUpdate, self).form_valid(form)
+		return super(ModelFormMixin, self).form_valid(form)		
+
+	def get_success_url(self):
+		try:
+			return reverse('incidencia_detail', kwargs={'pk': self.object.id})
+		except Exception, e:
+			print e
 
 ##############################
 #   BIENES INSTITUCIONALES   #
