@@ -28,17 +28,9 @@
 							<textarea class="form-control expandable" rows="10" maxlength="50" cols="40" disabled>{{ object.descripcion }}</textarea>
 						</div>
 					</div>								
-					<div class="form-group">
-						<label class="col-sm-2 control-label">Prioridad Asignada:</label>
-						<div class="col-sm-3">
-							{% if object.prioridad_asignada %}
-								<input class="form-control {{object.get_class_prioridad_asignada}}" value = "{{object.get_prioridad_asignada_display}}" disabled>
-							{% else %}
-								<input class="form-control" value = "---" disabled>
-							{% endif %}			
-						</div>
+					<div class="form-group">						
 						<label class="col-sm-2 control-label">Prioridad Ejecución:</label>
-						<div class="col-sm-5">
+						<div class="col-sm-10">
 							{% if object.duracion %}
 								<input class="form-control" value = "{{object.get_ejecucion_display}} - {{object.duracion|timedeltaformat}}" disabled>
 							{% else %}
@@ -46,22 +38,30 @@
 							{% endif %}			
 						</div>
 					</div>					
-				</div>
-				<hr>
-				<div class="row-fluid text-center" style="{{render_div}}">
-					<div class="col-sm-4">
+				</div>				
+				<div class="row-fluid" style="{{render_div}}">
+					<div title="Asignar Incidencia" class="col-sm-1 col-sm-offset-8">
 						{% url 'asignarincidencia_update' pk=object.id as url_asignarincidencia %}
 						{% if asignar_incidencia %}
-							<a data-toggle="modal" href="{{url_asignarincidencia}}" data-target="#modal_asignarincidencia" title="Asignar Incidencia" data-tooltip class="btn btn-primary">Asignar Incidencia</a>
+							<a data-toggle="modal" href="{{url_asignarincidencia}}" data-target="#modal_asignarincidencia" class="btn btn-primary" title="Asignar Incidencia"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
 						{% else %}
-							<a data-toggle="modal" href="{{url_asignarincidencia}}" data-target="#modal_asignarincidencia" title="Asignar Incidencia" data-tooltip class="btn btn-primary" disabled>Asignar Incidencia</a>
+							<a data-toggle="modal" href="{{url_asignarincidencia}}" data-target="#modal_asignarincidencia" class="btn btn-primary" disabled><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
 						{% endif %}	
 					</div>
-					<div class="col-sm-4">						
-						<button type="submit" class="btn btn-info">Redirigir Incidencia</button> 
+					<div class="col-sm-1" title="Redirigir Incidencia">	
+						{% url 'redirigirincidencia_update' pk=object.id as url_redirigirincidencia %}
+						<a data-toggle="modal" href="{{url_redirigirincidencia}}" data-target="#modal_redirigirincidencia" class="btn btn-info" title="Redirigir Incidencia"><span class="glyphicon glyphicon-random" aria-hidden="true"></span></a>	
 					</div>
-					<div class="col-sm-4">
-						<button type="submit" class="btn btn-warning">Actualizar Incidencia</button>
+					<div class="col-sm-1" title="Actualizar Incidencia">
+						{% url 'incidencia_complete_update' pk=object.id as url_incidencia_complete %}
+						{% if object.prioridad_asignada %}							
+							<a class="btn btn-warning" href="{{url_incidencia_complete}}"><span class=" glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
+						{% else %}
+							<a class="btn btn-warning" href="{{url_incidencia_complete}}" disabled ><span class=" glyphicon glyphicon-pencil" aria-hidden="true" ></span></a>
+						{% endif %}
+					</div>
+					<div class="col-sm-1" title="Cerrar Incidencia">						
+						<button type="submit" class="btn btn-danger"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span></button> 
 					</div>
 				</div>
 			</div>
@@ -97,22 +97,41 @@
 		<div class="panel-body">
 			<div class="form-horizontal">
 				<div class="form-group">
-					<label class="col-sm-2 control-label">Fecha:</label>
-					<div class="col-sm-4">
+					<label class="col-sm-2 control-label">Prioridad Asignada:</label>
+					<div class="col-sm-2">
+						{% if object.prioridad_asignada %}
+							<input class="form-control {{object.get_class_prioridad_asignada}}" value = "{{object.get_prioridad_asignada_display}}" disabled>
+						{% else %}
+							<input class="form-control" value = "---" disabled>
+						{% endif %}			
+					</div>				
+					<label class="col-sm-1 control-label">Fecha:</label>
+					<div class="col-sm-3">
 						<input class="form-control" value = "{{object.fecha}}" disabled>
-					</div>
-					<label class="col-sm-2 control-label">Código:</label>
-					<div class="col-sm-4">
-						<input class="form-control" value = "{{object.id}}" disabled>
-					</div>
+					</div>					
+					<label class="col-sm-1 control-label">Caduca:</label>
+					{% if object.caduca %}
+						<div class="col-sm-3">
+							<input class="form-control" value = "{{object.caduca}}" disabled>
+						</div>
+					{% else %}
+						<div class="col-sm-3">
+							<input class="form-control" value = "---" disabled>
+						</div>
+					{% endif %}
+					
 				</div>
 				<div class="form-group">
 					<label class="col-sm-2 control-label">Prioridad Solicitada:</label>
-					<div class="col-sm-4">
+					<div class="col-sm-2">
 						<input class="form-control" value = "{{object.get_prioridad_solicitada_display}}" disabled>
 					</div>
-					<label class="col-sm-2 control-label">Nivel:</label>
-					<div class="col-sm-4">
+					<label class="col-sm-1 control-label">Estado:</label>
+					<div class="col-sm-3">						
+						<input class="form-control" value = "{{object.get_estado_incidencia_display}}" disabled>
+					</div>
+					<label class="col-sm-1 control-label">Nivel:</label>
+					<div class="col-sm-3">
 						<input class="form-control" value = "{{object.get_gestion}}" disabled>
 					</div>
 				</div>
@@ -140,13 +159,14 @@
 				{% endif %}
 				<div class="form-group">
 					<label class="col-sm-2 control-label">Imagen:</label>
-					<div class="col-sm-10">
+					<div class="col-sm-4">
 						{% if  object.imagen %}
 							<a href="/media/{{object.imagen}}">{{object.imagen}}</a>
 						{% else %}
 							<p><i>No se ha definido alguna imagen.</i></p>
 						{% endif %}
 					</div>
+					
 				</div>
 
 				<div class="form-group">
@@ -167,37 +187,14 @@
 						<ul class="list-group">
 							{% if object.asignacion_incidencia_set.all %}
 								{% for asignacion in  object.asignacion_incidencia_set.all %}
-									<li class="list-group-item" title = "{{asignacion.tecnico.get_full_name}}"><small><a href="#">{{asignacion.tecnico}}</a></small></li>
+									<li class="list-group-item" title = "{{asignacion.tecnico.get_full_name}}"><small>{{asignacion.tecnico}}</small></li>
 								{% endfor %}
 							{% else %}
 								<li class="list-group-item"><small>Aún no se ha asignado.</small></li>
 							{% endif %}
 						<ul>
 					</div>
-				</div>
-				<div class="form-group">
-					<label class="col-sm-2 control-label">Acciones realizadas:</label>
-					<div id="div_acciones" class="col-sm-10">				
-						<table class='table table-bordered table-hover' id  = "tbl_acciones">
-							<thead>
-								<tr>
-									<th>Nro.</th>
-									<th>Titulo</th>
-									<th>Detalle</th>
-									<th>Acción</th>							
-								</tr>
-							</thead>
-							<tbody>
-								<tr>
-									<td>1</td>
-									<td>Asignacion de usuarios</td>
-									<td>Se asigna al usuario</td>
-									<td>Editar/ Eliminar</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
+				</div>			
 			</div>
 			
 		</div>
@@ -208,4 +205,14 @@
 			</div>
 		</div> 		
 	</div>
+
+	<!--MODAL PARA REDIRIGIR INCIDENCIA-->
+	<div class="modal fade" id="modal_redirigirincidencia" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">		
+			</div>
+		</div> 		
+	</div>
+
+	
 {% endblock contenido %}

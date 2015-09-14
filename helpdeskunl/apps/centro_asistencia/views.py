@@ -28,6 +28,9 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.forms.utils import ErrorList
 from django.db import IntegrityError
 
+from drealtime import iShoutClient
+ishout_client = iShoutClient()
+
 ##############################
 # MODEL CENTRO DE ASISTENCIA #
 ##############################

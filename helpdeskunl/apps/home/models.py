@@ -19,9 +19,11 @@ class TimeStampedModel(models.Model):
 
 NUEVA_INCIDENCIA='0'
 ASIGNAR_INCIDENCIA='1'
+REDIRIGIR_INCIDENCIA='2'
 NOTIFICACIONES_CHOICES = (
 	(NUEVA_INCIDENCIA, 'Nueva Incidencia.'),
 	(ASIGNAR_INCIDENCIA, 'Asignación de Incidencia'),
+	(REDIRIGIR_INCIDENCIA, 'Incidencia Redirigida'),
 )
 
 
@@ -48,20 +50,14 @@ class Notificacion(TimeStampedModel):
 		if self.tipo == '1': #ASIGNACIÓN INCIDENCIA
 			mensaje = "%s te ha asignado la solución a una incidencia" % (self.remitente) 
 
+		if self.tipo == '2': #ASIGNACIÓN INCIDENCIA
+			mensaje = "%s ha redigido una incidencia a este centro" % (self.remitente) 
+
 		self.mensaje = mensaje
 		self.save()		
 		
-
-	# def notificar_test(remitente, destinatarios, tipo):		
-	# 	for destinatario in destinatarios:			
-	# 		notificacion = Notificacion(remitente=remitente, destinatario = destinatario, tipo = tipo)
-	# 		notificacion.save()			
-	# 		notificacion.mensaje = construir_notificacion(notificacion)
-	# 		notificacion.save()
-	# 		ishout_client.emit(destinatario.id, 'notificaciones', data = {'msg': notificacion.mensaje})
-	
-	def notificar(self):				
-		ishout_client.emit(self.destinatario.id, 'notificaciones', data = {'msg': self.mensaje})
+	def notificar(self):
+		ishout_client.emit(self.destinatario.id, 'notificaciones', data = {'msg': self.mensaje, 'tipo':self.get_tipo_display()})
 	
 	def __unicode__(self):
 		return self.mensaje

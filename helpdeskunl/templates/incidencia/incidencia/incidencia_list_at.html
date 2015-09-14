@@ -42,22 +42,28 @@
 		<br>
 		<div class="panel-body" id="div_incidencias">
 			{% if incidencias %}
-				<table id="tbl-incidencias" class="table table-bordered table-hover table-condensed" cellspacing="0" width="100%">
+				<table id="tbl-incidenciasat" class="table table-bordered table-hover table-condensed" cellspacing="0" width="100%">
 					<thead>
 						<tr>
 							<th class = 'col-sm-1'>Estado</th>
-							<th class = 'col-sm-1'>Fecha</th>
-							<th class = 'col-sm-3'>Centro</th>
+							<th class = 'col-sm-1'>Caduca</th>
+							<th class = 'col-sm-1'>Restante</th>							
 							<th class = 'col-sm-5'>Título</th>							
 							<th class = 'col-sm-2'>Acción</th>
 						</tr>
 					</thead>
 					<tbody>
 						{% for incidencia in incidencias %}
-							<tr id='tr_incidencia{{incidencia.id}}' class="small">								
+							
+							<tr id='tr_incidencia{{incidencia.id}}' class="small">						
+								<input class="caduca" type="hidden" value='{{incidencia.caduca|date:"F d, Y H:i:s" }}' data-id="{{incidencia.id}}">								
 								<td class="{{incidencia.get_class_estado}}">{{incidencia.get_estado_incidencia_display}}</td>
-								<td>{{incidencia.fecha|date:"SHORT_DATE_FORMAT"}} {{incidencia.fecha|time:"H:i"}}</td>
-								<td>{{incidencia.centro_asistencia}}</td>
+								<td>{{incidencia.caduca|date:"SHORT_DATE_FORMAT"}} {{incidencia.caduca|time:"H:i"}}</td>
+								<td>
+									<small><small> <small><small><small>
+										<div id="defaultCountdown{{incidencia.id}}"></div>
+									</small></small></small></small></small>
+								</td>								
 								<td>{{incidencia.titulo}}</td>
 								<td>
 									<div class="row-fluid">

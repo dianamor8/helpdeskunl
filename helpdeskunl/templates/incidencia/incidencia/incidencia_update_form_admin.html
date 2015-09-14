@@ -1,0 +1,79 @@
+{% extends "home/home_general.html" %}
+{% block realtime %}
+	{% load drealtimetags %}	
+	{%ishout_js%}
+{% endblock realtime %}
+{% block files_js %}	
+	<script type="text/javascript" src="/media/js/helpdeskunl/centro_asistencia.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/usuarios.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/incidencia.js"></script>
+{% endblock files_js %}
+{% block contenido %}	
+	<blockquote class="blockquote-reverse">
+		<h4><i><b>Actualizar solicitud de incidencia</b></i></h4>
+		<h3><b>{{object.titulo}}</b></h3>
+		<cite class="small"><b>Solicita: </b> {{object.solicitante.get_full_name}}</cite>
+	</blockquote>
+	<div class="panel panel-warning">
+		<div class="panel-heading">		
+			<div class="row-fluid">
+				<div class="col-sm-12 text-right">
+					<p><b>Fecha: </b>{{object.fecha}}</p>
+				</div>
+			</div>			
+			<br>
+		</div>
+		<form id="incidencia_update_admin_form" method='post' class="form form-horizontal" role="form" enctype = "multipart/form-data">
+		{% csrf_token %}
+			<div class="panel-body">
+
+
+				{% for formulario in form %}	 
+
+					{% if formulario.errors %}
+						<div class="alert alert-warning alert-dismissable">
+							<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> 					
+							{% for error in formulario.errors %} 				
+								<small>{{error}}</small>
+							{% endfor %}					
+						</div>
+					{% endif %}					
+					{% if formulario.name == 'prioridad_solicitada' %}
+						<div class="form-group form-group-sm">						
+							<label class="control-label col-sm-3">{{formulario.label_tag}}</label>		
+							{% if object.prioridad_solicitada == '2' %}
+								<div class="col-sm-7">
+									{{formulario}}
+									<p class="help-block small">{{formulario.help_text}}</p>	
+								</div>
+								<div class="col-sm-1">
+									<button data-toggle="popover" title="Justificación Urgencia" data-content="{{object.justif_urgencia}}" type="button" class="btn"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>			
+									</button>
+								</div>
+							{% else %}
+								<div class="col-sm-8">
+									{{formulario}}
+									<p class="help-block small">{{formulario.help_text}}</p>	
+								</div>
+							{% endif %}							
+						</div>
+					{% else %}						
+						<div class="form-group form-group-sm">
+							<label class="control-label col-sm-3">{{formulario.label_tag}}</label>
+							<div class="col-sm-8">
+								{{formulario}}
+								<p class="help-block small">{{formulario.help_text}}</p>	
+							</div>				
+						</div>						
+					{% endif %}
+					
+				{%endfor%}		
+			</div>
+
+			<div class="panel-footer text-right">
+				<a href="{% url 'incidencia_list' %}" class='btn btn-default'>Cancelar</a>
+				<input type="submit" value="Guardar" class='btn btn-primary'>
+			</div>		
+		</form>
+	</div>
+{% endblock contenido %}

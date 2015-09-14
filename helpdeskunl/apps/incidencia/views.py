@@ -70,8 +70,8 @@ def soy_propietario_incidencia(self):
 def permiso_incidencia_detail(self):
 	incidencia = get_object_or_404(Incidencia, pk=self.incidencia_id)
 	
-	asesores = Perfil.asesores_tecnicos.all()
-	jefes_departamento = Perfil.jefes_departamento.all()
+	asesores = Perfil.asesores_tecnicos.filter(personal_operativo__centro_asistencia=incidencia.centro_asistencia)
+	jefes_departamento = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia=incidencia.centro_asistencia)
 	respuesta = False
 	
 	if self.request.user in asesores:
@@ -93,7 +93,7 @@ class IncidenciaList(ListView):
 	context_object_name = 'incidencias'
 
 	def get_queryset(self):		
-		queryset = Incidencia.objects.filter(estado=True, creado_por=self.request.user.id).order_by('fecha')
+		queryset = Incidencia.objects.filter(estado=True, creado_por=self.request.user.id).order_by('-fecha')		
 		return queryset
 
 	@method_decorator(login_required)	
@@ -153,7 +153,6 @@ class IncidenciaUpdate(UpdateView):
 			return super(IncidenciaUpdate, self).dispatch(*args, **kwargs)
 		else:
 			raise PermissionDenied
-
 	
 	def get_form_kwargs(self):
 		kwargs = super(IncidenciaUpdate, self).get_form_kwargs()
@@ -189,7 +188,7 @@ class Incidencia_AsignadaList(ListView):
 
 	def get_queryset(self):		
 		# CONSULTA PARA INCIDENCIAS ASIGNADAS PARA MI
-		queryset = Incidencia.objects.filter(estado=True, asignacion_incidencia__tecnico=self.request.user).distinct() #order_by('asignacion_incidencia__fecha_asignacion')
+		queryset = Incidencia.objects.filter(estado=True, asignacion_incidencia__tecnico=self.request.user).distinct().order_by('-caduca')	 #order_by('asignacion_incidencia__fecha_asignacion')
 		return queryset
 
 	@method_decorator(login_required)
@@ -278,28 +277,38 @@ class AsignarIncidencia(UpdateView):
 
 		for tecnico in tecnicos:			
 			if tecnico not in tecnicos_existentes:
-				try:				
+				try:
 					t = Asignacion_Incidencia()
 					t.incidencia= incidencia
 					t.tecnico = tecnico
 					t.administrador= self.request.user
 					t.observacion='Creado por asignación'
 					t.save()
+					
+		
+					notificacion = Notificacion(remitente=self.request.user, destinatario = tecnico, tipo = '1')					
+					notificacion.save()						
+					notificacion.construir_notificacion()										
+					notificacion.notificar()					
+					
 				except Exception, e:
-					print e + ' error_dm: incidencia.views.AsignarIncidencia'
+					print e
 
 		# prioridad_asignada = form.cleaned_data['prioridad_asignada']
 		# prioridad_solicitada = self.object.prioridad_solicitada
 		
-		form.save()
+		form.save()		
 		incidencia = self.object
-		incidencia.ejecucion = self.object.determinar_prioridad()
+		incidencia.ejecucion = self.object.determinar_prioridad()		
 		incidencia.duracion = self.object.determinar_duracion()
 		incidencia.estado_incidencia = ESTADO_ABIERTA
-		incidencia.save()		
+		incidencia.caduca = self.object.calcular_caducidad()
+		incidencia.save()
+
 		######
-		# FALTA NOTIFICAR A LOS USUARIOS ASIGNADOS
+		# NOTIFICAR A LOS USUARIOS ASIGNADOS
 		######
+
 		if self.request.is_ajax():	 			 		
 	 		ctx = {'respuesta':'ok', 'id':incidencia.id,}
 	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
@@ -312,6 +321,74 @@ class AsignarIncidencia(UpdateView):
 		except Exception, e:
 			print e
 		
+
+class RedirigirIncidencia(UpdateView):
+	model = Incidencia	
+	template_name = 'incidencia/incidencia/redirigir.html'
+	form_class = RedirigirIncidenciaForm
+
+	@method_decorator(login_required)
+	@method_decorator(permission_required('incidencia.change_incidencia', raise_exception=permission_required))
+	@method_decorator(user_passes_test(es_jefe))
+	def dispatch(self, *args, **kwargs):		
+		return super(RedirigirIncidencia, self).dispatch(*args, **kwargs)
+
+	def get_form_kwargs(self):
+		kwargs = super(RedirigirIncidencia, self).get_form_kwargs()
+		kwargs.update({'centro_asistencia': self.object.centro_asistencia})
+		return kwargs
+
+	def form_valid(self, form):
+		incidencia = form.save()		
+		incidencia.prioridad_asignada = ''
+		incidencia.estado_incidencia = '0'
+		incidencia.nivel = '0'
+		asignaciones = incidencia.asignacion_incidencia_set.all()
+		asignaciones.delete()				
+		incidencia.servicio = None
+		incidencia.ejecucion = None
+		incidencia.duracion = None
+		incidencia.caduca = None
+		incidencia.save()
+
+		administradores = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia = incidencia.centro_asistencia).distinct()
+	 	for administrador in administradores:
+	 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '2')
+			notificacion.save()			
+			notificacion.construir_notificacion()
+			notificacion.notificar()
+
+		if self.request.is_ajax():	 			 		
+	 		ctx = {'respuesta':'ok', 'id':incidencia.id,}
+	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
+	 	else:			
+			return super(RedirigirIncidencia, self).form_valid(form)
+
+class IncidenciaCompleteUpdate(UpdateView):
+	model = Incidencia
+	template_name = 'incidencia/incidencia/incidencia_update_form_admin.html'
+	form_class = IncidenciaCompleteForm
+	success_url = reverse_lazy('incidencia_list')
+
+	@method_decorator(login_required)
+	@method_decorator(permission_required('incidencia.change_incidencia', raise_exception=permission_required))
+	def dispatch(self, *args, **kwargs):
+		self.incidencia_id = kwargs['pk']
+		incidencia = get_object_or_404(Incidencia, pk=self.incidencia_id)
+		jefes_departamento = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia=incidencia.centro_asistencia)			
+		if self.request.user in jefes_departamento:	
+			return super(IncidenciaCompleteUpdate, self).dispatch(*args, **kwargs)
+		else:
+			raise PermissionDenied
+	
+	def get_form_kwargs(self):
+		kwargs = super(IncidenciaCompleteUpdate, self).get_form_kwargs()
+		kwargs.update({'my_user': self.request.user})
+		perfiles = Perfil.objects.filter(personal_operativo__centro_asistencia__id=self.object.centro_asistencia.id, personal_operativo__grupo__name='ASESOR TECNICO').distinct()		
+		servicios = Servicio.objects.filter(centro__id=self.object.centro_asistencia.id)
+		kwargs.update({'perfiles': perfiles})
+		kwargs.update({'servicios': servicios})
+		return kwargs
 
 ##############################
 #   BIENES INSTITUCIONALES   #

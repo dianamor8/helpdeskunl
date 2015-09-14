@@ -3,18 +3,23 @@ $(document).on('ready', my_ready);
 	document.write('<script src="/media/js/bootstrap.file-input.js" type="text/javascript"></script>');
 
 function my_ready () {
+	$('[data-toggle="popover"]').popover();
 	configuracion_tabla($('#tbl-incidencias'));	
+	configuracion_tabla($('#tbl-incidenciasat'));	
+	configuracion_tabla($('#tbl-incidenciasjd'));	
 	hacer_visible();
 	cambiar_opcion();	
 	multiselect_bienes();	
 	$('input[type=file]').bootstrapFileInput();
 	$('.file-inputs').bootstrapFileInput();
+
+	temporizador();
 	// configuracion_tabla($('#example'));
 	// $('#tbl-incidencias').dataTable();
 	// $('#tbl-incidencias').removeClass( 'display' ).a$('#id').show();ddClass('table table-striped table-bordered');
 
 	// NOTIFICACIONES
-	cargar_notificaciones();
+	// cargar_notificaciones();
 }
 
 function hacer_visible () {
@@ -73,9 +78,31 @@ function multiselect_bienes () {
 
 function cargar_notificaciones () {
 	ishout.on('notificaciones', function(data){
-		console.log("entra cargar notificaciones");
-		alert(data.msg);	
-		// popupNotification(data.msg);
+		console.log("NOTIFICA")
+		var stack_bottomright = {"dir1":"bottom", "dir2":"right", "push":"top"};
+		new PNotify({
+			title: data.tipo,
+			text: data.msg,
+			addclass: 'stack-bottomright',
+			icon: 'glyphicon glyphicon-wrench',
+			type: 'info',
+			stack: stack_bottomright
+		});
 	});
 	ishout.init();
+}
+
+function temporizador () {	
+	// var caduca = new Date($(".caduca").val());	
+	// $('.defaultCountdown').countdown({until: caduca, compact: true});	
+	$('#tbl-incidenciasat tr .caduca').each(function(){		
+		input = $(this);
+		id_reloj = input.attr("data-id");
+		var caduca = new Date(input.val());
+		$('#defaultCountdown'+id_reloj).countdown({until: caduca, compact: true});	
+		// $(this).find('td .caduca').each(function(key,value){
+		// 	console.log($(this));			
+		// 	if (key == 1) {};
+		// })
+	})
 }

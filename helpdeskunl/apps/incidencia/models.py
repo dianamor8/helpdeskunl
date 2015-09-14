@@ -132,6 +132,7 @@ class Incidencia(TimeStampedModel):
 	ejecucion = models.CharField(choices=PRIORIDAD_DETERMINADA_CHOICES, max_length=100, null=True , blank=True)
 	duracion = models.DurationField(null=True , blank=True)
 	# agregar la fecha que caduca
+	caduca = models.DateTimeField(null=True , blank=True)	
 	class Meta:
 		verbose_name = "Incidencia"
 		verbose_name_plural = "Incidencias"
@@ -218,6 +219,10 @@ class Incidencia(TimeStampedModel):
 		if self.ejecucion == '0': #BAJO
 			return self.servicio.t_maximo
 
+	def calcular_caducidad(self):
+		fecha_inicio = self.fecha
+		duracion = self.duracion		
+		return fecha_inicio + duracion
 
 
 

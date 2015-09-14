@@ -65,7 +65,7 @@ class IncidenciaForm(forms.ModelForm):
 		
 	class Meta:
 		model = Incidencia
-		exclude = 'fecha', 'solicitante', 'prioridad_asignada', 'estado_incidencia', 'estado', 'creado_por', 'nivel', 'tecnicos','servicio', 'ejecucion', 'duracion'
+		exclude = 'fecha', 'solicitante', 'prioridad_asignada', 'estado_incidencia', 'estado', 'creado_por', 'nivel', 'tecnicos','servicio', 'ejecucion', 'duracion', 'caduca'
 		
 		widgets = {
 			'titulo': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Título de solicitud.',}),
@@ -95,58 +95,58 @@ class IncidenciaForm(forms.ModelForm):
 		else:
 			data = ''
 		return data
-
-# PARA ACTUALIZAR POR EL ADMIN
-class IncidenciaCompleteForm(forms.ModelForm):
-	
-	def __init__(self, *args, **kwargs):		
-		my_user = kwargs.pop('my_user')
-		super(IncidenciaForm, self).__init__(*args, **kwargs)
-		self.fields['centro_asistencia']=forms.ModelChoiceField(empty_label='>> SELECCIONE <<', queryset=Centro_Asistencia.objects.all(), widget=forms.Select(attrs={'class':'form-control'}))
-		self.fields['centro_asistencia'].error_messages = {'required': 'Seleccione el centro que atenderá su solicitud.'}
-		self.fields['justif_urgencia'].widget = forms.HiddenInput(attrs={'id':'Input_urgencia','class':'form-control', 'placeholder':'Justifique su solicitud de urgencia.',})
-		self.fields['bienes'].help_text = 'Seleccione los bienes que desee reportar en esta incidencia.'
-		self.fields['bienes'].queryset = Bien.objects.filter(custodio=my_user)
-		self.fields['imagen'].widget=MyClearableFileInput()
-		
-	class Meta:
-		model = Incidencia
-		exclude = 'fecha', 'estado'
-		
-		widgets = {
-			'titulo': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Título de solicitud.',}),
-			'descripcion': forms.Textarea(attrs={'class':'form-control expandable' ,'placeholder':'Descripción de la solicitud.',}),
-			'prioridad_solicitada': forms.Select(attrs={'class':'form-control required'}),			
-		}
-		labels = {
-			'titulo': ('Título:'),
-			'descripcion': ('Descripción:'),
-			'prioridad_solicitada': ('Prioridad:'),			
-			'centro_asistencia': ('Centro de Asistencia:'),
-			'justif_urgencia': ('Justifique:'),
-		}
-		error_messages = {
-			'titulo': {'required': u"Este campo no puede estar vacío.",},
-			'descripcion': {'required': u"Este campo no puede estar vacío.",},
-			'centro_asistencia': {'required': u"Seleccione el centro que atenderá su solicitud.", 'placeholder':'Seleccione.',},
-		}
-
-	def clean_justif_urgencia(self):
-		data = self.cleaned_data['justif_urgencia']
-		data_selected = self.cleaned_data['prioridad_solicitada']
-		print data_selected
-		if data_selected == '2':
-			if not data:
-				raise forms.ValidationError("Justifique su selección de urgencia.")
-		else:
-			data = ''
-		return data
-
 
 my_default_errors = {
     'required': 'Seleccione al menos un valor',
     'invalid': 'El valor seleccionado no es válido'
 }
+# PARA ACTUALIZAR POR EL ADMIN
+class IncidenciaCompleteForm(forms.ModelForm):
+	
+	# tecnicos = forms.ModelMultipleChoiceField(queryset=Perfil.objects.none(), required=True, error_messages=my_default_errors, label="Técnicos")	
+	
+	def __init__(self, *args, **kwargs):		
+		my_user = kwargs.pop('my_user')
+		qs = kwargs.pop('perfiles')
+		qq = kwargs.pop('servicios')		
+		super(IncidenciaCompleteForm, self).__init__(*args, **kwargs)		
+		self.fields['bienes'].help_text = 'Seleccione los bienes que desee reportar en esta incidencia.'
+		self.fields['bienes'].queryset = Bien.objects.filter(custodio=my_user)
+		# self.fields['tecnicos'].queryset = qs
+		self.fields['servicio'].queryset = qq		
+		self.fields['servicio'].empty_label = ">>>SELECCIONE<<<"
+		
+	class Meta:
+		model = Incidencia
+		fields = 'nivel', 'prioridad_solicitada', 'prioridad_asignada',  'servicio', 'caduca', 'duracion', 'bienes', 'tecnicos',
+		#exclude = 'fecha', 'estado','tecnicos', 'creado_por', 'titulo', 'descripcion', 'solicitante', 'justif_urgencia','estado_incidencia', 'centro_asistencia','imagen',
+		
+		widgets = {			
+			'prioridad_solicitada': forms.Select(attrs={'class':'form-control required', 'disabled':'disabled',}),			
+			'prioridad_asignada': forms.Select(attrs={'class':'form-control required',}),
+			'nivel': forms.Select(attrs={'class':'form-control required',}),
+			'servicio': forms.Select(attrs={'class':'form-control required',}),		#MOSTRAR SOLO LOS SERVICIOS DEL CENTRO QUE ESCOJA	
+			'caduca': forms.TextInput(attrs={'class':'form-control', 'disabled':'disabled',}),
+			'duracion': forms.TextInput(attrs={'class':'form-control', 'disabled':'disabled',}),
+		}
+		labels = {			
+			'prioridad_solicitada': ('Prioridad Solicitada:'),			
+			'prioridad_asignada': ('Prioridad Asignada:'),
+			'nivel': ('Nivel de Incidencia:'),
+			'servicio': ('Servicio. SLA.:'),
+			'caduca': ('Caduca:'),		
+			'duracion': ('Duración:'),
+			'bienes': ('Bienes:'),
+		}
+		error_messages = {
+			'prioridad_solicitada': {'required': u"Seleccione una opción.",},
+			'prioridad_asignada': {'required': u"Seleccione una opción.",},			
+			'nivel': {'required': u"Seleccione una opción.",},
+			'servicio': {'required': u"Seleccione una opción.",},			
+		}	
+
+
+
 class AsignacionForm(forms.ModelForm):	
 
 	tecnicos = forms.ModelMultipleChoiceField(queryset=Perfil.objects.none(), required=True, error_messages=my_default_errors)	
@@ -182,6 +182,26 @@ class AsignacionForm(forms.ModelForm):
 		if data is None:			
 			raise forms.ValidationError("Asigne un servicio a la incidencia.")	
 		return data
+
+
+class RedirigirIncidenciaForm(forms.ModelForm):	
+
+	def __init__(self, *args, **kwargs):
+		centro_asistencia = kwargs.pop('centro_asistencia')
+		super(RedirigirIncidenciaForm, self).__init__(*args, **kwargs)		
+		self.fields['centro_asistencia']=forms.ModelChoiceField(label ='Centro de Asistencia', empty_label='>> SELECCIONE <<', queryset=Centro_Asistencia.objects.exclude(id=centro_asistencia.id), widget=forms.Select(attrs={'class':'form-control'}))
+		self.fields['centro_asistencia'].error_messages = {'required': 'Redirija el centro que atenderá la solicitud.'}
+		
+	class Meta:
+		model = Incidencia
+		fields = ('centro_asistencia',)
+
+		labels = {			
+			'centro_asistencia': ('Centro de Asistencia:'),			
+		}
+		error_messages = {			
+			'centro_asistencia': {'required': u"Seleccione el centro que atenderá su solicitud.", 'placeholder':'Seleccione.',},
+		}
 		
 
 
