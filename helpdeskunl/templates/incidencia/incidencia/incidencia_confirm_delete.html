@@ -18,11 +18,30 @@
 			success: function(data){				
 				if (data.respuesta) {
 					jQuery('#delele_modal_i').modal('hide');					
-					$('#tr_incidencia'+data.id).remove();
-					var rowCount = $('#tbl_incidencias tr').length;
-					if(rowCount==1){
-						var parrafo = '<i><h5>Aún no se han registrado incidencias.</h5></i>';
-						$('#div_incidencias').html(parrafo);
+					var stack_bottomright = {"dir1":"bottom", "dir2":"right", "push":"top"};
+					if (data.respuesta == 'ok') {						
+						new PNotify({							
+							text: 'Se ha eliminado con éxito',
+							addclass: 'stack-bottomright',
+							icon: 'glyphicon glyphicon-wrench',
+							type: 'success',
+							stack: stack_bottomright
+						});
+						$('#tr_incidencia'+data.id).remove();
+						var rowCount = $('#tbl_incidencias tr').length;
+						if(rowCount==1){
+							var parrafo = '<i><h5>Aún no se han registrado incidencias.</h5></i>';
+							$('#div_incidencias').html(parrafo);
+						}
+					}else{
+						new PNotify({							
+							text: 'Incidencia en curso. No es posible eliminar.',
+							addclass: 'stack-bottomright',
+							icon: 'glyphicon glyphicon-wrench',
+							type: 'error',
+							stack: stack_bottomright,
+						});
+						
 					}
 				}
 			},
@@ -31,4 +50,5 @@
 		$('#incidencia_delete_form').ajaxForm(form_options);	
 		// LIMPIAR CAMPOS DEL MODAL
 		$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
+
 </script>

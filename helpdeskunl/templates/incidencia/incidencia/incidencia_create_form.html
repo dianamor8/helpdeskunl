@@ -9,6 +9,13 @@
 	<script type="text/javascript" src="/media/js/helpdeskunl/incidencia.js"></script>
 {% endblock files_js %}
 {% block contenido %}
+	{% if messages %}
+	<ul class="messages">
+		{% for message in messages %}
+			<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+		{% endfor %}
+	</ul>
+	{% endif %}
 	<div class='page-header'>
 		<h3 class="text-center"><b>
 			{% if object.id %}

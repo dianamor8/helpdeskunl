@@ -116,7 +116,7 @@ class IncidenciaCompleteForm(forms.ModelForm):
 		self.fields['servicio'].empty_label = ">>>SELECCIONE<<<"		
 		self.fields['caduca'].widget.attrs['readonly'] = True
 		self.fields['duracion'].widget.attrs['readonly'] = True		
-		self.fields['caduca'].widget.format = '%d/%m/%Y %H:%M:%S'
+		# self.fields['caduca'].widget.format = '%d/%m/%Y'
 
 
 		
@@ -129,7 +129,7 @@ class IncidenciaCompleteForm(forms.ModelForm):
 			'prioridad_asignada': forms.Select(attrs={'class':'form-control', 'id':'p_asignada',}),
 			'nivel': forms.Select(attrs={'class':'form-control',}),
 			'servicio': forms.Select(attrs={'class':'form-control', 'id':'sla',}),		#MOSTRAR SOLO LOS SERVICIOS DEL CENTRO QUE ESCOJA	
-			'caduca': forms.DateInput(attrs={'class':'form-control', 'id':'caduca',}),
+			'caduca': forms.TextInput(attrs={'class':'form-control', 'id':'caduca',}),
 			'duracion': forms.TextInput(attrs={'class':'form-control', 'id':'duracion',}),
 		}
 		labels = {			

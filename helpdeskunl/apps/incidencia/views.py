@@ -14,6 +14,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.detail import DetailView
 from django.core.urlresolvers import reverse_lazy
 from django.views.generic.edit import ModelFormMixin
+from django.contrib.messages.views import SuccessMessageMixin
 
 # METODOS DECORADORES
 from django.contrib.auth.decorators import login_required, permission_required
@@ -23,6 +24,10 @@ from django.contrib.auth.decorators import user_passes_test
 #EXCEPCIONES
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
+from django.db import IntegrityError
+
+#MENSAJES
+from django.contrib import messages
 
 # Create your views here.
 # def add_dependencia_view(request):
@@ -106,11 +111,12 @@ class IncidenciaList(ListView):
 	# PARA UN LISTVIEW  PERSONALIZADO SEGUN SE ESCOJA
 	# http://stackoverflow.com/questions/22902457/django-listview-customising-queryset		
 
-class IncidenciaCreate(CreateView):
+class IncidenciaCreate(SuccessMessageMixin, CreateView):
 	model = Incidencia	
 	template_name = 'incidencia/incidencia/incidencia_create_form.html'
 	form_class = IncidenciaForm
 	success_url = reverse_lazy('incidencia_list')
+	success_message = u"%(titulo)s se ha creado con éxito."
 
 	@method_decorator(login_required)
 	@method_decorator(permission_required('incidencia.add_incidencia', raise_exception=permission_required))
@@ -130,7 +136,7 @@ class IncidenciaCreate(CreateView):
 			notificacion.save()			
 			notificacion.construir_notificacion()
 			notificacion.notificar()	 		
-			# ishout_client.emit(administrador.id, 'notificaciones', data = {'msg':'Se ha agregado una nueva incidencia'})
+			# ishout_client.emit(administrador.id, 'notificaciones', data = {'msg':'Se ha agregado una nueva incidencia'})		
 		return super(IncidenciaCreate, self).form_valid(form)
 
 	# def get_context_data(self, **kwargs):
@@ -141,18 +147,28 @@ class IncidenciaCreate(CreateView):
 	# 		context['formset'] = BienFormSet()
 	# 	return context
 
-class IncidenciaUpdate(UpdateView):
+class IncidenciaUpdate(SuccessMessageMixin, UpdateView):
 	model = Incidencia	
 	template_name = 'incidencia/incidencia/incidencia_create_form.html'
 	form_class = IncidenciaForm
 	success_url = reverse_lazy('incidencia_list')
+	success_message = u"%(titulo)s se ha actualizado con éxito."
 
 	@method_decorator(login_required)
 	@method_decorator(permission_required('incidencia.change_incidencia', raise_exception=permission_required))
 	def dispatch(self, *args, **kwargs):
 		self.incidencia_id = kwargs['pk']
 		if soy_propietario_incidencia(self):
-			return super(IncidenciaUpdate, self).dispatch(*args, **kwargs)
+			incidencia = get_object_or_404(Incidencia, pk=self.incidencia_id)
+			if incidencia.estado_incidencia == '3':
+				messages.add_message(self.request, messages.ERROR, incidencia.titulo +' ha caducado')				
+				return HttpResponseRedirect(reverse_lazy('incidencia_list'))
+			else:
+				if incidencia.asignacion_incidencia_set.all():
+					messages.add_message(self.request, messages.ERROR, 'No se puede actualizar el registro. '+incidencia.titulo + u' ya está siendo atendida')				
+					return HttpResponseRedirect(reverse_lazy('incidencia_list'))
+				else:
+					return super(IncidenciaUpdate, self).dispatch(*args, **kwargs)
 		else:
 			raise PermissionDenied
 	
@@ -176,10 +192,11 @@ class IncidenciaDelete(DeleteView):
 		mensaje =""
 		try:
 			self.object.delete()
-			mensaje = "ok"
+			mensaje = "ok"			
 
 		except IntegrityError:
-			mensaje = 'NO ES POSIBLE BORRAR, INCIDENCIA EN CURSO'
+			mensaje = 'NO ES POSIBLE BORRAR, INCIDENCIA EN CURSO'			
+
 		ctx = {'respuesta': mensaje, 'id':id_incidencia,}
 		return HttpResponse(json.dumps(ctx), content_type='application/json')
 

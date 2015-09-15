@@ -45,8 +45,7 @@ INSTALLED_APPS = (
     'helpdeskunl.apps.centro_asistencia',
     'helpdeskunl.apps.base_conocimiento',
     'helpdeskunl.apps.usuarios',
-    'drealtime',
-    
+    'drealtime',  
 )
 
 MIDDLEWARE_CLASSES = (
@@ -136,3 +135,6 @@ LOGIN_REDIRECT_URL = '/'
 #    #     },
 #   },
 #}
+
+
+
