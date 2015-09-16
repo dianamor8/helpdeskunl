@@ -1,13 +1,13 @@
 {% if servicio.id %}
 	{% url 'servicio_update' pk=servicio.id as url_edit_servicio %}
-	<form id="servicio_update_form" method='post' class="form form-horizontal" role="form" action='{{url_edit_servicio}}'>
+	<form id="servicio_update_form" method='post' class="form form-horizontal" role="form" action='{{url_edit_servicio}}' onsubmit="return validateForm()">
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 			<h4 class="modal-title" id="myModalLabel">Editar Servicio</h4>
 		</div>
 {% else %}
 	{% url 'servicio_add' centro=centro as url_add_servicio %}
-	<form id="servicio_create_form" method='post' class="form form-horizontal" role="form" action='{{url_add_servicio}}'>
+	<form id="servicio_create_form" method='post' class="form form-horizontal" role="form" action='{{url_add_servicio}}' onsubmit="return validateForm()" >
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 			<h4 class="modal-title" id="myModalLabel">Nuevo Servicio</h4>
@@ -23,7 +23,9 @@
 						<small>{{error}}</small>
 					{% endfor %}					
 				</div>
-			{% endif %} 
+			{% endif %}
+			<div id="mensaje{{formulario.name}}">				
+			</div>
 			<div class="form-group">
 				<label class="control-label col-sm-3">{{formulario.label}}</label>
 				<div class="col-sm-8">
@@ -71,20 +73,42 @@
 	$('#servicio_create_form').ajaxForm(form_options);	
 	// LIMPIAR CAMPOS DEL MODAL
 	$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
-
+	
+	var duracion1 = $("#tmin").val();
+	var duracion2 = $("#id_t_normal").val();
+	var duracion3 = $("#id_t_maximo").val();
+	
+	function ejecutar_blur (este) {	
+		campo = '';			
+		var value = $(este).val();
+		var name = $(este).attr("name");
+		if (isValidTime(value)){
+			if(name == 't_minimo'){
+				duracion1 = value;
+			};
+			if(name == 't_normal'){
+				duracion2 = value;
+			};
+			if(name == 't_maximo'){
+				duracion3 = value;
+			};
+			$('#mensaje'+name).html('');
+			return true;	
+		}else{
+			var mensaje = '<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> <small>Formato no permitido</small></div>';
+			$('#mensaje'+name).html(mensaje);			
+			return false;
+		};	
+	}
 	
 	$(".duracion").blur(function(event) {
-		campo = '';			
-		var value = $(this).val();
-		if (isValidTime(value))
-			$(this).css('background','green');
-		else
-			$(this).css('background','red');
+		este = $(this);
+		ejecutar_blur(este);
 	});	
 	
 
 	function isValidTime(text) {
-		var regexp = new RegExp(/^([0-9]+ )?([0-9]+):([0-5][0-9]):([0-5][0-9])$/)
+		var regexp = new RegExp(/^([0-9]+ )?([0-9][0-9]+):([0-5][0-9]):([0-5][0-9])$/)
 		return regexp.test(text);
 	}
 
@@ -137,6 +161,21 @@
 	$('.duracion').keydown(function(event) {
 		campo = $(this).val();
 	});
+
+	function validateForm() {
+		var verificacion1 = ejecutar_blur(document.getElementById("tmin"));
+		var verificacion2 = ejecutar_blur(document.getElementById("id_t_normal"));
+		var verificacion3 = ejecutar_blur(document.getElementById("id_t_maximo"));
+
+		if (verificacion1 && verificacion2 && verificacion3) {
+			return true;
+		}else{	
+			return false;
+		};
+		// if (!ejecutar_blur(document.getElementById("tmin")) && !ejecutar_blur(document.getElementById("id_t_normal")) && !ejecutar_blur(document.getElementById("id_t_maximo")) ) {
+		// 	return false;
+		// };		
+	}
 
 
 
