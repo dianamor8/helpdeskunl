@@ -71,4 +71,73 @@
 	$('#servicio_create_form').ajaxForm(form_options);	
 	// LIMPIAR CAMPOS DEL MODAL
 	$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
+
+	
+	$(".duracion").blur(function(event) {
+		campo = '';			
+		var value = $(this).val();
+		if (isValidTime(value))
+			$(this).css('background','green');
+		else
+			$(this).css('background','red');
+	});	
+	
+
+	function isValidTime(text) {
+		var regexp = new RegExp(/^([0-9]+ )?([0-9]+):([0-5][0-9]):([0-5][0-9])$/)
+		return regexp.test(text);
+	}
+
+	$('.duracion').keyup(function(e) {
+		if (consumir_eventos(e)) {
+			if (evento_numeros(e)) {
+			}else{
+				console.log('Se consume el evento');
+				e.stopPropagation();
+				e.preventDefault();
+				document.getElementById(this.id).value = campo;				
+				return;
+			};
+		}else{
+			console.log("Se ejecuta pero no se consume");
+			return;
+		};
+		
+	});
+
+	function evento_numeros(e){		
+		if (e.which>=48 && e.which<=57 || e.which == 8 || e.which == 13) {
+			// console.log('EVENTO NUMEROS .. SI ES NUMERO TRUE'+ e.which);
+			return true;
+		}else{
+			// console.log('EVENTO NUMEROS .. SI ES OTRA COSA NO LO DEJA PASAR RETURN');
+			return false;
+		};	
+	}
+
+	function consumir_eventos (e) {		
+	// Allow: backspace, delete, tab, escape, enter and .	
+	if ($.inArray(e.keyCode, [46, 9, 27, 32, 13,110, 16, 190]) !== -1 ||
+             // Allow: Ctrl+A
+            (e.keyCode == 65 && e.ctrlKey === true) ||
+             // Allow: Ctrl+C
+            (e.keyCode == 67 && e.ctrlKey === true) ||
+             // Allow: Ctrl+X
+            (e.keyCode == 88 && e.ctrlKey === true) ||
+             // Allow: home, end, left, right
+            (e.keyCode >= 35 && e.keyCode <= 39)) {
+                 // let it happen, don't do anything
+                 console.log('CONSUMIR EVENTOS .. NO LO DEJA PASAR RETURN');
+                 return false;
+	    } 
+	    return true;
+	}
+
+	var campo = '';	
+	$('.duracion').keydown(function(event) {
+		campo = $(this).val();
+	});
+
+
+
 </script>

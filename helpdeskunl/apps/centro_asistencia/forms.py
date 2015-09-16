@@ -88,9 +88,9 @@ class ServicioForm(ModelForm):
 		widgets = {
 			'nombre': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Nombre del servicio.',}),			
 			'descripcion': forms.Textarea(attrs={'class':'form-control expandable', 'placeholder':'Descripción del servicio.',}),				
-			't_minimo': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Formato > DD HH:MM:SS > Ej. 2 30:25:00',}),
-			't_normal': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Formato > DD HH:MM:SS > Ej. 2 30:25:00',}),
-			't_maximo': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Formato > DD HH:MM:SS > Ej. 2 30:25:00',}),
+			't_minimo': forms.TextInput(attrs={'class':'form-control duracion', 'id':'tmin','placeholder':'Formato > DD HH:MM:SS > Ej. 2 30:25:00',}),
+			't_normal': forms.TextInput(attrs={'class':'form-control duracion', 'placeholder':'Formato > DD HH:MM:SS > Ej. 2 30:25:00',}),
+			't_maximo': forms.TextInput(attrs={'class':'form-control duracion', 'placeholder':'Formato > DD HH:MM:SS > Ej. 2 30:25:00',}),
 		}
 
 	def clean(self):

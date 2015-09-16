@@ -68,6 +68,7 @@ function asignar_evento(evento){
 		return evento_numeros(evento);
 	};
 }
+    
 
 function consumir_eventos (e) {		
 	// Allow: backspace, delete, tab, escape, enter and .	

@@ -5,6 +5,7 @@ $(document).ready(function() {
 
 	// CARGAR DATA-
 	modalDatosEliminar('.delete');
+	validar_inputs_duracion();	
 });
 
 // function clear_data_modal (idModal) {
@@ -107,3 +108,21 @@ function eliminar_usuario () {
 		// box.find(".btn-primary").removeClass("btn-primary").addClass("btn-danger");
 	});
 }
+
+function validar_inputs_duracion () {
+
+	$(".duracion").blur(function(event) {
+		console.log('entra');
+		var value = $(this).val();
+		if (isValidTime(value))
+			$(this).css('background','green');
+		else
+			$(this).css('background','red');
+	});	
+}
+
+function isValidTime(text) {
+	var regexp = new RegExp(/^([0-2][0-3]):([0-5][0-9]):([0-5][0-9])$/)
+	return regexp.test(text);
+}
+	// body...
