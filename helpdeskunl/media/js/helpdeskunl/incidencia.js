@@ -10,8 +10,8 @@ function my_ready () {
 	hacer_visible();
 	cambiar_opcion();	
 	multiselect_bienes();	
-	$('input[type=file]').bootstrapFileInput();
-	$('.file-inputs').bootstrapFileInput();
+	// $('input[type=file]').bootstrapFileInput();
+	// $('.file-inputs').bootstrapFileInput();
 
 	temporizador();
 	// configuracion_tabla($('#example'));

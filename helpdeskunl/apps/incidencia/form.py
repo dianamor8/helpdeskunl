@@ -59,13 +59,13 @@ class IncidenciaForm(forms.ModelForm):
 		self.fields['centro_asistencia']=forms.ModelChoiceField(empty_label='>> SELECCIONE <<', queryset=Centro_Asistencia.objects.all(), widget=forms.Select(attrs={'class':'form-control'}))
 		self.fields['centro_asistencia'].error_messages = {'required': 'Seleccione el centro que atenderá su solicitud.'}
 		self.fields['justif_urgencia'].widget = forms.HiddenInput(attrs={'id':'Input_urgencia','class':'form-control', 'placeholder':'Justifique su solicitud de urgencia.',})
-		self.fields['bienes'].help_text = 'Seleccione los bienes que desee reportar en esta incidencia.'
-		self.fields['bienes'].queryset = Bien.objects.filter(custodio=my_user)
+		## self.fields['bienes'].help_text = 'Seleccione los bienes que desee reportar en esta incidencia.'
+		## self.fields['bienes'].queryset = Bien.objects.filter(custodio=my_user)
 		self.fields['imagen'].widget=MyClearableFileInput()
 		
 	class Meta:
 		model = Incidencia
-		exclude = 'fecha', 'solicitante', 'prioridad_asignada', 'estado_incidencia', 'estado', 'creado_por', 'nivel', 'tecnicos','servicio', 'ejecucion', 'duracion', 'caduca'
+		exclude = 'fecha', 'solicitante', 'prioridad_asignada', 'estado_incidencia', 'estado', 'creado_por', 'nivel', 'tecnicos','servicio', 'ejecucion', 'duracion', 'caduca', 'bienes'
 		
 		widgets = {
 			'titulo': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Título de solicitud.',}),

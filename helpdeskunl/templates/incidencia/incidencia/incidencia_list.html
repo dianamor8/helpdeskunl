@@ -12,14 +12,14 @@
 {% block contenido %}
 	<script>
 	{% for message in messages %}
-	$(document).ready(function() {
+	$(document).ready(function() {		
 		var stack_bottomright = {"dir1":"bottom", "dir2":"right", "push":"top"};
 	    new PNotify({	      
 			text: '{{ message }}.',
 			addclass: 'stack-bottomright',
 			icon: 'glyphicon glyphicon-wrench',
 			type: '{{ message.tags }}',
-			stack: stack_bottomright
+			// stack: stack_bottomright
 	    });
 	});
 	{% endfor %}

@@ -128,7 +128,7 @@ class IncidenciaCreate(SuccessMessageMixin, CreateView):
 		kwargs.update({'my_user': self.request.user})
 		return kwargs
 	
-	def form_valid(self, form):		
+	def form_valid(self, form):				
 		self.object = form.save()
 	 	administradores = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia = self.object.centro_asistencia).distinct()
 	 	for administrador in administradores:
@@ -139,14 +139,12 @@ class IncidenciaCreate(SuccessMessageMixin, CreateView):
 			# ishout_client.emit(administrador.id, 'notificaciones', data = {'msg':'Se ha agregado una nueva incidencia'})		
 		return super(IncidenciaCreate, self).form_valid(form)
 
-	# def get_context_data(self, **kwargs):
-	# 	context = super(IncidenciaCreate, self).get_context_data(**kwargs)
-	# 	if self.request.POST:
-	# 		context['formset'] = BienFormSet(self.request.POST)
-	# 	else:
-	# 		context['formset'] = BienFormSet()
-	# 	return context
+	#def get_context_data(self, **kwargs):
+	#	context = super(IncidenciaCreate, self).get_context_data(**kwargs)
+	#	context['bienes'] = Bien.objects.all()		
+	#	return context
 
+# http://stackoverflow.com/questions/18434920/django-posting-a-template-value-to-a-view
 class IncidenciaUpdate(SuccessMessageMixin, UpdateView):
 	model = Incidencia	
 	template_name = 'incidencia/incidencia/incidencia_create_form.html'
@@ -179,21 +177,33 @@ class IncidenciaUpdate(SuccessMessageMixin, UpdateView):
 
 class IncidenciaDelete(DeleteView):
 	model = Incidencia
-	template_name = 'incidencia/incidencia/incidencia_confirm_delete.html'
-	
+	template_name = 'incidencia/incidencia/incidencia_confirm_delete.html'	
+	success_message = 'Incidencia eliminada con éxito'
+	success_url = reverse_lazy('incidencia_list')
+
 	@method_decorator(login_required)
 	@method_decorator(permission_required('incidencia.delete_incidencia', raise_exception=permission_required))
 	def dispatch(self, *args, **kwargs):
+		self.incidencia_id = kwargs['pk']				
 		return super(IncidenciaDelete, self).dispatch(*args, **kwargs)	
 
 	def delete(self, request, *args, **kwargs):	
 		self.object = self.get_object()
 		id_incidencia = self.object.id
 		mensaje =""
+		incidencia = get_object_or_404(Incidencia, pk=id_incidencia)
 		try:
-			self.object.delete()
-			mensaje = "ok"			
-
+			if incidencia.asignacion_incidencia_set.all():
+				messages.add_message(self.request, messages.ERROR, 'No se puede eliminar el registro. '+incidencia.titulo + u' ya está siendo atendida')
+				return HttpResponseRedirect(reverse_lazy('incidencia_list'))
+			else:
+				self.object.estado = False
+				self.object.estado_incidencia = '3'
+				self.object.save()
+				mensaje = "ok"
+				messages.success(self.request, self.success_message)
+				return HttpResponseRedirect(self.get_success_url())
+				# messages.add_message(self.request, messages.SUCCESS, u'Incidencia eliminada con éxito')
 		except IntegrityError:
 			mensaje = 'NO ES POSIBLE BORRAR, INCIDENCIA EN CURSO'			
 

@@ -8,6 +8,8 @@ from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.core.exceptions import ValidationError
 from datetime import timedelta
 from django.utils.dateparse import * 
+from django.shortcuts import get_object_or_404
+
 
 
 class form_agregar_centro_asistencia(ModelForm):	
@@ -67,10 +69,15 @@ class Centro_Asistencia_UpdateForm(ModelForm):
 	
 	
 class ServicioForm(ModelForm):
+	def __init__(self, *args, **kwargs):
+		super(ServicioForm, self).__init__(*args, **kwargs)
+		self.fields['estadistica'].empty_label = ">>>SELECCIONE<<<"
+
 	class Meta:
 		model = Servicio
 		exclude = 'centro',
 		labels = {
+			'estadistica': ('Estadística:'),
 			'nombre': ('Nombre:'),
 			'descripcion': ('Descripción:'),
 			't_minimo': ('Tiempo mínimo de solución:'),	
@@ -79,6 +86,7 @@ class ServicioForm(ModelForm):
 		}
 
 		error_messages = {
+			'estadistica': {'required': u"Seleccione al menos una opción.",},
 			'nombre': {'required': u"Este campo no puede estar vacío.",},
 			'descripcion': {'required': u"Este campo no puede estar vacío.",},
 			't_minimo': {'required': u"Este campo no puede estar vacío.", 'invalid': u"Ingrese una duración con formato válida.",},
@@ -86,22 +94,30 @@ class ServicioForm(ModelForm):
 			't_maximo': {'required': u"Este campo no puede estar vacío.", 'invalid': u"Ingrese una duración con formato válida.",},
 		}
 		widgets = {
+			'estadistica': forms.Select(attrs={'class':'form-control required'}),
 			'nombre': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Nombre del servicio.',}),			
 			'descripcion': forms.Textarea(attrs={'class':'form-control expandable', 'placeholder':'Descripción del servicio.',}),				
 			't_minimo': forms.TextInput(attrs={'class':'form-control duracion', 'id':'tmin','placeholder':'Formato > DD HH:MM:SS > Ej. 2 30:25:00',}),
 			't_normal': forms.TextInput(attrs={'class':'form-control duracion', 'placeholder':'Formato > DD HH:MM:SS > Ej. 2 30:25:00',}),
 			't_maximo': forms.TextInput(attrs={'class':'form-control duracion', 'placeholder':'Formato > DD HH:MM:SS > Ej. 2 30:25:00',}),
 		}
+	
 
 	def clean(self):
 		cleaned_data = super(ServicioForm, self).clean()
 		try:
 			t_minimo = cleaned_data.get("t_minimo")
 			t_normal = cleaned_data.get("t_normal")
-			t_maximo = cleaned_data.get("t_maximo")				
+			t_maximo = cleaned_data.get("t_maximo")
+			estadistica = cleaned_data.get("estadistica")
+
 			minimo = parse_duration(str(t_minimo))
 			maximo = parse_duration(str(t_maximo))
 			normal = parse_duration(str(t_normal))
+
+			minimo_estadistica = parse_duration(str(estadistica.minima_duracion))
+			maximo_estadistica = parse_duration(str(estadistica.maxima_duracion))
+
 			if  normal < minimo:
 				msg = "El tiempo normal debe ser mayor o igual que el tiempo mínimo."
 				self.add_error('t_normal', msg)
@@ -109,7 +125,20 @@ class ServicioForm(ModelForm):
 			if  maximo < normal:
 				msg = "El tiempo máximo debe ser mayor o igual que el tiempo normal."
 				self.add_error('t_maximo', msg)
-		except Exception, e:		
+
+			print maximo_estadistica
+			print maximo
+
+			if minimo_estadistica > minimo:
+				msg = "La estadística mínima para este servicio es %s." %(estadistica.minima_duracion)
+				self.add_error('t_minimo', msg)
+
+			if  maximo > maximo_estadistica :
+				msg = "La estadística máxima para este servicio es %s." %(estadistica.maxima_duracion)
+				self.add_error('t_maximo', msg)
+					
+		except Exception, e:
+			print e
 			return cleaned_data
 
 

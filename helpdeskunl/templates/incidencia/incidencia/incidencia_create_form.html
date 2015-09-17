@@ -1,21 +1,13 @@
 {% extends "home/home_general.html" %}
 {% block realtime %}
-	{% load drealtimetags %}	
-	{%ishout_js%}
+
 {% endblock realtime %}
 {% block files_js %}	
 	<script type="text/javascript" src="/media/js/helpdeskunl/centro_asistencia.js"></script>
 	<script type="text/javascript" src="/media/js/helpdeskunl/usuarios.js"></script>
 	<script type="text/javascript" src="/media/js/helpdeskunl/incidencia.js"></script>
 {% endblock files_js %}
-{% block contenido %}
-	{% if messages %}
-	<ul class="messages">
-		{% for message in messages %}
-			<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-		{% endfor %}
-	</ul>
-	{% endif %}
+{% block contenido %}	
 	<div class='page-header'>
 		<h3 class="text-center"><b>
 			{% if object.id %}
@@ -25,8 +17,14 @@
 			{% endif %}	</b>
 		</h3>
 	</div>
-	{% url 'incidencia_add' as url_add_incidencia %}
-	<form id="incidencia_create_form" method='post' class="form form-horizontal" role="form" enctype = "multipart/form-data">
+	{% if object.id %}
+		{% url 'incidencia_update' pk=object.id as url_update_incidencia %}
+		<form id="url_update_incidencia" method='post' class="form form-horizontal" role="form" enctype = "multipart/form-data">
+	{% else %}
+		{% url 'incidencia_add' as url_add_incidencia %}
+		<form id="incidencia_create_form" method='post' class="form form-horizontal" role="form" enctype = "multipart/form-data">
+	{% endif %}
+	
 		{% csrf_token %}
 		<div class="panel">
 			<div class="panel-body">
@@ -46,7 +44,8 @@
 						<p class="help-block small">{{formulario.help_text}}</p>	
 					</div>				
 				</div>
-			{%endfor%}		
+			{%endfor%}
+
 			</div>
 			<div class="panel-footer text-right">				
 				<a href="{% url 'incidencia_list' %}" class='btn btn-default'>Cancelar</a>
@@ -66,5 +65,5 @@
 			<div class="modal-content">		
 			</div>
 		</div> 		
-	</div>  #}-->
+	</div>  #}-->	
 {% endblock contenido %}
