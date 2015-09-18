@@ -75,7 +75,7 @@ class Perfil(AbstractBaseUser, PermissionsMixin):
 	def get_short_name(self):
 		return self.dni
 	def __unicode__(self):
-		return str(self.dni) + ':' + self.nombres + ' ' + self.apellidos
+		return self.nombres + ' ' + self.apellidos
 	# def has_perm(self, perm, obj=None):
 	# 	#"Does the user have a specific permission?"
 	# 	# Simplest possible answer: Yes, always

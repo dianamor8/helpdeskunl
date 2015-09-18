@@ -65,7 +65,7 @@
 						{% for incidencia in incidencias %}
 							<tr id='tr_incidencia{{incidencia.id}}' class="small">			
 								<td class="{{incidencia.get_class_estado}}">{{incidencia.get_estado_incidencia_display}}</td>
-								<td>{{incidencia.fecha|date:"SHORT_DATE_FORMAT"}} {{incidencia.fecha|time:"H:i"}}</td>
+								<td>{{incidencia.creado_en|date:"SHORT_DATE_FORMAT"}} {{incidencia.creado_en|time:"H:i"}}</td>
 								<td><b>{{incidencia.centro_asistencia}} </b><br>
 									{% for asignacion in incidencia.asignacion_incidencia_set.all %}
 										<small><small>{{asignacion.tecnico.get_full_name}},</small></small>

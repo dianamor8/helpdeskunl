@@ -16,9 +16,9 @@
 		var stack_bottomright = {"dir1":"bottom", "dir2":"right", "push":"top"};
 	    new PNotify({	      
 			text: '{{ message }}.',
-			addclass: 'stack-bottomright',
+			//addclass: 'stack-bottomright',
 			icon: 'glyphicon glyphicon-wrench',
-			type: '{{ message.tags }}',
+			type: '{{ message.tags }}'
 			// stack: stack_bottomright
 	    });
 	});
@@ -71,7 +71,7 @@
 						{% for incidencia in incidencias %}
 							<tr id='tr_incidencia{{incidencia.id}}' class="small">								
 								<td class="{{incidencia.get_class_estado}}">{{incidencia.get_estado_incidencia_display}}</td>
-								<td>{{incidencia.fecha|date:"SHORT_DATE_FORMAT"}} {{incidencia.fecha|time:"H:i"}}</td>
+								<td>{{incidencia.creado_en|date:"SHORT_DATE_FORMAT"}} {{incidencia.creado_en|time:"H:i"}}</td>
 								<td>{{incidencia.centro_asistencia}}</td>
 								<td>{{incidencia.titulo}}</td>
 								<td>

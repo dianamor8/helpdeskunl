@@ -19,6 +19,7 @@ urlpatterns = patterns('helpdeskunl.apps.incidencia',
 	url(r'^bien/add$', BienCreate.as_view(), name='bien_add'),	
 	#AJAX
 	url(r'^calcularincidencia/$', 'rest.calcular_incidencia_ajax', name='calcularincidencia'),	
+	url(r'^bien/busqueda/$', 'rest.buscar_bienes', name='view_buscar_bienes'), 
 
 	
 

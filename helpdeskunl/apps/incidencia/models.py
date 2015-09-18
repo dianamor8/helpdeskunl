@@ -27,8 +27,9 @@ TIPO_CHOICES = (
 	(COMPONENTE, 'COMPONENTE'),
 )
 class Bien(TimeStampedModel):
-	codigo = models.CharField(max_length=250, verbose_name='Código Institucional')
-	codigo_cfn = models.CharField(max_length=250, verbose_name='Código CFN', null=True, blank=True)
+	codigo = models.CharField(max_length=250, verbose_name='Código Institucional', null=True, blank=True, unique=True)
+	codigo_cfn = models.CharField(max_length=250, verbose_name='Código CFN', null=True, blank=True, unique=True)
+	serie = models.CharField(max_length=250, verbose_name='Serie', unique=True)
 	producto = models.CharField(max_length=100, verbose_name='Equipo')	
 	validado = models.BooleanField(default=False)
 	tipo = models.CharField(choices=TIPO_CHOICES, max_length=100, verbose_name='Ingreso')
@@ -97,14 +98,14 @@ NIVELES_CHOICES = (
 )
 
 ESTADO_NUEVA = '0'
-ESTADO_ABIERTA = '1'
-ESTADO_DELEGADA = '2'
+ESTADO_DELEGADA = '1'
+ESTADO_ABIERTA = '2'
 ESTADO_ATENDIDA = '3'
 ESTADO_PENDIENTE = '4'
 ESTADO_CHOICES = (
 	(ESTADO_NUEVA, 'Nueva'),
-	(ESTADO_ABIERTA, 'Atendiendo'),
-	(ESTADO_DELEGADA, 'Atendida'),
+	(ESTADO_DELEGADA, 'Asignada'),
+	(ESTADO_ABIERTA, 'Atendiendo'),	
 	(ESTADO_ATENDIDA, 'Cerrada'),	
 	(ESTADO_PENDIENTE, 'Pendiente'),	
 )
@@ -115,7 +116,7 @@ class Incidencia(TimeStampedModel):
 		ruta = "MultimediaData/Incidencia/%s/%s"%(self.centro_asistencia.id, str(filename))
 		return ruta
 
-	fecha = models.DateTimeField(auto_now_add=True)
+	fecha = models.DateTimeField(null=True , blank=True , verbose_name='fecha de asignación')
 	titulo = models.CharField(max_length=100)	
 	descripcion = models.CharField(max_length=50)
 	solicitante = models.ForeignKey(settings.AUTH_USER_MODEL,default=get_current_user, related_name='usuario_solicitante')

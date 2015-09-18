@@ -10,7 +10,21 @@
 {% endblock files_js %}
 {% load tags %}
 {% load validadores_template %}
-{% block contenido %}	
+{% block contenido %}
+<script>	
+	{% for message in messages %}
+	$(document).ready(function() {		
+		var stack_bottomright = {"dir1":"bottom", "dir2":"right", "push":"top"};
+	    new PNotify({	      
+			text: '{{ message }}.',
+			//addclass: 'stack-bottomright',
+			icon: 'glyphicon glyphicon-wrench',
+			type: '{{ message.tags }}'
+			// stack: stack_bottomright
+	    });
+	});
+	{% endfor %}
+</script>	
 	<input id='centro_asistencia_pk' type="hidden" value='{{object.id}}'>
 	<br> 
 	<div class = 'panel panel-default'>
@@ -107,7 +121,7 @@
 					</div>				
 					<label class="col-sm-1 control-label">Fecha:</label>
 					<div class="col-sm-3">
-						<input class="form-control" value = "{{object.fecha}}" disabled>
+						<input class="form-control" value = "{{object.creado_en}}" disabled>
 					</div>					
 					<label class="col-sm-1 control-label">Caduca:</label>
 					{% if object.caduca %}

@@ -30,7 +30,7 @@
 	<script type="text/javascript" src='/media/js/jquery.dataTables.min.js'></script>
 	<script type="text/javascript" src='/media/js/dataTables.bootstrap.js'></script>
 	<script type="text/javascript" src='/media/js/jquery.multi-select.js'></script>
-	<!--<script type="text/javascript" src='/media/js/bootstrap.file-input.js'></script>-->
+	<script type="text/javascript" src='/media/js/bootstrap.file-input.js'></script>
 	<script type="text/javascript" src='/media/js/pnotify.custom.min.js'></script>
 	<script type="text/javascript" src='/media/js/jquery.plugin.js'></script>
 	<script type="text/javascript" src='/media/js/jquery.countdown.js'></script>
@@ -108,16 +108,16 @@
 
 	</body>
 	<script type="text/javascript">
-	$(document).ready(function() {
+	$(document).ready(function() {	
 		ishout.on('notificaciones', function(data){		
-			var stack_bottomright = {"dir1":"bottom", "dir2":"right", "push":"top"};
+			var stack_bottomright = {"dir1":"right", "dir2":"down", "push": "top"};
 			new PNotify({
 				title: data.tipo,
 				text: data.msg,
-				addclass: 'stack-bottomright',
+				// addclass: 'stack-bottomright',
 				icon: 'glyphicon glyphicon-wrench',
-				type: 'info',
-				stack: stack_bottomright
+				type: 'info'
+				// stack: stack_bottomright
 			});
 		});
 		ishout.init();

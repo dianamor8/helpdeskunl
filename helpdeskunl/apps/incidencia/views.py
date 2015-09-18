@@ -29,6 +29,9 @@ from django.db import IntegrityError
 #MENSAJES
 from django.contrib import messages
 
+#FECHAS
+from datetime import datetime
+
 # Create your views here.
 # def add_dependencia_view(request):
 # 	if request.method == 'POST':
@@ -128,21 +131,30 @@ class IncidenciaCreate(SuccessMessageMixin, CreateView):
 		kwargs.update({'my_user': self.request.user})
 		return kwargs
 	
-	def form_valid(self, form):				
+	def form_valid(self, form):
 		self.object = form.save()
+		querty =  self.request.POST
+
+		try:
+			for idbien in querty.pop('bien'):
+				bien = Bien.objects.get(pk=int(idbien))
+				self.object.bienes.add(bien)
+			self.object.save()
+		except Exception, e:
+			print e
+			
 	 	administradores = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia = self.object.centro_asistencia).distinct()
 	 	for administrador in administradores:
 	 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '0')
 			notificacion.save()			
-			notificacion.construir_notificacion()
-			notificacion.notificar()	 		
+			notificacion.construir_notificacion(extra=self.object.centro_asistencia.nombre)
+
+			if administrador.id == self.request.user.id:
+				messages.add_message(self.request, messages.INFO, notificacion.mensaje)										
+			else:
+				notificacion.notificar()
 			# ishout_client.emit(administrador.id, 'notificaciones', data = {'msg':'Se ha agregado una nueva incidencia'})		
 		return super(IncidenciaCreate, self).form_valid(form)
-
-	#def get_context_data(self, **kwargs):
-	#	context = super(IncidenciaCreate, self).get_context_data(**kwargs)
-	#	context['bienes'] = Bien.objects.all()		
-	#	return context
 
 # http://stackoverflow.com/questions/18434920/django-posting-a-template-value-to-a-view
 class IncidenciaUpdate(SuccessMessageMixin, UpdateView):
@@ -174,6 +186,27 @@ class IncidenciaUpdate(SuccessMessageMixin, UpdateView):
 		kwargs = super(IncidenciaUpdate, self).get_form_kwargs()
 		kwargs.update({'my_user': self.request.user})
 		return kwargs
+
+	def get_context_data(self, **kwargs):
+		context = super(IncidenciaUpdate, self).get_context_data(**kwargs)		
+		bienes = self.object.bienes.all()
+		context['bienes_incidencia'] = bienes
+		return context
+
+	def form_valid(self, form):
+		self.object = form.save()
+		querty =  self.request.POST
+		self.object.bienes.clear()
+		try:
+			for idbien in querty.pop('bien'):
+				bien = Bien.objects.get(pk=int(idbien))
+				self.object.bienes.add(bien)
+			self.object.save()
+		except Exception, e:
+			print e
+		
+		return super(IncidenciaUpdate, self).form_valid(form)
+		
 
 class IncidenciaDelete(DeleteView):
 	model = Incidencia
@@ -279,7 +312,7 @@ class Incidencia_DetailView(DetailView):
 class AsignarIncidencia(UpdateView):
 	model = Incidencia	
 	template_name = 'incidencia/incidencia/asignacion.html'
-	form_class = AsignacionForm
+	form_class = AsignacionForm	
 
 	@method_decorator(login_required)
 	@method_decorator(permission_required('incidencia.change_incidencia', raise_exception=permission_required))
@@ -314,12 +347,14 @@ class AsignarIncidencia(UpdateView):
 					t.observacion='Creado por asignación'
 					t.save()
 					
-		
 					notificacion = Notificacion(remitente=self.request.user, destinatario = tecnico, tipo = '1')					
 					notificacion.save()						
-					notificacion.construir_notificacion()										
-					notificacion.notificar()					
-					
+					notificacion.construir_notificacion()					
+
+					if t.tecnico.id == self.request.user.id:
+						messages.add_message(self.request, messages.INFO, notificacion.mensaje)										
+					else:
+						notificacion.notificar()
 				except Exception, e:
 					print e
 
@@ -328,11 +363,13 @@ class AsignarIncidencia(UpdateView):
 		
 		form.save()		
 		incidencia = self.object
+		incidencia.fecha = datetime.now()
 		incidencia.ejecucion = self.object.determinar_prioridad()		
 		incidencia.duracion = self.object.determinar_duracion()
-		incidencia.estado_incidencia = ESTADO_ABIERTA
+		incidencia.estado_incidencia = ESTADO_DELEGADA
 		incidencia.caduca = self.object.calcular_caducidad()
 		incidencia.save()
+		messages.add_message(self.request, messages.SUCCESS, "Incidencia asignada con éxito")
 
 		######
 		# NOTIFICAR A LOS USUARIOS ASIGNADOS
@@ -373,19 +410,38 @@ class RedirigirIncidencia(UpdateView):
 		incidencia.estado_incidencia = '0'
 		incidencia.nivel = '0'
 		asignaciones = incidencia.asignacion_incidencia_set.all()
+
+		for asignacion in asignaciones:
+			# NOTIFICAR A LOS USUARIOS QUE FUERON ASIGNADOS
+			notificacion = Notificacion(remitente=self.request.user, destinatario = asignacion.tecnico, tipo = '4')						
+			notificacion.save()
+			notificacion.construir_notificacion(extra=self.object.titulo)
+
+			if asignacion.tecnico.id == self.request.user.id:
+				messages.add_message(self.request, messages.INFO, notificacion.mensaje)										
+			else:
+				notificacion.notificar()
+
 		asignaciones.delete()				
 		incidencia.servicio = None
 		incidencia.ejecucion = None
 		incidencia.duracion = None
 		incidencia.caduca = None
+		incidencia.fecha = None
 		incidencia.save()
 
 		administradores = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia = incidencia.centro_asistencia).distinct()
 	 	for administrador in administradores:
 	 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '2')
 			notificacion.save()			
-			notificacion.construir_notificacion()
-			notificacion.notificar()
+			notificacion.construir_notificacion(extra=self.object.centro_asistencia.nombre)
+
+			if administrador.id == self.request.user.id:
+				messages.add_message(self.request, messages.INFO, notificacion.mensaje)										
+			else:
+				notificacion.notificar()
+
+		messages.add_message(self.request, messages.SUCCESS, "La incidencia se ha redirigido exitosamente")
 
 		if self.request.is_ajax():	 			 		
 	 		ctx = {'respuesta':'ok', 'id':incidencia.id,}
@@ -393,10 +449,11 @@ class RedirigirIncidencia(UpdateView):
 	 	else:			
 			return super(RedirigirIncidencia, self).form_valid(form)
 
-class IncidenciaCompleteUpdate(UpdateView):
+class IncidenciaCompleteUpdate(SuccessMessageMixin, UpdateView):
 	model = Incidencia
 	template_name = 'incidencia/incidencia/incidencia_update_form_admin.html'
-	form_class = IncidenciaCompleteForm	
+	form_class = IncidenciaCompleteForm
+	success_message = u"%(titulo)s se ha actualizado con éxito."
 
 	@method_decorator(login_required)
 	@method_decorator(permission_required('incidencia.change_incidencia', raise_exception=permission_required))
@@ -427,8 +484,17 @@ class IncidenciaCompleteUpdate(UpdateView):
 		tecnicos_existentes = list()		
 		
 		for asignacion in asignaciones:			
-			if asignacion.tecnico not in tecnicos:								
-				asignacion.delete()				
+			if asignacion.tecnico not in tecnicos:												
+				notificacion = Notificacion(remitente=self.request.user, destinatario = asignacion.tecnico, tipo = '3')					
+				notificacion.save()						
+				notificacion.construir_notificacion(extra=str(incidencia_test.titulo))
+
+				if asignacion.tecnico.id == self.request.user.id:
+					messages.add_message(self.request, messages.INFO, notificacion.mensaje)	
+				else:
+					notificacion.notificar()
+
+				asignacion.delete()
 			else:
 				tecnicos_existentes.append(asignacion.tecnico)		
 
@@ -443,14 +509,28 @@ class IncidenciaCompleteUpdate(UpdateView):
 
 				notificacion = Notificacion(remitente=self.request.user, destinatario = tecnico, tipo = '1')					
 				notificacion.save()						
-				notificacion.construir_notificacion()										
-				notificacion.notificar()
-				
+				notificacion.construir_notificacion()
+
+				if tecnico.id == self.request.user.id:
+					messages.add_message(self.request, messages.INFO, notificacion.mensaje)	
+				else:
+					notificacion.notificar()
+
+		querty =  self.request.POST
+		self.object.bienes.clear()
+		try:
+			for idbien in querty.pop('bien'):
+				bien = Bien.objects.get(pk=int(idbien))
+				self.object.bienes.add(bien)			
+		except Exception, e:
+			print e
+
 		incidencia = self.object
 		self.object.ejecucion = self.object.determinar_prioridad()		
 		self.object.duracion = self.object.determinar_duracion()		
-		self.object.caduca = self.object.calcular_caducidad()		
-		self.object.save()		
+		self.object.save()
+
+		messages.add_message(self.request, messages.SUCCESS, self.object.titulo + u" se ha actualizado con éxito")	
 		# return super(IncidenciaCompleteUpdate, self).form_valid(form)
 		return super(ModelFormMixin, self).form_valid(form)		
 
@@ -459,10 +539,31 @@ class IncidenciaCompleteUpdate(UpdateView):
 			return reverse('incidencia_detail', kwargs={'pk': self.object.id})
 		except Exception, e:
 			print e
+	
+	def get_context_data(self, **kwargs):
+		context = super(IncidenciaCompleteUpdate, self).get_context_data(**kwargs)		
+		bienes = self.object.bienes.all()
+		context['bienes_incidencia'] = bienes
+		return context
+
 
 ##############################
 #   BIENES INSTITUCIONALES   #
 ##############################
+
+# class BienesImportList(ListView):
+# 	model = Bienes
+# 	template_name = 'incidencia/bien/buscar_bienes.html'
+# 	context_object_name = 'bienes'
+
+# 	def get_queryset(self):		
+# 		queryset = Bien.objects.filter(estado=True, creado_por=self.request.user.id).order_by('-fecha')		
+# 		return queryset
+
+# 	@method_decorator(login_required)	
+# 	def dispatch(self, *args, **kwargs):
+# 		return super(BienesImportList, self).dispatch(*args, **kwargs)
+
 
 class BienCreate(CreateView):	
 	template_name = 'incidencia/bien/bien_edit_form.html'

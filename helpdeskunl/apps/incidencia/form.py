@@ -108,13 +108,12 @@ class IncidenciaCompleteForm(forms.ModelForm):
 		qs = kwargs.pop('perfiles')
 		qq = kwargs.pop('servicios')		
 		super(IncidenciaCompleteForm, self).__init__(*args, **kwargs)		
-		self.fields['bienes'].help_text = 'Seleccione los bienes que desee reportar en esta incidencia.'
-		self.fields['bienes'].queryset = Bien.objects.filter(custodio=my_user)
+		## self.fields['bienes'].help_text = 'Seleccione los bienes que desee reportar en esta incidencia.'
+		## self.fields['bienes'].queryset = Bien.objects.filter(custodio=my_user)
 		self.fields['tecnicos'].help_text = 'Seleccione los técnicos que atenderán la incidencia.'
 		self.fields['tecnicos'].queryset = qs
 		self.fields['servicio'].queryset = qq		
 		self.fields['servicio'].empty_label = ">>>SELECCIONE<<<"		
-		self.fields['caduca'].widget.attrs['readonly'] = True
 		self.fields['duracion'].widget.attrs['readonly'] = True		
 		# self.fields['caduca'].widget.format = '%d/%m/%Y'
 
@@ -122,14 +121,13 @@ class IncidenciaCompleteForm(forms.ModelForm):
 		
 	class Meta:
 		model = Incidencia
-		fields = 'nivel',  'prioridad_asignada',  'servicio','duracion',  'caduca', 'bienes', 'tecnicos',
+		fields = 'nivel',  'prioridad_asignada',  'servicio','duracion', 'tecnicos',
 		
 		widgets = {			
 			'prioridad_solicitada': forms.Select(attrs={'class':'form-control', 'id':'p_solicitada',}),			
 			'prioridad_asignada': forms.Select(attrs={'class':'form-control', 'id':'p_asignada',}),
 			'nivel': forms.Select(attrs={'class':'form-control',}),
-			'servicio': forms.Select(attrs={'class':'form-control', 'id':'sla',}),		#MOSTRAR SOLO LOS SERVICIOS DEL CENTRO QUE ESCOJA	
-			'caduca': forms.TextInput(attrs={'class':'form-control', 'id':'caduca',}),
+			'servicio': forms.Select(attrs={'class':'form-control', 'id':'sla',}),		#MOSTRAR SOLO LOS SERVICIOS DEL CENTRO QUE ESCOJA				
 			'duracion': forms.TextInput(attrs={'class':'form-control', 'id':'duracion',}),
 		}
 		labels = {			
@@ -137,9 +135,8 @@ class IncidenciaCompleteForm(forms.ModelForm):
 			'prioridad_asignada': ('Prioridad Asignada:'),
 			'nivel': ('Nivel de Incidencia:'),
 			'servicio': ('Servicio. SLA.:'),
-			'caduca': ('Caduca:'),		
 			'duracion': ('Duración:'),
-			'bienes': ('Bienes:'),
+			# 'bienes': ('Bienes:'),
 			'tecnicos': ('Asesores Técnicos:'),
 		}
 		error_messages = {

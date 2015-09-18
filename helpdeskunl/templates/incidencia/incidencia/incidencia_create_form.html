@@ -8,14 +8,14 @@
 	<script type="text/javascript" src="/media/js/helpdeskunl/incidencia.js"></script>
 {% endblock files_js %}
 {% block contenido %}	
-	<div class='page-header'>
-		<h3 class="text-center"><b>
-			{% if object.id %}
-				Actualizar solicitud de incidencia
-			{% else %}
-				Nueva solicitud de incidencia
-			{% endif %}	</b>
-		</h3>
+	<input type="hidden" id="permiso" value="{{perms.incidencia.add_bien}}"> 
+
+	<div class='page-header text-center'>		
+		{% if object.id %}				
+			<h4><b>Actualizar solicitud de incidencia</b></h4>
+		{% else %}				
+			<h4><b>Nueva solicitud de incidencia</b></h4>				
+		{% endif %}	</b>
 	</div>
 	{% if object.id %}
 		{% url 'incidencia_update' pk=object.id as url_update_incidencia %}
@@ -28,32 +28,86 @@
 		{% csrf_token %}
 		<div class="panel">
 			<div class="panel-body">
-			{% for formulario in form %}	 
-				{% if formulario.errors %}
-					<div class="alert alert-warning alert-dismissable">
-						<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> 					
-						{% for error in formulario.errors %} 				
-							<small>{{error}}</small>
-						{% endfor %}					
-					</div>
-				{% endif %}
 				<div class="form-group">
-					<label class="control-label col-sm-3">{{formulario.label_tag}}</label>
+					<label class="control-label col-sm-3">Bienes:</label>			
 					<div class="col-sm-8">
-						{{formulario}}
-						<p class="help-block small">{{formulario.help_text}}</p>	
-					</div>				
+						<div class="panel panel-default">
+							<div class="container-fluid panel-heading">
+								<div class="col-sm-10" style="padding: 1%;">
+									<div>
+										<div class="input-group">
+											<div class="input-group-btn">	
+												<button id="button_opciones" class="btn" disabled>Opciones.</button>
+												<button class="btn dropdown-toggle" data-toggle="dropdown">
+													<span class="caret"></span>
+												</button>
+												<ul id="menu_criterio_bienes" class="dropdown-menu" role="menu">
+													<li><a>Código U.N.L.</a></li>
+													<li><a>Código S.F.N.</a></li>
+													<li><a>Serie</a></li>					
+												</ul>
+											</div>
+											<input type="text" placeholder="Seleccione una opción de búsqueda." id="buscar_bien" class="form-control" disabled>
+										</div>			
+									</div>	
+								</div>
+								<div class="col-sm-2" style="padding: 1%;">							
+										<!--VENTANA PARA BUSCAR BIENES-->						
+										<button type="button" id= 'btn_buscar_bienes' class='btn btn-primary'>Buscar</button>																	
+								</div>	
+							</div>
+							<div class="panel-body">
+								<small>
+								<table id="tbl-bienes" class="table table-bordered table-hover table-condensed" cellspacing="0" width="100%">
+									<thead>
+										<tr>
+											<th class="col-sm-2">Código</th>
+											<th class="col-sm-3">Código Sist.Finan.</th>
+											<th class="col-sm-2">Serie</th>
+											<th class="col-sm-4">Producto</th>
+											<th class="col-sm-1"></th>
+										</tr>
+									</thead>
+									<tbody>									
+										{% for bien in  bienes_incidencia %}
+											<tr id= "trbien_{{bien.id}}">
+												<input type='hidden' value='{{bien.id}}' name='bien'>
+												<td>{{bien.codigo}}</td>
+												<td>{{bien.codigo_cfn}}</td>
+												<td>{{bien.serie}}</td>
+												<td>{{bien.producto}}</td>
+												<td><input type="button" class="btn btn-danger remover" data-id="{{bien.id}}" value="x"></td>
+											</tr>
+										{% endfor %}								
+									</tbody>
+								</table></small>
+							</div>
+						</div>
+					</div>
 				</div>
-			{%endfor%}
-
+				{% for formulario in form %}	 
+					{% if formulario.errors %}
+						<div class="alert alert-warning alert-dismissable">
+							<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> 					
+							{% for error in formulario.errors %} 				
+								<small>{{error}}</small>
+							{% endfor %}					
+						</div>
+					{% endif %}
+					<div class="form-group form-group-sm">
+						<label class="control-label col-sm-3">{{formulario.label_tag}}</label>
+						<div class="col-sm-8">
+							{{formulario}}
+							<p class="help-block small">{{formulario.help_text}}</p>	
+						</div>				
+					</div>
+				{%endfor%}						
 			</div>
 			<div class="panel-footer text-right">				
 				<a href="{% url 'incidencia_list' %}" class='btn btn-default'>Cancelar</a>
 				<input type="submit" value="Guardar" class='btn btn-primary'>
 			</div>
-		</div>
-
-		
+		</div>	
 	</form>	
 	
 	<!--{# {% url 'bien_add' as url_add_bien %}

@@ -20,9 +20,13 @@ class TimeStampedModel(models.Model):
 NUEVA_INCIDENCIA='0'
 ASIGNAR_INCIDENCIA='1'
 REDIRIGIR_INCIDENCIA='2'
+ELIMINAR_ASIGNACION_INCIDENCIA='3'
+REDIRIGIR_INCIDENCIA_USUARIOS='4'
 NOTIFICACIONES_CHOICES = (
 	(NUEVA_INCIDENCIA, 'Nueva Incidencia.'),
 	(ASIGNAR_INCIDENCIA, 'Asignación de Incidencia'),
+	(REDIRIGIR_INCIDENCIA, 'Incidencia Redirigida'),
+	(ELIMINAR_ASIGNACION_INCIDENCIA, 'Asignación de Incidencia'),
 	(REDIRIGIR_INCIDENCIA, 'Incidencia Redirigida'),
 )
 
@@ -41,17 +45,23 @@ class Notificacion(TimeStampedModel):
 		verbose_name_plural = "Notificaciones" 
 		db_table = ('Notificacion') 
 
-	def construir_notificacion(self):
+	def construir_notificacion(self, extra="", ruta=""):
 		mensaje = ""
 
 		if self.tipo == '0': #NUEVA INCIDENCIA
-			mensaje = "%s ha registrado una nueva incidencia" % (self.remitente) 
+			mensaje = "Nueva entrada en el centro %s" % (extra) 
 		
 		if self.tipo == '1': #ASIGNACIÓN INCIDENCIA
 			mensaje = "%s te ha asignado la solución a una incidencia" % (self.remitente) 
 
-		if self.tipo == '2': #ASIGNACIÓN INCIDENCIA
+		if self.tipo == '2': #REDIRIGIR INCIDENCIA
 			mensaje = "%s ha redigido una incidencia a este centro" % (self.remitente) 
+
+		if self.tipo == '3': #ELIMINAR ASIGNACIÓN INCIDENCIA
+			mensaje = "La incidencia %s te ha sido removida. Otro asesor ha sido asignado" % (extra) #ENVIAR EN EXTRA EL NUMERO DE INCIDENCIA Y TITULO
+
+		if self.tipo == '4': #REDIRIGIR INCIDENCIA USUARIOS
+			mensaje = "La incidencia %s te ha sido removida. Ha sido redirigida a otro centro" % (extra) 
 
 		self.mensaje = mensaje
 		self.save()		
