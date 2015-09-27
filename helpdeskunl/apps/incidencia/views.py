@@ -31,6 +31,7 @@ from django.contrib import messages
 
 #FECHAS
 from datetime import datetime
+from django.utils import formats
 
 # Create your views here.
 # def add_dependencia_view(request):
@@ -154,6 +155,12 @@ class IncidenciaCreate(SuccessMessageMixin, CreateView):
 			else:
 				notificacion.notificar()
 			# ishout_client.emit(administrador.id, 'notificaciones', data = {'msg':'Se ha agregado una nueva incidencia'})		
+		
+
+		# AGREGA LA INCIDENCIA AL HISTORIAL CON FECHAS
+		historial = Historial_Incidencia(incidencia= self.object, tipo='0', fecha = datetime.now() , tiempo_restante= None)
+		historial.save()
+
 		return super(IncidenciaCreate, self).form_valid(form)
 
 # http://stackoverflow.com/questions/18434920/django-posting-a-template-value-to-a-view
@@ -363,11 +370,12 @@ class AsignarIncidencia(UpdateView):
 		
 		form.save()		
 		incidencia = self.object
-		incidencia.fecha = datetime.now()
-		incidencia.ejecucion = self.object.determinar_prioridad()		
-		incidencia.duracion = self.object.determinar_duracion()
-		incidencia.estado_incidencia = ESTADO_DELEGADA
-		incidencia.caduca = self.object.calcular_caducidad()
+		if incidencia.caduca == None:			
+			incidencia.fecha = datetime.now()
+			incidencia.ejecucion = self.object.determinar_prioridad()		
+			incidencia.duracion = self.object.determinar_duracion()
+			incidencia.estado_incidencia = ESTADO_DELEGADA	
+
 		incidencia.save()
 		messages.add_message(self.request, messages.SUCCESS, "Incidencia asignada con éxito")
 
@@ -375,10 +383,13 @@ class AsignarIncidencia(UpdateView):
 		# NOTIFICAR A LOS USUARIOS ASIGNADOS
 		######
 
+		historial = Historial_Incidencia(incidencia= incidencia, tipo='1', fecha = datetime.now() , tiempo_restante= incidencia.duracion)
+		historial.save()
+
 		if self.request.is_ajax():	 			 		
 	 		ctx = {'respuesta':'ok', 'id':incidencia.id,}
 	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
-	 	else:
+	 	else:	 		
 			return super(AsignarIncidencia, self).form_valid(form)
 	
 	def get_success_url(self):
@@ -453,7 +464,7 @@ class IncidenciaCompleteUpdate(SuccessMessageMixin, UpdateView):
 	model = Incidencia
 	template_name = 'incidencia/incidencia/incidencia_update_form_admin.html'
 	form_class = IncidenciaCompleteForm
-	success_message = u"%(titulo)s se ha actualizado con éxito."
+	success_message = u"%(titulo)s se ha actualizado con éxito"
 
 	@method_decorator(login_required)
 	@method_decorator(permission_required('incidencia.change_incidencia', raise_exception=permission_required))
@@ -545,6 +556,45 @@ class IncidenciaCompleteUpdate(SuccessMessageMixin, UpdateView):
 		bienes = self.object.bienes.all()
 		context['bienes_incidencia'] = bienes
 		return context
+
+class Atender_Incidencia_Update(DeleteView):
+	model = Incidencia
+	template_name = 'incidencia/incidencia/atender_incidencia.html'
+
+	@method_decorator(login_required)	
+	@method_decorator(permission_required('incidencia.change_incidencia', raise_exception=permission_required))	
+	def dispatch(self, *args, **kwargs):		
+		self.incidencia_id = kwargs['pk']
+		if permiso_incidencia_detail(self):
+			return super(Atender_Incidencia_Update, self).dispatch(*args, **kwargs)
+		else:
+			raise PermissionDenied
+
+	def delete(self, request, *args, **kwargs):	
+		self.object = self.get_object()
+		incidencia = get_object_or_404(Incidencia, pk=self.object.id)
+		incidencia.caduca = self.object.calcular_caducidad()		
+		incidencia.estado_incidencia = ESTADO_ABIERTA	
+		incidencia.save()
+		historial = Historial_Incidencia(incidencia= incidencia, tipo='2', fecha = datetime.now() , tiempo_restante= incidencia.duracion)
+		historial.save()
+		messages.add_message(self.request, messages.SUCCESS, u"%s, se ha aperturado con éxito. Recuerde que la incidencia caduca %s" %(incidencia.titulo, formats.date_format(incidencia.caduca, "SHORT_DATETIME_FORMAT")))		
+		return HttpResponseRedirect(reverse_lazy('incidencia_asignada_list'))		
+
+# 	def form_valid(self, form):		
+# 	 	form.save()
+# 	 	if self.request.is_ajax():	 		
+# 	 		servicio = self.object
+# 	 		fila = '<tr id="tr_servicio%s"><td><a data-toggle="modal" href="/servicio/%s" data-target="#modal" title="Editar Servicio" data-tooltip>%s</a></td><td> %s</td> <td> %s</td> <td> %s</td> '\
+# 	 				'<td><a href="/servicio/%s/delete" role="button" class="btn btn-danger delete" data-toggle="modal" data-target="#delele_modal" title="Eliminar Servicio" data-nombre="%s" data-id="%s">'\
+# 	 				'<span class="glyphicon glyphicon-trash"></span></a></td></tr>' % (servicio.id, servicio.id, servicio.nombre, timedeltaformat(servicio.t_minimo), timedeltaformat(servicio.t_normal), timedeltaformat(servicio.t_maximo), servicio.id, servicio.nombre,servicio.id)
+# 	 		id_servicio = servicio.id
+# 	 		ctx = {'respuesta':'update', 'fila':fila, 'id':id_servicio,}	
+# 	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
+# 	 	else:
+# 	 		return super(ServicioUpdate, self).form_valid(form)
+
+
 
 
 ##############################

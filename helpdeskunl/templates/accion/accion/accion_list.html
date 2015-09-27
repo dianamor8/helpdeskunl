@@ -1,0 +1,166 @@
+{% extends "home/home_general.html" %}
+{% block realtime %}
+	{% load drealtimetags %}	
+	{%ishout_js%}
+{% endblock realtime %}
+{% block files_js %}	
+	<script type="text/javascript" src="/media/js/helpdeskunl/centro_asistencia.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/usuarios.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/incidencia.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/accion.js"></script>
+{% endblock files_js %}
+{% load tags %}
+{% load validadores_template %}
+{% block contenido %}
+<script>	
+	{% for message in messages %}
+	$(document).ready(function() {		
+		var stack_bottomright = {"dir1":"bottom", "dir2":"right", "push":"top"};
+	    new PNotify({	      
+			text: '{{ message }}.',			
+			icon: 'glyphicon glyphicon-wrench',
+			type: '{{ message.tags }}'			
+	    });
+	});
+	{% endfor %}
+</script>	
+	<input id='incidencia_pk' type="hidden" value='{{incidencia.id}}'>
+	<br>
+	<blockquote class="blockquote-reverse" ><b><i>Panel de acciones</i></b></blockquote> 
+	<div class = 'panel panel-default'>
+		<div class='panel-heading container-fluid'>						
+			<div class="col-sm-9">
+				<h4 class="text-center">
+					<b>{{incidencia.titulo}}</b>				
+				</h4>
+				<br>
+				<div class="form-horizontal">					
+					<div class="form-group form-group-sm">						
+						<label class="col-sm-2 control-label" for="txtdescripcion">Descripción:</label>
+						<div class="col-sm-10">							
+							<textarea id="txtdescripcion" class="form-control" rows="10" maxlength="50" cols="40" disabled >{{ incidencia.descripcion }}</textarea>
+						</div>
+					</div>								
+					<div class="form-group form-group-sm">						
+						<label class="col-sm-2 control-label-sm" for="inpejecucion">Prioridad Ejecución:</label>
+						<div class="col-sm-10">
+							{% if incidencia.duracion %}
+								<input id="inpejecucion" class="form-control" value = "{{incidencia.get_ejecucion_display}} - {{incidencia.duracion|timedeltaformat}}" disabled>
+							{% else %}
+								<input id="inpejecucion" class="form-control" value = "---" disabled>
+							{% endif %}			
+						</div>
+					</div>					
+				</div>								
+			</div>
+			<div class="col-sm-3">
+				<div class="row">
+					<div class="thumbnail">						
+						{% if incidencia.solicitante.avatar %}				
+							<img class="img-circle" src="/media/{{incidencia.solicitante.avatar}}" width="60" height="60">					
+						{% else %}				
+							<img class="img-circle" src="/media/images/user.png" width="60" height="60">
+						{% endif %}
+						<div class="text-center">
+							<p class="small"><b>Solicitado por:</b></p>
+							<small><a href="#">{{ incidencia.solicitante.nombres }} <br>{{ incidencia.solicitante.apellidos }}</a></small>
+						</div>
+					</div>
+				</div>
+			</div>
+			<br>
+			<div class="text-center">
+				<div class="btn-group btn-group-md" style="{{render_div}}">				
+					<!--DIAGNOSTICO INICIAL-->
+					{% if diagnostico %}
+						{% url 'diagnostico_inicial_update' pk=diagnostico.id as url_diagnostico_inicial_update%}
+						<a href="{{url_diagnostico_inicial_update}}" class="btn btn-info" title="Diagnóstico Inicial"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Diagnostico Inicial</a>	
+							<!--NUEVA ACCION-->
+						{% url 'accion_add' incidencia_id=incidencia.id as url_crear_accion %}
+						<a href="{{url_crear_accion}}" class="btn btn-primary" title="Nueva Acción"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Nueva Acción</a>						
+						<!--REPORTAR PROBLEMA-->								
+						{% url 'incidencia_complete_update' pk=incidencia.id as url_incidencia_complete %}
+						<a class="btn btn-warning" href="{{url_incidencia_complete}}"><span class=" glyphicon glyphicon-pencil" aria-hidden="true" ></span> Reportar Problema</a>						
+						<!--CERRAR INCIDENCIA-->	
+						<button type="submit" class="btn btn-danger"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span> Cerrar Incidencia</button>			
+					{% else %}
+						{% url 'diagnostico_inicial' incidencia_id=incidencia.id as url_diagnostico_inicial%}
+						<a href="{{url_diagnostico_inicial}}" class="btn btn-info" title="Diagnóstico Inicial"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Diagnostico Inicial</a>
+							<!--NUEVA ACCION-->
+						{% url 'asignarincidencia_update' pk=incidencia.id as url_asignarincidencia %}
+						<a data-toggle="modal" href="{{url_asignarincidencia}}" data-target="#modal_asignarincidencia" class="btn btn-primary" title="Asignar Incidencia" disabled><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Nueva Acción</a>						
+						<!--REPORTAR PROBLEMA-->								
+						{% url 'incidencia_complete_update' pk=incidencia.id as url_incidencia_complete %}
+						<a class="btn btn-warning" href="{{url_incidencia_complete}}" disabled ><span class=" glyphicon glyphicon-pencil" aria-hidden="true" ></span> Reportar Problema</a>						
+						<!--CERRAR INCIDENCIA-->	
+						<button type="submit" class="btn btn-danger"><span class="glyphicon glyphicon-log-out" aria-hidden="true" ></span> Cerrar Incidencia</button>
+					{% endif %}
+
+					 						
+				</div>
+			</div>
+		</div>	
+		<div class="panel-body">
+			{% if acciones %}
+				<table id="tbl-acciones" class="table table-bordered table-hover table-condensed" cellspacing="0" width="100%">
+					<thead>
+						<tr>
+							<th class = 'col-sm-1'>Nivel</th>
+							<th class = 'col-sm-1'>Fecha</th>
+							<th class = 'col-sm-5'>Titulo</th>
+							<th class = 'col-sm-2'>Técnico</th>							
+							<th class = 'col-sm-2'>Acción</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for accion in acciones %}
+							<tr id='tr_accion{{accion.id}}' class="small">	
+								<td>{{accion.get_nivel_display}}</td>
+								<td>{{accion.creado_en|date:"SHORT_DATE_FORMAT"}} {{accion.creado_en|time:"H:i"}}</td>								
+								<td>{{accion.titulo}}</td>
+								<td>{{accion.tecnico.get_full_name}}</td>
+								<td>
+									<div class="row-fluid text-center">								
+										{% if perms.accion.add_solicitud_recurso %}
+											{% if accion.solicitud_recurso_set.all %}
+												{% url 'solicitudes_list' accion_id=accion.id  incidencia_id=accion.incidencia_id as url_solicitud_list %}
+												<a href="{{url_solicitud_list}}" title="Lista de  solicitudes" class="btn btn-info"><span class="glyphicon glyphicon-th-list"></a>
+												</a>
+											{% else %}
+												{% url 'solicitudes_list' accion_id=accion.id  incidencia_id=accion.incidencia_id as url_solicitud_list %}
+												<a href="{{url_solicitud_list}}" title="Lista de  solicitudes" class="btn btn-info" disabled><span class="glyphicon glyphicon-th-list"></a>
+												</a>
+											{% endif %}
+										{% endif %}	
+										{% if perms.accion.change_accion %}
+											{% url 'accion_update' pk=accion.id as url_edit_accion %}
+											<a href="{{url_edit_accion}}" title="Editar acción" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></a>
+										{% endif %}
+										{% if perms.accion.delete_accion %}
+											{% url 'accion_delete' pk=accion.id as url_delete_accion %}
+											<a data-toggle="modal" href="{{url_delete_accion}}" data-target="#delele_modal_a" title="Eliminar acción" data-tooltip class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span>
+											</a>
+										{% endif %}	
+									</div>
+								</td>							
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			{% else %}
+				<i><h5>No hay accions registradas que mostrar</h5></i>
+			{% endif %}	
+			
+		</div>
+	</div>
+	
+<!--MODAL PARA ELIMINAR ACCIONES-->
+<div id="delele_modal_a" class="modal fade" role="dialog" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">		
+	<div class="modal-dialog">
+		<div class="modal-content">		
+		</div>
+	</div>
+</div>
+
+	
+{% endblock contenido %}

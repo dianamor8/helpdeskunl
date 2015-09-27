@@ -17,6 +17,8 @@ urlpatterns = patterns('helpdeskunl.apps.incidencia',
 	url(r'^incidencia/redirigir/(?P<pk>\d+)/$', RedirigirIncidencia.as_view(), name='redirigirincidencia_update'),
 	url(r'^incidencia/edit/admin/(?P<pk>\d+)/$', IncidenciaCompleteUpdate.as_view(), name='incidencia_complete_update'),
 	url(r'^bien/add$', BienCreate.as_view(), name='bien_add'),	
+	url(r'^incidencia/atencion/(?P<pk>\d+)/$', Atender_Incidencia_Update.as_view(), name='atender_incidencia'),
+
 	#AJAX
 	url(r'^calcularincidencia/$', 'rest.calcular_incidencia_ajax', name='calcularincidencia'),	
 	url(r'^bien/busqueda/$', 'rest.buscar_bienes', name='view_buscar_bienes'), 

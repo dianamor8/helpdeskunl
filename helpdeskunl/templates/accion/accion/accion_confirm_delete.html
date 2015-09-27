@@ -1,0 +1,17 @@
+{% url 'accion_delete' pk=accion.id as url_delete_accion %}
+<form id="incidencia_delete_form" method='post' class="form form-horizontal" role="form" action='{{url_delete_accion}}'>
+	{% csrf_token %}
+	<div class="modal-header">
+		<h3 id= "myModalLabel">Eliminar Acción</h3>
+	</div>
+	<div class="modal-body">		
+		<p>¿Realmente desea eliminar <strong>{{object}}</strong> ?</p>
+	</div>
+	<div class="modal-footer">
+		<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancelar" />
+		<input id='EliminarI' type="submit" class="btn btn-danger" value="Eliminar" style="margin-bottom: 5px;"/>
+	</div>
+</form>
+<script>	
+	$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
+</script>

@@ -106,7 +106,12 @@ function temporizador () {
 	$('#tbl-incidenciasat tr .caduca').each(function(){		
 		input = $(this);
 		id_reloj = input.attr("data-id");
-		var caduca = new Date(input.val());
+		// console.log("----"+input.val()+"----");
+		if (input.val()!="") {
+			var caduca = new Date(input.val());
+		}else{
+			var caduca = new Date();
+		};		
 		$('#defaultCountdown'+id_reloj).countdown({until: caduca, compact: true});	
 		// $(this).find('td .caduca').each(function(key,value){
 		// 	console.log($(this));			

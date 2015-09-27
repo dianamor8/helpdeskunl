@@ -1,0 +1,55 @@
+{% load validadores_template %}
+{% load tags %}
+{% url 'atender_incidencia' pk=incidencia.id as url_atender_incidencia %}
+<form id="incidencia_atender_form" method='post' class="form form-horizontal" role="form" action='{{url_atender_incidencia}}'>
+	{% csrf_token %}
+	<div class="modal-header">
+		<h4 id= "myModalLabel"><p>¿Realmente desea atender?</p></h4>
+	</div>
+	<div class="modal-body">
+		<div class="form-horizontal">
+			<div class="form-group">				
+				<label class="col-sm-2 control-label">Título:</label>	
+				<div class="col-sm-10">
+					<input class="form-control" value = "{{object.titulo}}" disabled>				
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">Descripción:</label>	
+				<div class="col-sm-10">
+					<textarea class="form-control expandable" rows="10" maxlength="50" cols="40" disabled>{{ object.descripcion }}</textarea>
+				</div>				
+			</div>						
+			<div class="form-group">				
+				<label class="col-sm-2 control-label">Solicitante:</label>	
+				<div class="col-sm-10">
+					<input class="form-control" value = "{{object.solicitante}}" disabled>				
+				</div>
+			</div>
+			<div class="form-group">				
+				<label class="col-sm-2 control-label">Duración:</label>	
+				<div class="col-sm-4">
+					<input class="form-control" value = "{{object.duracion|timedeltaformat}}" disabled>				
+				</div>
+				<label class="col-sm-2 control-label">Prioridad:</label>	
+				<div class="col-sm-4">
+					<input class="form-control {{object.get_class_prioridad_asignada}}" value = "{{object.get_prioridad_asignada_display}}" disabled>
+				</div>		
+			</div>			
+		
+
+		
+
+		
+					
+		</div>		
+		
+	</div>
+	<div class="modal-footer">
+		<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancelar" />
+		<input id='Atender' type="submit" class="btn btn-primary" value="Atender" style="margin-bottom: 5px;"/>
+	</div>
+</form>
+<script>
+	$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
+</script>

@@ -16,11 +16,9 @@
 	$(document).ready(function() {		
 		var stack_bottomright = {"dir1":"bottom", "dir2":"right", "push":"top"};
 	    new PNotify({	      
-			text: '{{ message }}.',
-			//addclass: 'stack-bottomright',
+			text: '{{ message }}.',		
 			icon: 'glyphicon glyphicon-wrench',
-			type: '{{ message.tags }}'
-			// stack: stack_bottomright
+			type: '{{ message.tags }}'			
 	    });
 	});
 	{% endfor %}

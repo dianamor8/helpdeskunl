@@ -9,18 +9,20 @@
 	<script type="text/javascript" src="/media/js/helpdeskunl/incidencia.js"></script>
 {% endblock files_js %}
 {% load validadores_template %}
+{% load tags %}
 {% block contenido %}
 
-	<br><script>
+	<br>
+	<script>
 	{% for message in messages %}
-	$(document).ready(function() {
+	$(document).ready(function() {		
 		var stack_bottomright = {"dir1":"bottom", "dir2":"right", "push":"top"};
 	    new PNotify({	      
 			text: '{{ message }}.',
-			addclass: 'stack-bottomright',
+			//addclass: 'stack-bottomright',
 			icon: 'glyphicon glyphicon-wrench',
-			type: '{{ message.tags }}',
-			stack: stack_bottomright
+			type: '{{ message.tags }}'
+			// stack: stack_bottomright
 	    });
 	});
 	{% endfor %}
@@ -47,11 +49,7 @@
 					<b>Incidencias asignadas para mi</b>
 				</h3>					
 			</div>
-			<div class="col-sm-3 col-md-2">
-				{% if perms.incidencia.add_incidencia %}
-					{% url 'incidencia_add' as url_add_incidencia %}
-					<a class='btn btn-primary' href="{{url_add_incidencia}}" title="Nueva Incidencia">Agregar Nueva</a>
-				{% endif %}				
+			<div class="col-sm-3 col-md-2">				
 			</div>
 		</div>
 		<br>
@@ -63,13 +61,12 @@
 							<th class = 'col-sm-1'>Estado</th>
 							<th class = 'col-sm-1'>Caduca</th>
 							<th class = 'col-sm-1'>Restante</th>							
-							<th class = 'col-sm-5'>Título</th>							
-							<th class = 'col-sm-2'>Acción</th>
+							<th class = 'col-sm-8'>Título</th>							
+							<th class = 'col-sm-1'>Panel</th>
 						</tr>
 					</thead>
 					<tbody>
-						{% for incidencia in incidencias %}
-							
+						{% for incidencia in incidencias %}							
 							<tr id='tr_incidencia{{incidencia.id}}' class="small">						
 								<input class="caduca" type="hidden" value='{{incidencia.caduca|date:"F d, Y H:i:s" }}' data-id="{{incidencia.id}}">								
 								<td class="{{incidencia.get_class_estado}}">{{incidencia.get_estado_incidencia_display}}</td>
@@ -79,20 +76,27 @@
 										<div id="defaultCountdown{{incidencia.id}}"></div>
 									</small></small></small></small></small>
 								</td>								
-								<td>{{incidencia.titulo}}</td>
 								<td>
-									<div class="row-fluid">
+									<b>{{incidencia.titulo}} <p class="{{incidencia.get_class_prioridad_asignada_table}}">{{incidencia.get_prioridad_asignada_display}}</p></b>
+									<br><small> <i>Técnicos:<br></i> </small>
+									{% for asignacion in incidencia.asignacion_incidencia_set.all %}
+										<small><small>{{asignacion.tecnico.get_full_name}}, 	</small></small>
+									{% endfor %}
+								</td>								
+								<td>
+									<div class="row-fluid">										
 										<div class="col-sm-5">
 											{% if perms.incidencia.change_incidencia %}
-												{% url 'incidencia_update' pk=incidencia.id as url_edit_incidencia %}
-												<a href="{{url_edit_incidencia}}" title="Editar Incidencia" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></a>
-											{% endif %}
-										</div>
-										<div class="col-sm-5">
-											{% if perms.incidencia.delete_incidencia %}
-												{% url 'incidencia_delete' pk=incidencia.id as url_delete_incidencia %}
-												<a data-toggle="modal" href="{{url_delete_incidencia}}" data-target="#delele_modal_i" title="Eliminar" data-tooltip class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span>
-												</a>
+												{% if  incidencia.caduca %}						
+													{% url 'accion_list' incidencia_id=incidencia.id as url_acciones_incidencia %}
+													<a href="{{url_acciones_incidencia}}" class="btn btn-primary">
+														<span class="glyphicon glyphicon-th-list">
+													</a>
+												{% else %}		
+													{% url 'atender_incidencia' pk=incidencia.id as url_atender_incidencia %}
+													<a data-toggle="modal" href="{{url_atender_incidencia}}" data-target="#atender_modal_i" title="Atender" data-tooltip class="btn btn-warning"><span class="glyphicon glyphicon-check"></span>
+													</a>							
+												{% endif %}	
 											{% endif %}										
 										</div>
 								</td>							
@@ -106,8 +110,8 @@
 		</div>
 	</div>
 
-<!--MODAL PARA ELIMINAR INCIDENCIA-->
-<div id="delele_modal_i" class="modal fade" role="dialog" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">		
+<!--MODAL PARA ATENDER INCIDENCIA-->
+<div id="atender_modal_i" class="modal fade" role="dialog" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">		
 	<div class="modal-dialog">
 		<div class="modal-content">		
 		</div>

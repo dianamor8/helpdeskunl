@@ -73,6 +73,22 @@ class Notificacion(TimeStampedModel):
 		return self.mensaje
 
 
+class Contacto(TimeStampedModel):
+	nombres = models.CharField(max_length=120)
+	departamento = models.CharField(max_length=120)
+	correo = models.EmailField(verbose_name='Dirección de correo',max_length=255,unique=True)
+	telefono = models.CharField(max_length=20)
+	
+	class Meta:
+			verbose_name = "Contacto"
+			verbose_name_plural = "Contactos"
+			db_table = "Contacto"
+	
+	def __unicode__(self):
+		return '%s - %s'%(self.departamento, self.nombres)
+
+
+
 # PARA INSTALACION DE HERRAMIENTAS REALTIME DOCUMENTACIÓN
 # https://github.com/anishmenon/django-realtime
 # https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-an-ubuntu-14-04-server

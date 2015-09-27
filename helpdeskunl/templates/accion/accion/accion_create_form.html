@@ -1,0 +1,88 @@
+{% extends "home/home_general.html" %}
+{% block realtime %}
+
+{% endblock realtime %}
+{% block files_js %}	
+	<script type="text/javascript" src="/media/js/helpdeskunl/centro_asistencia.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/usuarios.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/incidencia.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/accion.js"></script>
+{% endblock files_js %}
+{% block contenido %}
+	<!--RECIBIR UN CONTEXT CON NOMBRE INCIDENCIA-->
+	<div class='page-header text-center'>		
+		{% if object.id %}				
+			<h4><b>Actualizar Acción</b></h4>
+		{% else %}				
+			<h4><b>Nueva Acción</b></h4>				
+		{% endif %}	</b>
+	</div>
+	{% if object.id %}
+		{% url 'accion_update' pk=object.id as url_update_accion %}
+		<form id="url_update_accion" method='post' class="form form-horizontal" role="form" enctype = "multipart/form-data">
+	{% else %}
+		{% url 'accion_add' as url_add_accion %}
+		<form id="accion_create_form" method='post' class="form form-horizontal" role="form" enctype = "multipart/form-data">
+	{% endif %}
+	
+		{% csrf_token %}
+		<div class="panel">
+			<div class="panel-body">
+				<div class="form-group form-group-sm">
+					<label class="control-label col-sm-3">Incidencia:</label>
+					<div class="col-sm-9">
+						<input class="form-control" value = "{{incidencia.titulo}}" disabled>
+					</div>				
+				</div>				
+				{% for formulario in form %}	 
+					{% if formulario.errors %}
+						<div class="alert alert-warning alert-dismissable">
+							<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> 					
+							{% for error in formulario.errors %} 				
+								<small>{{error}}</small>
+							{% endfor %}					
+						</div>
+					{% endif %}
+					<div class="form-group form-group-sm">
+						<label class="control-label col-sm-3">{{formulario.label_tag}}</label>
+						<div class="col-sm-9">
+							{{formulario}}
+							<p class="help-block small">{{formulario.help_text}}</p>	
+						</div>				
+					</div>
+				{%endfor%}
+				{% if object.id %}
+					<div class="form-group form-group-sm">
+						<label class="control-label col-sm-3">Solicitud de recursos: ¿Desea actualizar?</label>						
+						<div class="col-sm-8">
+							<label class="radio-inline">
+								<input id="radioSI" type="radio" value="SI" name="recursos" > Si
+							</label>
+							<label class="radio-inline">
+								<input id="radioNO" type="radio" value="NO" name="recursos" checked> No
+							</label>
+						</div>
+					</div>
+				{% else %}
+					<div class="form-group form-group-sm">
+						<label class="control-label col-sm-3">¿Dispone de recursos?</label>			
+						<div class="col-sm-8">
+							<label class="radio-inline">
+								<input id="radioSI" type="radio" value="SI" name="recursos" checked> Si
+							</label>
+							<label class="radio-inline">
+								<input id="radioNO" type="radio" value="NO" name="recursos"> No
+							</label>
+						</div>
+					</div>						
+				{% endif %}					
+								
+			</div>
+			<div class="panel-footer text-right">
+				{% url 'accion_list' incidencia_id=incidencia.id as url_acciones_list %}	
+				<a href="{{url_acciones_list}}" class='btn btn-default'>Cancelar</a>
+				<input type="submit" value="Guardar" class='btn btn-primary'>
+			</div>
+		</div>	
+	</form>	
+{% endblock contenido %}

@@ -45,6 +45,9 @@ INSTALLED_APPS = (
     'helpdeskunl.apps.centro_asistencia',
     'helpdeskunl.apps.base_conocimiento',
     'helpdeskunl.apps.usuarios',
+    'helpdeskunl.apps.accion',
+    'helpdeskunl.apps.problema',
+    'helpdeskunl.apps.cambio',
     'drealtime',
 )
 

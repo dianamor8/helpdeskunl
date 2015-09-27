@@ -5,6 +5,9 @@ from helpdeskunl.apps.centro_asistencia.models import *
 from helpdeskunl.apps.usuarios.models import *
 from helpdeskunl.apps.home.current_user import get_current_user
 from django.core.urlresolvers import reverse
+# TIEMPO
+from datetime import datetime
+from django.utils import timezone
 
 
 class TimeStampedModel(models.Model):
@@ -173,6 +176,15 @@ class Incidencia(TimeStampedModel):
 		}		
 		return switcher.get(int(self.prioridad_solicitada))
 
+	def get_class_prioridad_asignada_table(self):		
+		switcher = {
+			0: "label label-default", #Bajo
+			1: "label label-success", #Normal
+			2: "label label-danger", #Alto			
+		}		
+		return switcher.get(int(self.prioridad_asignada))
+
+
 	def get_class_prioridad_asignada(self):		
 		switcher = {
 			0: "btn btn-default", #Bajo
@@ -221,11 +233,26 @@ class Incidencia(TimeStampedModel):
 			return self.servicio.t_normal
 		if self.ejecucion == '0': #BAJO
 			return self.servicio.t_maximo
-
+ 
 	def calcular_caducidad(self):
 		fecha_inicio = self.fecha
 		duracion = self.duracion		
 		return fecha_inicio + duracion
+
+	def es_vigente(self, request):
+		hoy = timezone.now()
+		if self.caduca is None:
+			return True
+
+		if self.caduca < hoy:
+			self.estado_incidencia = '3'
+			self.save()
+			if not self.cierre_incidencia_set.all():
+				cierre = Cierre_Incidencia(tipo='0', usuario=request.user, observacion='Cierre automático por expiración.', incidencia=self)
+				cierre.save()
+			return False
+		else:
+			return True
 
 
 
@@ -240,6 +267,54 @@ class Asignacion_Incidencia(TimeStampedModel):
 		verbose_name_plural = "Asignaciones de Incidencias"
 		db_table = 'Asignacion_Incidencia'
 
+
+
+
+CREA_INCIDENCIA = '0'
+ASIGNA_INCIDENCIA = '1'
+ABRE_INCIDENCIA = '2'
+CREA_SOLICITUD_RECURSO = '3'
+ASIGNACION_RECURSO = '4'
+CREA_PROBLEMA = '5'
+ASIGNACION_RECURSO_PROBLEMA = '6'
+
+HISTORIAL_CHOICES = (
+	(CREA_INCIDENCIA, 'CREAR INCIDENCIA'),
+	(ASIGNA_INCIDENCIA, 'ASIGNAR INCIDENCIA'),
+	(ABRE_INCIDENCIA, 'ABRIR INCIDENCIA'),	
+	(CREA_SOLICITUD_RECURSO, 'CREAR RECURSO'),	
+	(ASIGNACION_RECURSO, 'ASIGNA RECURSO'),	
+	(CREA_PROBLEMA, 'CREAR PROBLEMA'),	
+	(ASIGNACION_RECURSO_PROBLEMA, 'ASIGNAR RECURSO PROBLEMA'),	
+)
+class Historial_Incidencia(TimeStampedModel):
+	incidencia = models.ForeignKey(Incidencia, on_delete=models.DO_NOTHING)
+	tipo = models.CharField(choices=HISTORIAL_CHOICES, max_length=2)
+	fecha = models.DateField(null=True , blank=True)
+	tiempo_restante = models.DurationField(null=True , blank=True)
+
+	class Meta:
+		verbose_name = "Historial de Incidencia"
+		verbose_name_plural = "Historial de Incidencia"
+		db_table = 'Historial_Incidencia'
+
+
+CIERRE_AUTOMATICO = '0'
+CIERRE_MANUAL = '1'
+CIERRE_CHOICES = (
+	(CIERRE_AUTOMATICO, 'CIERCierre_Incidencia AUTOMÁTICO'),
+	(CIERRE_MANUAL, 'CIERRE MANUAL'),
+)
+class Cierre_Incidencia(TimeStampedModel):
+	incidencia = models.ForeignKey(Incidencia, on_delete=models.DO_NOTHING)
+	tipo = models.CharField(choices=CIERRE_CHOICES, max_length=2)	
+	usuario = models.ForeignKey(settings.AUTH_USER_MODEL)
+	observacion = models.CharField(max_length=250)
+
+	class Meta:
+		verbose_name = "Cierre de Incidencia"
+		verbose_name_plural = "Cierres de Incidencia"
+		db_table = 'Cierre_Incidencia'
 
 #CREAR COMO CLASE PARA PORDER ASIGNAR USUARIOS A UN DEPARTAMENTO.
 #AREA_SOPORTE = '0'	
