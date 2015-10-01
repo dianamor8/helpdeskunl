@@ -270,6 +270,8 @@ class Asignacion_Incidencia(TimeStampedModel):
 
 
 
+
+
 CREA_INCIDENCIA = '0'
 ASIGNA_INCIDENCIA = '1'
 ABRE_INCIDENCIA = '2'
@@ -290,13 +292,17 @@ HISTORIAL_CHOICES = (
 class Historial_Incidencia(TimeStampedModel):
 	incidencia = models.ForeignKey(Incidencia, on_delete=models.DO_NOTHING)
 	tipo = models.CharField(choices=HISTORIAL_CHOICES, max_length=2)
-	fecha = models.DateField(null=True , blank=True)
+	fecha = models.DateTimeField(null=True , blank=True)	
 	tiempo_restante = models.DurationField(null=True , blank=True)
 
 	class Meta:
 		verbose_name = "Historial de Incidencia"
 		verbose_name_plural = "Historial de Incidencia"
 		db_table = 'Historial_Incidencia'
+	
+	def __unicode__(self):
+		return '[%s , %s, %s, %s]' % (self.incidencia, self.tipo, self.fecha, self.tiempo_restante)
+
 
 
 CIERRE_AUTOMATICO = '0'

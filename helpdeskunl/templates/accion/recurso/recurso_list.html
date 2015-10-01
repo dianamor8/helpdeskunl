@@ -26,7 +26,10 @@
 </script>	
 	<input id='incidencia_pk' type="hidden" value='{{accion.incidencia.id}}'>
 	<br> 
-	<blockquote class="blockquote-reverse" ><b><i>Solicitud de Recursos</i></b></blockquote> 
+	<blockquote class="blockquote-reverse" ><b><i>Solicitud de Recursos</i></b><br>
+	{% url 'accion_list' incidencia_id=accion.incidencia.id as accion_list %}
+	<a href="{{accion_list}}" class="small small"><i>Panel de acciones</i></a>
+	</blockquote> 
 	<div class = 'panel panel-default'>		
 		<div class='panel-heading container-fluid'>						
 			<div class="col-sm-9">
@@ -110,8 +113,8 @@
 									<div class="row-fluid">
 										<div class="col-sm-5">
 											{% if perms.accion.change_accion %}
-												{% url 'accion_update' pk=accion.id as url_edit_accion %}
-												<a href="{{url_edit_accion}}" title="Editar accion" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></a>
+												{% url 'solicitud_update' pk=recurso.id as url_edit_solicitud %}
+												<a href="{{url_edit_solicitud}}" title="Editar solicitud de recurso" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></a>
 											{% endif %}
 										</div>
 										<div class="col-sm-5">

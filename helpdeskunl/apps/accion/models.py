@@ -57,6 +57,7 @@ class Accion(TimeStampedModel):
 		return '%s - %s'%(self.titulo, self.incidencia)
 
 
+BOOL_CHOICES = ((True, 'Si'), (False, 'No'))
 class Solicitud_Recurso(TimeStampedModel):
 	
 	tipo = models.CharField(choices=TIPO_SOLICITUD_CHOICES, max_length=2, verbose_name='Tipo de Recurso')
@@ -65,8 +66,10 @@ class Solicitud_Recurso(TimeStampedModel):
 	accion = models.ForeignKey(Accion, on_delete=models.DO_NOTHING, blank=True, null=True)
 	cambio = models.ForeignKey(Cambio, on_delete=models.DO_NOTHING, blank=True, null=True)
 	bien = models.ForeignKey(Bien, blank=True, null=True)	
-	despachado = models.BooleanField(default=False)
-	tecnico = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, blank=True, null=True)
+	despachado = models.BooleanField(default=False,  choices=BOOL_CHOICES)
+	tecnico = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, blank=True, null=True)	
+	esperar = models.BooleanField(default=True, choices=BOOL_CHOICES)
+	notificar_email = models.BooleanField(default=False, choices=BOOL_CHOICES)
 	
 	class Meta:
 		verbose_name = "Solicitud de Recurso"

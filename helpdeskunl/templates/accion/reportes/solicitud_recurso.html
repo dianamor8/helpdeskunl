@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+</head> 
+<style>
+
+p {
+	font-family: Helvetica, Arial, Sans;
+	font-size: 12px;
+}
+    @page {
+        size: a4 portrait;
+        border-color: white;
+        margin: 3cm 2cm 3cm 4cm;
+        line-height: 2px;
+        
+        @frame header_frame {
+            -pdf-frame-content: header_content_right;
+            left: 113pt; width: 100pt; top: 100pt; height: 50pt; 
+        }
+        @frame header_frame {
+            -pdf-frame-content: header_content;
+            left: 213pt; width: 328pt; top: 100pt; height: 50pt; 
+        }
+       
+        @frame content_frame {          /* Content Frame */
+            left: 113pt; width: 428pt; top: 160pt; height: 500pt;
+        }
+        
+        /*@frame footer_frame {           /* Another static Frame 
+            -pdf-frame-content: footer_content;
+            left: 50pt; width: 512pt; top: 772pt; height: 20pt;
+        }*/
+
+    }
+    img { zoom: 100%; }
+
+</style>
+<body>	
+		<div>
+			<center>
+			<div id = "header_content_right">
+				<img src="helpdeskunl/media/images/unl.jpeg">
+			</div></center>
+			<div id='header_content'>			
+				<h1 style="font-size: 2.3em; line-height: 2px;	">UNIVERSIDAD NACIONAL DE LOJA</h1>	
+				<b>UNIDAD DE TELECOMUNICACIONES E INFORMACION</b>
+				<br>
+			</div>			
+		</div>	
+	<hr>
+	<br>
+	<p align="right"><b>Of.Nro. {{oficio_nro}}</b></p>
+	<p align='right'> <strong>Loja, {%now "d"%} de {%now "F"%} del {%now "Y"%}</strong></p>
+	<br>
+	<p align="left">Sr.{{tratamiento}}</p>
+	<p align="left"><b>{{solicitud.proveedor.perfil.get_full_name}}</b></p>
+	<p align="left">{{solicitud.proveedor.perfil.departamento|upper}}</p>
+	<p>Ciudad.-</p>
+	<br>
+
+	<p align="left"> 
+		Por medio de la presente, me dirijo a usted para comunicarle, que despues de una revisión tecnica del bien institucional (<i>AGREGAR BIEN</i>), que presta servicios en las actividades administrativas de (<i>AGREGAR UBICACION BIEN</i>), se pudo determinar un fallo, por lo tanto se concluye la necesidad de reemplazar, sugiriendo la adquisicion en base a las siguientes caracteristicas.
+
+		<b>{{solicitud.recurso}}</b>
+	</p>
+	<br>
+	<p align="left">
+		Particular que le comunico para los fines consiguientes.
+	</p>
+	<br>
+	<p align="left">
+		Atentamente.
+	</p>
+
+	<br><br> <br>
+
+	<p align="left">
+		<b>{{solicitud.tecnico.get_full_name}}</b><br>
+		ASESOR TECNICO.
+	</p>
+
+
+
+
+
+	
+
+    <!-- Content for Static Frame 'footer_frame' 
+    <div id="footer_content">(c) - pagina <pdf:pagenumber>
+        de <pdf:pagecount>
+    </div>-->	
+</body>
+</html>

@@ -22,12 +22,16 @@ ASIGNAR_INCIDENCIA='1'
 REDIRIGIR_INCIDENCIA='2'
 ELIMINAR_ASIGNACION_INCIDENCIA='3'
 REDIRIGIR_INCIDENCIA_USUARIOS='4'
+PROVEEDOR_RECURSOS='5'
+ACTUALIZAR_PROVEEDOR_RECURSOS='6'
 NOTIFICACIONES_CHOICES = (
 	(NUEVA_INCIDENCIA, 'Nueva Incidencia.'),
 	(ASIGNAR_INCIDENCIA, 'Asignación de Incidencia'),
 	(REDIRIGIR_INCIDENCIA, 'Incidencia Redirigida'),
 	(ELIMINAR_ASIGNACION_INCIDENCIA, 'Asignación de Incidencia'),
 	(REDIRIGIR_INCIDENCIA, 'Incidencia Redirigida'),
+	(PROVEEDOR_RECURSOS, 'Proveedor de Recursos'),
+	(ACTUALIZAR_PROVEEDOR_RECURSOS, 'Proveedor de Recursos'),
 )
 
 
@@ -63,6 +67,12 @@ class Notificacion(TimeStampedModel):
 		if self.tipo == '4': #REDIRIGIR INCIDENCIA USUARIOS
 			mensaje = "La incidencia %s te ha sido removida. Ha sido redirigida a otro centro" % (extra) 
 
+		if self.tipo == '5': #PROVEEDOR DE RECURSOS
+			mensaje = "Se ha solicitado recursos para la incidencia %s" % (extra) 
+
+		if self.tipo == '6': #ACTUALIZAR PROVEEDOR DE RECURSOS
+			mensaje = "Se ha actualizado la solicitud de recursos para la incidencia %s" % (extra) 
+
 		self.mensaje = mensaje
 		self.save()		
 		
@@ -72,13 +82,19 @@ class Notificacion(TimeStampedModel):
 	def __unicode__(self):
 		return self.mensaje
 
-
+USUARIO='0'
+INSTITUCIONAL='1'
+TIPO_CHOICES = (
+	(USUARIO, 'Usuario'),
+	(INSTITUCIONAL, 'Institucional'),
+)
 class Contacto(TimeStampedModel):
 	nombres = models.CharField(max_length=120)
 	departamento = models.CharField(max_length=120)
 	correo = models.EmailField(verbose_name='Dirección de correo',max_length=255,unique=True)
 	telefono = models.CharField(max_length=20)
-	
+	tipo = models.CharField(choices=TIPO_CHOICES, max_length=2)
+	perfil = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='perfil', blank=True, null=True)
 	class Meta:
 			verbose_name = "Contacto"
 			verbose_name_plural = "Contactos"

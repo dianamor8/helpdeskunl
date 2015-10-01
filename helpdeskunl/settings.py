@@ -103,7 +103,7 @@ TEMPLATE_DIRS = os.path.join(BASE_DIR,'helpdeskunl/templates'),
 
 LANGUAGE_CODE = 'en-EC'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Guayaquil'
 
 USE_I18N = True
 
@@ -125,6 +125,13 @@ MEDIA_URL = '/media/'
 #PARA DECORADOR DE LOGIN_URL
 LOGIN_URL = '/login/' # HASTA MIENTRAS 11759072 25 DE MAYO 11:30 CONSULTA GENERAL. 
 LOGIN_REDIRECT_URL = '/'
+
+# CONFIG SEND EMAIL
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'mihelpdeskunl@gmail.com'
+EMAIL_HOST_PASSWORD = 'h3lpd3sk'
+EMAIL_USE_TLS = True
 
 # MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 #CACHES = {

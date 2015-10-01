@@ -113,7 +113,7 @@ class IncidenciaCompleteForm(forms.ModelForm):
 		self.fields['tecnicos'].help_text = 'Seleccione los técnicos que atenderán la incidencia.'
 		self.fields['tecnicos'].queryset = qs
 		self.fields['servicio'].queryset = qq		
-		self.fields['servicio'].empty_label = ">>>SELECCIONE<<<"		
+		self.fields['servicio'].empty_label = ">> SELECCIONE <<"		
 		self.fields['duracion'].widget.attrs['readonly'] = True		
 		# self.fields['caduca'].widget.format = '%d/%m/%Y'
 

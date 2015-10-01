@@ -34,7 +34,7 @@
 						<input class="form-control" value = "{{accion.titulo}}" disabled>
 					</div>				
 				</div>				
-				{% for formulario in form %}	 
+				{% for formulario in form %}
 					{% if formulario.errors %}
 						<div class="alert alert-warning alert-dismissable">
 							<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> 					
@@ -43,15 +43,27 @@
 							{% endfor %}					
 						</div>
 					{% endif %}
-					<div class="form-group form-group-sm">
-						<label class="control-label col-sm-3">{{formulario.label_tag}}</label>
-						<div class="col-sm-9">
-							{{formulario}}
-							<p class="help-block small">{{formulario.help_text}}</p>	
-						</div>				
-					</div>
+					{% if formulario.name == 'esperar' or formulario.name == 'notificar_email' %}
+						<div class="form-group form-group-sm">
+							<label class="control-label col-sm-3">{{formulario.label_tag}}</label>
+							<div class="col-sm-9">
+								{% for choice in formulario %}
+									{{ choice.choice_label }} {{ choice.tag }}							
+								{% endfor %}
+								<p class="help-block small">{{formulario.help_text}}</p>	
+							</div>				
+						</div>
+						
+					{% else %}
+						<div class="form-group form-group-sm">
+							<label class="control-label col-sm-3">{{formulario.label_tag}}</label>
+							<div class="col-sm-9">
+								{{formulario}}
+								<p class="help-block small">{{formulario.help_text}}</p>	
+							</div>				
+						</div>
+					{% endif %}
 				{%endfor%}
-								
 			</div>
 			<div class="panel-footer text-right">
 				{% url 'solicitudes_list' accion_id=accion.id incidencia_id=accion.incidencia.id as url_solicitudes_list %}	

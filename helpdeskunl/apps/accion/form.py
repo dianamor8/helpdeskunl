@@ -15,6 +15,7 @@ from django.utils.encoding import force_unicode, force_text
 from django.forms.widgets import ClearableFileInput, Input, CheckboxInput
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy
+from django.db.models import Q
 
 class Diagnostico_InicialForm(forms.ModelForm):	
 	class Meta:
@@ -50,26 +51,36 @@ class AccionForm(forms.ModelForm):
 		}
 
 
-class Solicitud_RecursoForm(forms.ModelForm):	
+class Solicitud_RecursoForm(forms.ModelForm):
+	def __init__(self, *args, **kwargs):
+		my_user = kwargs.pop('my_user')
+		super(Solicitud_RecursoForm, self).__init__(*args, **kwargs)
+		self.fields['proveedor']=forms.ModelChoiceField(empty_label='>> SELECCIONE <<', queryset=Contacto.objects.filter(Q(tipo='1')|Q(perfil=my_user)), widget=forms.Select(attrs={'class':'form-control'}))
+		self.fields['proveedor'].error_messages = {'required': 'Seleccione quien proveerá el recurso.'}
+		self.fields['tipo'].empty_label = ">> SELECCIONE <<"		
+
 	class Meta:
 		model = Solicitud_Recurso
-		fields = ('proveedor','recurso', 'tipo',)
+		fields = ('recurso', 'proveedor', 'tipo', 'esperar', 'notificar_email')
+		widgets = {
+			'proveedor': forms.Select(attrs={'class':'form-control required'}),
+			'recurso': forms.Textarea(attrs={'class':'form-control' ,'placeholder':'Describa el recurso que desea solicitar.',}),
+			'tipo': forms.Select(attrs={'class':'form-control required'}),	
+			'esperar': forms.RadioSelect,
+			'notificar_email': forms.RadioSelect,			
+		}
 		labels = {			
 			'proveedor': ('Proveedor:'),			
 			'recurso': ('Recurso:'),			
 			'tipo': ('Tipo:'),
+			'esperar': ('¿Dejar la incidencia en espera del recurso?:'),
+			'notificar_email': ('Notificar por email:'),
 			# 'visible_usuario': ('Visible al solicitante:'),			
 		}
 		error_messages = {
 			'proveedor': {'required': u"Seleccione una opción.",},
 			'recurso': {'required': u"Este campo no puede estar vacío.",},
-			'tipo': {'required': u"Seleccione una opción.",},
+			'tipo': {'required': u"Seleccione una opción.",},			
 		}
-		widgets = {
-			'proveedor': forms.Select(attrs={'class':'form-control required'}),
-			'recurso': forms.Textarea(attrs={'class':'form-control expandable' ,'placeholder':'Describa el recurso que desea solicitar.',}),
-			'tipo': forms.Select(attrs={'class':'form-control required'}),
-			# 'titulo': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Título de la acción.',}),						
-			# 'visible_usuario': forms.CheckboxInput(attrs={'class':''}),			
-		}
+		
 

@@ -381,8 +381,7 @@ class AsignarIncidencia(UpdateView):
 
 		######
 		# NOTIFICAR A LOS USUARIOS ASIGNADOS
-		######
-
+		######		
 		historial = Historial_Incidencia(incidencia= incidencia, tipo='1', fecha = datetime.now() , tiempo_restante= incidencia.duracion)
 		historial.save()
 
