@@ -43,7 +43,7 @@ def reporte_solicitud_recurso(request, id_solicitud):
 def convertHtmlToPdf(id_solicitud):
 	# Define your data
 	tipo=id_solicitud	
-	solicitud = Solicitud_Recurso.objects.get(pk = int(tipo))
+	solicitud = Solicitud_Recurso.objects.get(pk = int(tipo))		
 	sourceHtml = get_template("accion/reportes/solicitud_recurso.html") 	
 	outputFilename = "reportes/solicitud_recurso_%s.pdf" %(id_solicitud)
 	context = Context({'pagesize':'A4', 'solicitud':solicitud}) 	

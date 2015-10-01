@@ -55,8 +55,15 @@ p {
 	<p align='right'> <strong>Loja, {%now "d"%} de {%now "F"%} del {%now "Y"%}</strong></p>
 	<br>
 	<p align="left">Sr.{{tratamiento}}</p>
-	<p align="left"><b>{{solicitud.proveedor.perfil.get_full_name}}</b></p>
-	<p align="left">{{solicitud.proveedor.perfil.departamento|upper}}</p>
+	{% if solicitud.proveedor.perfil %}
+		<p align="left"><b>{{solicitud.proveedor.perfil.get_full_name}}</b></p>
+		<p align="left">{{solicitud.proveedor.perfil.departamento|upper}}</p>
+	{% else %}
+		<p align="left"><b>{{solicitud.proveedor.nombres}}</b></p>
+		<p align="left">{{solicitud.proveedor.departamento|upper}}</p>
+	{% endif %}
+	
+	
 	<p>Ciudad.-</p>
 	<br>
 

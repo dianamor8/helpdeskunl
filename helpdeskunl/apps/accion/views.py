@@ -37,6 +37,7 @@ from django.contrib import messages
 #FECHAS
 from datetime import datetime
 from django.utils import timezone
+from django.utils import formats
 
 #CONSULTAS
 from django.db.models import Q
@@ -303,8 +304,11 @@ class AccionUpdate(SuccessMessageMixin, UpdateView):
 		self.kwargs['incidencia_id'] = accion.incidencia.id			
 
 		if permiso_incidencia_detail(self):
-			if accion.incidencia.es_vigente(request=self.request):				
-				return super(AccionUpdate, self).dispatch(*args, **kwargs)
+			if accion.incidencia.es_vigente(request=self.request):
+				if accion.tecnico == self.request.user:								
+					return super(AccionUpdate, self).dispatch(*args, **kwargs)
+				else:
+					raise PermissionDenied
 			else:
 				messages.add_message(self.request, messages.ERROR, 'Imposible actualizar. La incidencia ha expirado')			
 				return HttpResponseRedirect(reverse_lazy('accion_list', kwargs={'incidencia_id':accion.incidencia.id}))
@@ -352,13 +356,17 @@ class AccionDelete(DeleteView):
 	@method_decorator(login_required)
 	@method_decorator(permission_required('accion.delete_accion', raise_exception=permission_required))
 	def dispatch(self, *args, **kwargs):
-		self.accion_id = kwargs['pk']	
+		self.accion_id = kwargs['pk']		
 		return super(AccionDelete, self).dispatch(*args, **kwargs)			
 
 	def delete(self, request, *args, **kwargs):	
 		self.object = self.get_object()
 		id_accion = self.object.id		
-		accion = get_object_or_404(Accion, pk=id_accion)				
+		accion = get_object_or_404(Accion, pk=id_accion)	
+
+		if self.object.tecnico != self.request.user:			
+			messages.add_message(self.request, messages.ERROR, 'Permiso Denegado')
+			return HttpResponseRedirect(reverse_lazy('accion_list', kwargs={'incidencia_id':accion.incidencia.id}))
 
 		if accion.incidencia.es_vigente(request=request):				
 			if accion.solicitud_recurso_set.all():
@@ -449,7 +457,10 @@ class SolicitudCreate(SuccessMessageMixin, CreateView):
 		self.kwargs['incidencia_id'] = accion.incidencia.id		
 		if permiso_incidencia_detail(self):
 			if accion.incidencia.es_vigente(request=self.request):	
-				return super(SolicitudCreate, self).dispatch(*args, **kwargs)
+				if accion.tecnico == self.request.user:								
+					return super(SolicitudCreate, self).dispatch(*args, **kwargs)
+				else:
+					raise PermissionDenied
 			else:
 				messages.add_message(self.request, messages.ERROR, 'No se puede agregar. La incidencia ha expirado')			
 				return HttpResponseRedirect(reverse_lazy('solicitudes_list', kwargs={'incidencia_id':accion.incidencia.id, 'accion_id':accion.id}))
@@ -489,7 +500,7 @@ class SolicitudCreate(SuccessMessageMixin, CreateView):
 		
 		# DEJAR O NO EN ESPERA 
 		if self.object.esperar: # 0 == SI
-			solicitudes = Solicitud_Recurso.objects.filter(Q(esperar=True), ~Q(id=self.object.id))
+			solicitudes = Solicitud_Recurso.objects.filter(Q(estado=True), Q(esperar=True), ~Q(id=self.object.id))
 			# SI HO HAY SOLICITUDES QUE DEJEN EN ESPERA A LA INCIDENCIA 
 			if not solicitudes:
 				# función de esperar				
@@ -550,8 +561,11 @@ class SolicitudUpdate(SuccessMessageMixin, UpdateView):
 			return HttpResponseRedirect(reverse_lazy('solicitudes_list', kwargs={'incidencia_id':solicitud.accion.incidencia.id, 'accion_id':solicitud.accion.id}))
 
 		if permiso_incidencia_detail(self):
-			if solicitud.accion.incidencia.es_vigente(request=self.request):	
-				return super(SolicitudUpdate, self).dispatch(*args, **kwargs)
+			if solicitud.accion.incidencia.es_vigente(request=self.request):
+				if solicitud.accion.tecnico == self.request.user:								
+					return super(SolicitudUpdate, self).dispatch(*args, **kwargs)
+				else:
+					raise PermissionDenied
 			else:
 				messages.add_message(self.request, messages.ERROR, 'No se puede actualizar. La incidencia ha expirado')			
 				return HttpResponseRedirect(reverse_lazy('solicitudes_list', kwargs={'incidencia_id':solicitud.accion.incidencia.id, 'accion_id':solicitud.accion.id}))							
@@ -574,22 +588,52 @@ class SolicitudUpdate(SuccessMessageMixin, UpdateView):
 
 		anterior_esperar = solicitud_aux.esperar
 		anterior_notificar_email = solicitud_aux.notificar_email
+		anterior_contacto = solicitud_aux.proveedor
+
 
 		self.object = form.save(commit=False)
 		self.object.tecnico = self.request.user
 		self.object.save()
 
-		# SI EL RECURSO SOLICITADO ES HACIA EL USUARIO QUE GENERA LA INCIDENCIA			
-		if self.object.proveedor.perfil:			
-			if self.object.proveedor.perfil == self.object.accion.incidencia.solicitante:				
-				notificacion = Notificacion(remitente=self.request.user, destinatario = self.object.proveedor.perfil , tipo = '6')
-				notificacion.save()			
-				notificacion.construir_notificacion(extra=self.object.accion.incidencia.titulo)
-				# SI EL PROVEEDOR SOY YO
-				if self.object.proveedor == self.request.user:
-					messages.add_message(self.request, messages.INFO, notificacion.mensaje)
-				else:
-					notificacion.notificar()
+		# SI EL RECURSO SOLICITADO ES HACIA EL USUARIO QUE GENERA LA INCIDENCIA	
+		if anterior_contacto != self.object.proveedor:
+			if anterior_notificar_email:
+				self.object.proveedor = anterior_contacto
+				self.object.save()
+				messages.add_message(self.request, messages.ERROR,'No es posible cambiar de proveedor porque ya se ha notificado antes')
+			else:
+				if anterior_contacto.perfil:
+					# ELIMINAR SOLICITUD DE RECURSO
+					notificacion = Notificacion(remitente=self.request.user, destinatario = anterior_contacto.perfil , tipo = '7')
+					notificacion.save()			
+					notificacion.construir_notificacion(extra=self.object.accion.incidencia.titulo)
+					# SI EL PROVEEDOR SOY YO
+					if self.object.proveedor == self.request.user:
+						messages.add_message(self.request, messages.INFO, notificacion.mensaje)
+					else:
+						notificacion.notificar()
+				
+				if self.object.proveedor.perfil:					
+					# NOTIFICAR COMO CREAR
+					notificacion = Notificacion(remitente=self.request.user, destinatario = self.object.proveedor.perfil , tipo = '5')
+					notificacion.save()			
+					notificacion.construir_notificacion(extra=self.object.accion.incidencia.titulo)
+					
+					if self.object.proveedor == self.request.user:
+						messages.add_message(self.request, messages.INFO, notificacion.mensaje)
+					else:
+						notificacion.notificar()
+		else:
+			if self.object.proveedor.perfil:			
+				if self.object.proveedor.perfil == self.object.accion.incidencia.solicitante:				
+					notificacion = Notificacion(remitente=self.request.user, destinatario = self.object.proveedor.perfil , tipo = '6')
+					notificacion.save()			
+					notificacion.construir_notificacion(extra=self.object.accion.incidencia.titulo)
+					# SI EL PROVEEDOR SOY YO
+					if self.object.proveedor == self.request.user:
+						messages.add_message(self.request, messages.INFO, notificacion.mensaje)
+					else:
+						notificacion.notificar()
 
 		if self.object.notificar_email: #si actualmente
 			if anterior_notificar_email: 
@@ -602,7 +646,7 @@ class SolicitudUpdate(SuccessMessageMixin, UpdateView):
 				email.send(fail_silently=False)
 		else:
 			if anterior_notificar_email: #true
-				messages.add_message(self.request, messages.ERROR, 'Acción no realizada. Ya se ha notificado antes.')
+				messages.add_message(self.request, messages.ERROR, 'El cambio de notificación por email no se ha realizado porque ya se ha notificado antes')
 				self.object.notificar_email = anterior_notificar_email
 				self.object.save()
 				convertHtmlToPdf(self.object.id)
@@ -613,7 +657,7 @@ class SolicitudUpdate(SuccessMessageMixin, UpdateView):
 		# DEJAR O NO EN ESPERA
 	
 		if self.object.esperar != anterior_esperar:
-			solicitudes = Solicitud_Recurso.objects.filter(Q(esperar=True), ~Q(id=self.object.id))
+			solicitudes = Solicitud_Recurso.objects.filter(Q(estado=True), Q(esperar=True), ~Q(id=self.object.id))
 			if self.object.esperar:				
 				# SI HO HAY SOLICITUDES QUE DEJEN EN ESPERA A LA INCIDENCIA 
 				if not solicitudes:
@@ -648,6 +692,52 @@ class SolicitudUpdate(SuccessMessageMixin, UpdateView):
 			print e
 
 
+class SolicitudDelete(DeleteView):
+	model = Solicitud_Recurso
+	template_name = 'accion/recurso/recurso_confirm_delete.html'	
+	success_message = 'Solicitud de recurso eliminada con éxito'	
+
+	@method_decorator(login_required)
+	@method_decorator(permission_required('accion.delete_solicitud_recurso', raise_exception=permission_required))
+	def dispatch(self, *args, **kwargs):
+		self.solicitud_id = kwargs['pk']
+		return super(SolicitudDelete, self).dispatch(*args, **kwargs)	
+					
+
+	def delete(self, request, *args, **kwargs):			
+
+		self.object = self.get_object()
+		id_solicitud = self.object.id		
+
+		if self.object.accion.tecnico != self.request.user:			
+			messages.add_message(self.request, messages.ERROR, 'Permiso Denegado')
+			return HttpResponseRedirect(reverse_lazy('solicitudes_list', kwargs={'accion_id':self.object.accion.id, 'incidencia_id':self.object.accion.incidencia.id}))
+			
+
+		solicitud = get_object_or_404(Solicitud_Recurso, pk=id_solicitud)				
+
+		if solicitud.notificar_email:
+			messages.add_message(self.request, messages.ERROR, 'No se puede eliminar porque ya se ha notificado al usuario')
+		else:
+			if solicitud.esperar:
+				# verficar si hay otras solicitudes haciendo que espere y retomar la incidencia
+				solicitudes = Solicitud_Recurso.objects.filter(Q(estado=True), Q(esperar=True), ~Q(id=self.object.id))
+				if not solicitudes :					
+					incidencia = self.object.accion.incidencia
+					historial_aux = Historial_Incidencia.objects.filter(incidencia=self.object.accion.incidencia).latest('id')
+					hoy = timezone.now()
+					incidencia.caduca = hoy + historial_aux.tiempo_restante
+					incidencia.estado_incidencia = ESTADO_ABIERTA
+					incidencia.save()					 
+					messages.add_message(self.request, messages.INFO, 'La incidencia ha iniciado nuevamente. Recuerde que la incidencia caduca %s'%formats.date_format(incidencia.caduca, "SHORT_DATETIME_FORMAT"))
+			self.object.estado = False
+			self.object.esperar = False
+			self.object.save()		
+			messages.success(self.request, self.success_message)
+		return HttpResponseRedirect(reverse_lazy('solicitudes_list', kwargs={'accion_id':self.object.accion.id, 'incidencia_id':self.object.accion.incidencia.id}))
+
+
+		
 #AGREGAR CUANDO CREE LA SOLICITUD DE INCIDENCIA
 # # AGREGA LA INCIDENCIA AL HISTORIAL CON FECHAS
 		# historial = Historial_Incidencia(incidencia= self.object, tipo='0', fecha = datetime.now() , tiempo_restante= None)

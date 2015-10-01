@@ -1,0 +1,17 @@
+{% url 'solicitud_delete' pk=object.id as url_delete_recurso %}
+<form id="recurso_delete_form" method='post' class="form form-horizontal" role="form" action='{{url_delete_recurso}}'>
+	{% csrf_token %}
+	<div class="modal-header">
+		<h3 id= "myModalLabel">Eliminar Solicitud de Recurso</h3>
+	</div>
+	<div class="modal-body">		
+		<p>¿Realmente desea eliminar <strong>{{object}}</strong> ?</p>
+	</div>
+	<div class="modal-footer">
+		<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancelar" />
+		<input id='EliminarR' type="submit" class="btn btn-danger" value="Eliminar" style="margin-bottom: 5px;"/>
+	</div>
+</form>
+<script>	
+	$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
+</script>

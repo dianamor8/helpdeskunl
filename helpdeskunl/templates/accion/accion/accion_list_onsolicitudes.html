@@ -115,8 +115,8 @@
 					<thead>
 						<tr>
 							<th class = 'col-sm-1'>PDF</th>
-							<th class = 'col-sm-1'>Acción</th>
-							<th class = 'col-sm-2'>Tipo</th>
+							<th class = 'col-sm-2'>Solicita</th>
+							<th class = 'col-sm-1'>Tipo</th>
 							<th class = 'col-sm-3'>Proveedor</th>
 							<th class = 'col-sm-5'>Detalle</th>
 							<th class = 'col-sm-1'>Función</th>
@@ -129,13 +129,18 @@
 									{% url 'reporte_solicitud' id_solicitud=recurso.id as url_reporte_solicitud %}	
 									<a href="{{url_reporte_solicitud}}" class="btn btn-default btn-sm">PDF</a>
 								</td>	
-								<td>{{recurso.accion.id}}</td>
+								<td><small>{{recurso.tecnico.get_full_name}}</small></td>
 								<td>{{recurso.get_tipo_display}}</td>								
 								<td>{{recurso.proveedor}}</td>
 								<td>{{recurso.recurso}}</td>
 								<td class="text-center">
 									{% if recurso.despachado == False %}
-										<a href="#" class="btn btn-primary btn-sm">Despachar</a>
+										{% if recurso.tecnico == user %}
+											<a href="#" class="btn btn-primary btn-sm">Despachar</a>
+										{% else %}
+											<a href="#" class="btn btn-primary btn-sm" disabled>Despachar</a>
+										{% endif %}
+										
 									{% else %}
 										<a href="#" class="btn btn-success btn-sm">Ver</a>
 									{% endif %}									

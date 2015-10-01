@@ -24,6 +24,7 @@ ELIMINAR_ASIGNACION_INCIDENCIA='3'
 REDIRIGIR_INCIDENCIA_USUARIOS='4'
 PROVEEDOR_RECURSOS='5'
 ACTUALIZAR_PROVEEDOR_RECURSOS='6'
+ELIMINAR_PROVEEDOR_RECURSOS='7'
 NOTIFICACIONES_CHOICES = (
 	(NUEVA_INCIDENCIA, 'Nueva Incidencia.'),
 	(ASIGNAR_INCIDENCIA, 'Asignación de Incidencia'),
@@ -32,6 +33,7 @@ NOTIFICACIONES_CHOICES = (
 	(REDIRIGIR_INCIDENCIA, 'Incidencia Redirigida'),
 	(PROVEEDOR_RECURSOS, 'Proveedor de Recursos'),
 	(ACTUALIZAR_PROVEEDOR_RECURSOS, 'Proveedor de Recursos'),
+	(ELIMINAR_PROVEEDOR_RECURSOS, 'Proveedor de Recursos'),
 )
 
 
@@ -72,6 +74,9 @@ class Notificacion(TimeStampedModel):
 
 		if self.tipo == '6': #ACTUALIZAR PROVEEDOR DE RECURSOS
 			mensaje = "Se ha actualizado la solicitud de recursos para la incidencia %s" % (extra) 
+
+		if self.tipo == '7': #ELIMINAR PROVEEDOR DE RECURSOS
+			mensaje = "Se ha eliminado una solicitud de recursos para la incidencia %s" % (extra) 
 
 		self.mensaje = mensaje
 		self.save()		

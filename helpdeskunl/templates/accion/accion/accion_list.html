@@ -141,15 +141,29 @@
 												</a>
 											{% endif %}
 										{% endif %}	
-										{% if perms.accion.change_accion %}
-											{% url 'accion_update' pk=accion.id as url_edit_accion %}
-											<a href="{{url_edit_accion}}" title="Editar acción" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></a>
+										
+										{% if accion.tecnico == user %}
+											{% if perms.accion.change_accion %}
+												{% url 'accion_update' pk=accion.id as url_edit_accion %}
+												<a href="{{url_edit_accion}}" title="Editar acción" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></a>
+											{% endif %}
+											{% if perms.accion.delete_accion %}
+												{% url 'accion_delete' pk=accion.id as url_delete_accion %}
+												<a data-toggle="modal" href="{{url_delete_accion}}" data-target="#delele_modal_a" title="Eliminar acción" data-tooltip class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span>
+												</a>
+											{% endif %}											
+										{% else %}
+											{% if perms.accion.change_accion %}
+												{% url 'accion_update' pk=accion.id as url_edit_accion %}
+												<a href="{{url_edit_accion}}" title="Editar acción" class="btn btn-default" disabled><span class="glyphicon glyphicon-pencil"></a>
+											{% endif %}
+											{% if perms.accion.delete_accion %}
+												{% url 'accion_delete' pk=accion.id as url_delete_accion %}
+												<a data-toggle="modal" href="{{url_delete_accion}}" data-target="#delele_modal_a" title="Eliminar acción" data-tooltip class="btn btn-danger" disabled><span class="glyphicon glyphicon-trash"></span>
+												</a>
+											{% endif %}	
+
 										{% endif %}
-										{% if perms.accion.delete_accion %}
-											{% url 'accion_delete' pk=accion.id as url_delete_accion %}
-											<a data-toggle="modal" href="{{url_delete_accion}}" data-target="#delele_modal_a" title="Eliminar acción" data-tooltip class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span>
-											</a>
-										{% endif %}	
 									</div>
 								</td>							
 							</tr>
@@ -157,7 +171,7 @@
 					</tbody>
 				</table>
 			{% else %}
-				<i><h5>No hay accions registradas que mostrar</h5></i>
+				<i><h5>No hay acciones registradas que mostrar</h5></i>
 			{% endif %}	
 			
 		</div>

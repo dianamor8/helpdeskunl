@@ -15,6 +15,7 @@ urlpatterns = patterns('helpdeskunl.apps.accion',
 	url(r'^solicitudes/(?P<accion_id>\d+)/(?P<incidencia_id>\d+)/$', SolicitudesList.as_view(), name='solicitudes_list'),
 	url(r'^solicitud/(?P<accion_id>\d+)/add$', SolicitudCreate.as_view(), name='solicitud_add'),
 	url(r'^solicitud/edit/(?P<pk>\d+)/$', SolicitudUpdate.as_view(), name='solicitud_update'),
+	url(r'^solicitud/(?P<pk>\d+)/delete/$', SolicitudDelete.as_view(), name='solicitud_delete'),
 
 	#REPORTES
 	url(r'^reporte/solicitud/(?P<id_solicitud>\d+)/$', 'reports.reporte_solicitud_recurso', name='reporte_solicitud'),

@@ -91,8 +91,9 @@
 						<tr>
 							<th class = 'col-sm-2'>Tipo</th>
 							<th class = 'col-sm-2'>Proveedor</th>
-							<th class = 'col-sm-5'>Detalle</th>
+							<th class = 'col-sm-4'>Detalle</th>
 							<th class = 'col-sm-1'>Despachado</th>
+							<th class = 'col-sm-1'>Detenido</th>
 							<th class = 'col-sm-2'>Acciones</th>							
 						</tr>
 					</thead>
@@ -108,20 +109,36 @@
 									{% else %}
 										SI
 									{% endif %}									
+								</td>
+								<td>
+									{% if recurso.esperar == False %}
+										NO
+									{% else %}
+										SI
+									{% endif %}									
 								</td>						
 								<td>
 									<div class="row-fluid">
 										<div class="col-sm-5">
-											{% if perms.accion.change_accion %}
+											{% if perms.accion.change_solicitud_recurso %}
 												{% url 'solicitud_update' pk=recurso.id as url_edit_solicitud %}
-												<a href="{{url_edit_solicitud}}" title="Editar solicitud de recurso" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></a>
+												{% if recurso.tecnico == user %}
+													<a href="{{url_edit_solicitud}}" title="Editar solicitud de recurso" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></a>
+												{% else %}
+													<a href="{{url_edit_solicitud}}" title="Editar solicitud de recurso" class="btn btn-default" disabled><span class="glyphicon glyphicon-pencil"></a>
+												{% endif %}
 											{% endif %}
 										</div>
 										<div class="col-sm-5">
-											{% if perms.accion.delete_accion %}
-												{% url 'accion_delete' pk=accion.id as url_delete_accion %}
-												<a data-toggle="modal" href="{{url_delete_accion}}" data-target="#delele_modal_a" title="Eliminar" data-tooltip class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span>
-												</a>
+											{% if perms.accion.delete_solicitud_recurso %}
+												{% url 'solicitud_delete' pk=recurso.id as url_delete_recurso %}
+												{% if recurso.tecnico == user %}
+													<a data-toggle="modal" href="{{url_delete_recurso}}" data-target="#delele_modal_soli" title="Eliminar" data-tooltip class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span>
+													</a>
+												{% else %}
+													<a data-toggle="modal" href="{{url_delete_recurso}}" data-target="#delele_modal_soli" title="Eliminar" data-tooltip class="btn btn-danger" disabled><span class="glyphicon glyphicon-trash"></span>
+													</a>
+												{% endif %}
 											{% endif %}										
 										</div>
 									</div>
@@ -138,7 +155,7 @@
 	</div>
 	
 <!--MODAL PARA ELIMINAR ACCIONES-->
-<div id="delele_modal_a" class="modal fade" role="dialog" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">		
+<div id="delele_modal_soli" class="modal fade" role="dialog" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">		
 	<div class="modal-dialog">
 		<div class="modal-content">		
 		</div>
