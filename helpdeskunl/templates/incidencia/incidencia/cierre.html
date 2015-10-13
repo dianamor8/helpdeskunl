@@ -1,0 +1,64 @@
+{% url 'cierre_add' incidencia_id=incidencia as url_cerrar_incidencia %}	
+<form id="cierre_create_form" method='post' class="form form-horizontal" role="form" action='{{url_cerrar_incidencia}}' >
+
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		<h4 class="modal-title" id="myModalLabel"><b>Cierre de Incidencia</b></h4>
+	</div>
+	<div class="modal-body">		
+		{% csrf_token %}		
+		{% for formulario in form%}	 
+			{% if formulario.errors %}
+				<div class="alert alert-warning alert-dismissable">
+					<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> 					
+					{% for error in formulario.errors %} 				
+						<small>{{error}}</small>
+					{% endfor %}					
+				</div>
+			{% endif %}		
+			{% if formulario.name == 'solucionado'%}
+				<div class="form-group form-group-sm">
+					<label class="control-label col-sm-3">{{formulario.label_tag}}</label>
+					<div class="col-sm-9">
+						{% for choice in formulario %}
+							{{ choice.choice_label }} {{ choice.tag }}
+						{% endfor %}
+						<p class="help-block small">{{formulario.help_text}}</p>	
+					</div>				
+				</div>					
+			{% else %}			
+				<div class="form-group">
+					<label class="control-label col-sm-3">{{formulario.label}}</label>
+					<div class="col-sm-9">
+						{{formulario}}
+						<p class="help-block small">{{formulario.help_text}}</p>			
+					</div>						
+				</div>
+			{% endif %}
+		{%endfor%}		
+	</div>
+	<div class="modal-footer">
+		<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancelar" />
+		<input type="submit" class="btn btn-primary" value="Guardar" style="margin-bottom: 5px;"/>
+	</div>
+</form>
+<!---->
+<script> 
+	
+	var form_options = { 
+		target: '#modal_cierre .modal-content',		
+		success: function(data, response){
+			console.log("pasa");
+			if (data.respuesta) {
+				console.log(data.respuesta);
+				if(data.respuesta == 'cerrar'){
+					jQuery('#modal_cierre').modal('hide');
+					location.reload();										
+				}				
+			}
+		},		
+	}
+	// EJECUTAR LA FUNCIÓN DE AJAX
+	$('#cierre_create_form').ajaxForm(form_options);
+	$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
+</script>

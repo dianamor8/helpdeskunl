@@ -1,0 +1,20 @@
+{% load validadores_template %}
+{% load tags %}
+{% url 'atender_solicitud_extender' pk=object.id as url_atender_solicitud_extender %}
+<form id="solicitud_extender_form" method='post' class="form form-horizontal" role="form" action='{{url_atender_solicitud_extender}}'>
+	{% csrf_token %}	
+	<div class="modal-header">
+		<h4 id= "myModalLabel"><b>Extender tiempo de apertura</b></h4>
+		<p class="help-block small"><i>El tiempo de apertura para atender ésta solicitud ha expirado</i></p>
+	</div>
+	<div class="modal-body">		
+		<p>¿Realmente desea extender el tiempo de atención de la incidencia '<strong>{{object.incidencia.titulo}}</strong>'?</p>
+	</div>
+	<div class="modal-footer">
+		<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancelar" />
+		<input id='Extender' type="submit" class="btn btn-primary" value="Extender"/>
+	</div>
+</form>
+<script>
+	$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
+</script>

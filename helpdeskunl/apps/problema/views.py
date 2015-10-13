@@ -5,12 +5,12 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 import json
 #MODELS
-from helpdeskunl.apps.problema.form import *
-from helpdeskunl.apps.problema.models import *
-from helpdeskunl.apps.home.models import *
-from helpdeskunl.apps.incidencia.models import *
-from helpdeskunl.apps.accion.models import *
-from helpdeskunl.apps.cambio.models import *
+# from helpdeskunl.apps.problema.form import *
+# from helpdeskunl.apps.problema.models import *
+# from helpdeskunl.apps.home.models import *
+# from helpdeskunl.apps.incidencia.models import *
+# from helpdeskunl.apps.accion.models import *
+# from helpdeskunl.apps.cambio.models import *
 
 from django.views.generic import TemplateView,ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -34,3 +34,8 @@ from django.contrib import messages
 
 #FECHAS
 from datetime import datetime
+
+
+
+if __name__ == '__main__':
+	print "holi"

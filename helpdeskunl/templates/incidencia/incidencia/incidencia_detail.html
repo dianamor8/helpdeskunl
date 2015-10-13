@@ -24,7 +24,11 @@
 	{% endfor %}
 </script>	
 	<input id='centro_asistencia_pk' type="hidden" value='{{object.id}}'>
-	<br> 
+	<br> 	
+	<blockquote class="blockquote-reverse" ><b><i>Administración de incidencia</i></b><br>
+	{% url 'incidencia_centro_list' as incidencia_centro_list %}
+	<a href="{{incidencia_centro_list}}" class="small small"><i>Panel de incidencias</i></a>
+	</blockquote> 
 	<div class = 'panel panel-default'>
 		<div class='panel-heading container-fluid'>
 						
@@ -50,14 +54,14 @@
 							{% endif %}			
 						</div>
 					</div>					
-				</div>				
+				</div>				 
 				<div class="row-fluid" style="{{render_div}}">
 					<div title="Asignar Incidencia" class="col-sm-1 col-sm-offset-8">
 						{% url 'asignarincidencia_update' pk=object.id as url_asignarincidencia %}
 						{% if asignar_incidencia %}
-							<a data-toggle="modal" href="{{url_asignarincidencia}}" data-target="#modal_asignarincidencia" class="btn btn-primary" title="Asignar Incidencia"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
+							<a data-toggle="modal" href="{{url_asignarincidencia}}" data-target="#modal_asignarincidencia" class="btn btn-success" title="Asignar Incidencia"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
 						{% else %}
-							<a data-toggle="modal" href="{{url_asignarincidencia}}" data-target="#modal_asignarincidencia" class="btn btn-primary" disabled><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
+							<a data-toggle="modal" href="{{url_asignarincidencia}}" data-target="#modal_asignarincidencia" class="btn btn-success" disabled><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
 						{% endif %}	
 					</div>
 					<div class="col-sm-1" title="Redirigir Incidencia">	
@@ -73,8 +77,17 @@
 						{% endif %}
 					</div>
 					<div class="col-sm-1" title="Cerrar Incidencia">						
-						<button type="submit" class="btn btn-danger"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span></button> 
-					</div>
+						<!--CERRAR INCIDENCIA-->	
+						
+						{% if object.estado_incidencia != '3' %}							
+							{% url 'cierre_add' incidencia_id=object.id as url_cerrar_incidencia %}	
+							<a data-toggle="modal" href="{{url_cerrar_incidencia}}" data-target="
+							#modal_cierre" class="btn btn-danger" title="Cerrar Incidencia"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span></a>
+						{% else %}	
+							{% url 'reaperturar_incidencia' pk=object.id as url_reabrir_incidencia %}			
+							<a data-toggle="modal" href="{{url_reabrir_incidencia}}" data-target="#modal_reaperturar" class="btn btn-primary" title="Reabrir Incidencia"><span class="glyphicon glyphicon-folder-open" aria-hidden="true" ></span></a>
+						{% endif %}	
+					</div>					
 				</div>
 			</div>
 
@@ -226,5 +239,20 @@
 		</div> 		
 	</div>
 
+	<!--MODAL PARA CERRAR-->
+	<div class="modal fade" id="modal_cierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">		
+			</div>
+		</div> 		
+	</div> 
+
+	<!--MODAL PARA CERRAR-->
+	<div class="modal fade" id="modal_reaperturar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">		
+			</div>
+		</div> 		
+	</div> 
 	
 {% endblock contenido %}

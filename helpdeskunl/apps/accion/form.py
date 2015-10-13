@@ -84,3 +84,47 @@ class Solicitud_RecursoForm(forms.ModelForm):
 		}
 		
 
+class Entrada_RecursoForm(forms.ModelForm):
+	def __init__(self, *args, **kwargs):	
+		super(Entrada_RecursoForm, self).__init__(*args, **kwargs)
+		# self.fields['nro_doc'].widget = forms.HiddenInput(attrs={'id':'Input_nro_doc','class':'form-control', 'placeholder':'Número de oficio, referencia de factura, u otro.',})
+		# self.fields['detalle'].widget = forms.HiddenInput(attrs={'id':'Input_detalle','class':'form-control', 'placeholder':'Describa el recurso a recibir.',})
+		# self.fields['observacion'].widget = forms.HiddenInput(attrs={'id':'Input_observacion','class':'form-control', 'placeholder':'Describa el motivo por el que no se han asignado los recursos.',})
+
+	class Meta:
+		model = Entrada_Recurso
+		fields = ('conforme','nro_doc', 'detalle', 'observacion')
+		widgets = {
+			'nro_doc': forms.TextInput(attrs={'id':'Input_nro_doc','class':'form-control', 'placeholder':'Número de oficio, referencia de factura, u otro.',}),			
+			'detalle': forms.Textarea(attrs={'id':'Input_detalle','class':'form-control expandable' ,'placeholder':'Describa el recurso a recibir.',}),		
+			'conforme': forms.RadioSelect,	
+			'observacion': forms.Textarea(attrs={'id':'Input_observacion','class':'form-control expandable' ,'placeholder':'Describa el motivo por el que no se han asignado los recursos.',}),		
+		}
+		labels = {			
+			'nro_doc': ('Nro. Doc.:'),			
+			'detalle': ('Detalle:'),
+			'conforme': ('¿Se ha asignado el recurso solicitado?:'),						
+			'observacion': ('Observación:'),
+		}		
+
+class Entrada_Recurso_EditForm(forms.ModelForm):
+	def __init__(self, *args, **kwargs):	
+		super(Entrada_Recurso_EditForm, self).__init__(*args, **kwargs)
+
+	class Meta:
+		model = Entrada_Recurso
+		fields = ('nro_doc', 'detalle', 'observacion')
+		widgets = {
+			'nro_doc': forms.TextInput(attrs={'id':'Input_nro_doc','class':'form-control', 'placeholder':'Número de oficio, referencia de factura, u otro.',}),			
+			'detalle': forms.Textarea(attrs={'id':'Input_detalle','class':'form-control expandable' ,'placeholder':'Describa el recurso a recibir.',}),					
+			'observacion': forms.Textarea(attrs={'id':'Input_observacion','class':'form-control expandable' ,'placeholder':'Describa el motivo por el que no se han asignado los recursos.',}),		
+		}
+		labels = {			
+			'nro_doc': ('Nro. Doc.:'),			
+			'detalle': ('Detalle:'),
+			'observacion': ('Observación:'),
+		}		
+
+
+		
+

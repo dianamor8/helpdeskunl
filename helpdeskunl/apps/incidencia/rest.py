@@ -68,3 +68,15 @@ def buscar_bienes(request):
 			return HttpResponse(json.dumps(ctx), content_type='application/json') 
 	else:
 		return render(request, request.get_full_path())
+
+
+@login_required
+def cerrar_incidencia_expirada(request):	
+	if  request.is_ajax():	
+		incidencias = Incidencia.objects.filter(estado=True, estado_incidencia='2', asignacion_incidencia__tecnico=request.user)
+		for incidencia in incidencias:			
+			variable = incidencia.es_vigente(request)	
+		ctx={'realizado': 'si',}	
+		return HttpResponse(json.dumps(ctx), content_type='application/json')		
+	else:
+		raise Http404

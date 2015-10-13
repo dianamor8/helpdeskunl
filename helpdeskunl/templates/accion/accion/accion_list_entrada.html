@@ -23,14 +23,13 @@
 	    });
 	});
 	{% endfor %}
-	$(this)
 </script>	
 	<input id='incidencia_pk' type="hidden" value='{{incidencia.id}}'>
 	<br>
 	<blockquote class="blockquote-reverse" ><b><i>Panel de acciones</i></b><br>
-		{% url 'incidencia_asignada_list' as incidencia_list %}
-	<a href="{{incidencia_list}}" class="small small"><i>Panel de incidencias</i></a>
-	</blockquote> 	
+	{% url 'incidencia_asignada_list' as incidencia_list %}
+	<a href="{{incidencia_list}}" class="small small"><i>Panel de incidencias</i></a>	
+	</blockquote> 
 	<div class = 'panel panel-default'>
 		<div class='panel-heading container-fluid'>						
 			<div class="col-sm-9">
@@ -81,7 +80,7 @@
 						<a href="{{url_diagnostico_inicial_update}}" class="btn btn-info" title="Diagnóstico Inicial"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Diagnostico Inicial</a>	
 							<!--NUEVA ACCION-->
 						{% url 'accion_add' incidencia_id=incidencia.id as url_crear_accion %}
-						<a href="{{url_crear_accion}}" class="btn btn-primary" title="Nueva Acción"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Nueva Acción</a>																	
+						<a href="{{url_crear_accion}}" class="btn btn-primary" title="Nueva Acción"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Nueva Acción</a>														
 					{% else %}
 						{% url 'diagnostico_inicial' incidencia_id=incidencia.id as url_diagnostico_inicial%}
 						<a href="{{url_diagnostico_inicial}}" class="btn btn-info" title="Diagnóstico Inicial"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Diagnostico Inicial</a>
@@ -99,78 +98,57 @@
 					{% endif %}					 						
 				</div>
 			</div>
-		</div>	
+		</div>
 		<ul class="nav nav-tabs">
 			{% url 'accion_list' incidencia_id=incidencia.id as url_acciones %}		
-			<li role="presentation" class="active"> <a href="{{url_acciones}}">Acciones realizadas</a></li>
+			<li role="presentation" > <a href="{{url_acciones}}">Acciones realizadas</a></li>
 			{% url 'accion_list_solicitud' incidencia_id=incidencia.id as url_acciones_solicitud %}
 			<li role="presentation" > <a href="{{url_acciones_solicitud}}">Recursos Solicitados</a></li>
 			{% url 'accion_list_entrada' incidencia_id=incidencia.id as url_acciones_entrada %}
-			<li role="presentation"> <a href="{{url_acciones_entrada}}">Entrada de Recursos</a></li>
+			<li role="presentation" class="active"> <a href="{{url_acciones_entrada}}">Entrada de Recursos</a></li>
 		</ul>
 		<div class="panel-body">
-			{% if acciones %}				
-				<table id="tbl-acciones" class="table table-bordered table-hover table-condensed" cellspacing="0" width="100%">
+			{% if entradas %}
+				<table id="tbl-entradas" class="table table-bordered table-hover table-condensed" cellspacing="0" width="100%">
 					<thead>
 						<tr>
-							<th class = 'col-sm-1'>Nivel</th>
-							<th class = 'col-sm-1'>Fecha</th>
-							<th class = 'col-sm-5'>Titulo</th>
-							<th class = 'col-sm-2'>Técnico</th>							
-							<th class = 'col-sm-2'>Acción</th>
+							<th class = 'col-sm-2'>Nro.</th>
+							<th class = 'col-sm-4'>Detalle/Observació</th>
+							<th class = 'col-sm-3'>Registra</th>
+							<th class = 'col-sm-1'>Acciones</th>
 						</tr>
 					</thead>
 					<tbody>
-						{% for accion in acciones %}
-							<tr id='tr_accion{{accion.id}}' class="small">	
-								<td>{{accion.get_nivel_display}}</td>
-								<td>{{accion.creado_en|date:"SHORT_DATE_FORMAT"}} {{accion.creado_en|time:"H:i"}}</td>								
-								<td>{{accion.titulo}}</td>
-								<td>{{accion.tecnico.get_full_name}}</td>
+						{% for entrada in entradas %}
+							<tr id='tr_entrada{{entrada.id}}' class="small">							
 								<td>
-									<div class="row-fluid text-center">								
-										{% if perms.accion.add_solicitud_recurso %}
-											{% if accion.solicitud_recurso_set.all %}
-												{% url 'solicitudes_list' accion_id=accion.id  incidencia_id=accion.incidencia_id as url_solicitud_list %}
-												<a href="{{url_solicitud_list}}" title="Lista de  solicitudes" class="btn btn-info"><span class="glyphicon glyphicon-th-list"></a>
-												</a>
-											{% else %}
-												{% url 'solicitudes_list' accion_id=accion.id  incidencia_id=accion.incidencia_id as url_solicitud_list %}
-												<a href="{{url_solicitud_list}}" title="Lista de  solicitudes" class="btn btn-info" disabled><span class="glyphicon glyphicon-th-list"></a>
-												</a>
-											{% endif %}
-										{% endif %}	
-										
-										{% if accion.tecnico == user %}
-											{% if perms.accion.change_accion %}
-												{% url 'accion_update' pk=accion.id as url_edit_accion %}
-												<a href="{{url_edit_accion}}" title="Editar acción" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></a>
-											{% endif %}
-											{% if perms.accion.delete_accion %}
-												{% url 'accion_delete' pk=accion.id as url_delete_accion %}
-												<a data-toggle="modal" href="{{url_delete_accion}}" data-target="#delele_modal_a" title="Eliminar acción" data-tooltip class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span>
-												</a>
-											{% endif %}											
-										{% else %}
-											{% if perms.accion.change_accion %}
-												{% url 'accion_update' pk=accion.id as url_edit_accion %}
-												<a href="{{url_edit_accion}}" title="Editar acción" class="btn btn-default" disabled><span class="glyphicon glyphicon-pencil"></a>
-											{% endif %}
-											{% if perms.accion.delete_accion %}
-												{% url 'accion_delete' pk=accion.id as url_delete_accion %}
-												<a data-toggle="modal" href="{{url_delete_accion}}" data-target="#delele_modal_a" title="Eliminar acción" data-tooltip class="btn btn-danger" disabled><span class="glyphicon glyphicon-trash"></span>
-												</a>
-											{% endif %}	
-
-										{% endif %}
-									</div>
+									{% if entrada.nro_doc %}
+										{{entrada.nro_doc}}
+									{% else %}
+										---
+									{% endif %}
+								</td>
+								<td>
+									{% if entrada.detalle %}
+										{{entrada.detalle}}
+									{% else %}
+										{{entrada.observacion}}
+									{% endif %}
+								</td>								
+								<td><small>{{entrada.usuario_registra}}</small></td>				
+								<td>
+									{% if perms.accion.change_entrada_recurso %}
+										{% url 'entrada_update' pk=entrada.id  as url_entrada_update %}
+										<a href="{{url_entrada_update}}" title="Editar" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></a>
+										</a>									
+									{% endif %}	
 								</td>							
 							</tr>
 						{% endfor %}
 					</tbody>
 				</table>
 			{% else %}
-				<i><h5>No hay acciones registradas que mostrar</h5></i>
+				<i><h5>No hay entradas de recurso registradas que mostrar</h5></i>
 			{% endif %}	
 			
 		</div>
@@ -186,14 +164,6 @@
 
 <!--MODAL PARA CERRAR-->
 <div class="modal fade" id="modal_cierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-	<div class="modal-dialog">
-		<div class="modal-content">		
-		</div>
-	</div> 		
-</div> 
-
-<!--MODAL PARA CERRAR-->
-<div class="modal fade" id="modal_reaperturar_cierre" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 	<div class="modal-dialog">
 		<div class="modal-content">		
 		</div>

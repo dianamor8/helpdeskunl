@@ -82,11 +82,14 @@ class Solicitud_Recurso(TimeStampedModel):
 
 class Entrada_Recurso(TimeStampedModel):
 	
-	usuario_registra = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, related_name='usuario_registra')
-	solicitud_recurso = models.ForeignKey(Solicitud_Recurso , on_delete=models.DO_NOTHING)
-	nro_doc = models.CharField(max_length=50)
-	detalle = models.CharField(max_length=50)
+	usuario_registra = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, related_name='usuario_registra' , blank=True, null=True)
+	solicitud_recurso = models.ForeignKey(Solicitud_Recurso , on_delete=models.DO_NOTHING, blank=True, null=True)
+	nro_doc = models.CharField(max_length=50,blank=True, null=True)
+	detalle = models.CharField(max_length=250,blank=True, null=True)
 	nuevo_bien = models.ForeignKey(Bien, blank=True, null=True)	
+	conforme = models.BooleanField(choices=BOOL_CHOICES, default=True)
+	observacion = models.CharField(max_length=250, blank=True, null=True)
+
 	# DE SER NECESARIO AGREGAR AQUI QUE EQUIPO ENTRA Y POR CUAL SE REEMPLAZA 
 
 	class Meta:
@@ -94,7 +97,7 @@ class Entrada_Recurso(TimeStampedModel):
 		verbose_name_plural = "Entrada de Recursos"
 		db_table = "Entrada_Recurso"
 	def __unicode__(self):
-		return '%s. %s' % (self.detalle, self.nuevo_bien)
+		return '%s' % (self.detalle)
 
 
 

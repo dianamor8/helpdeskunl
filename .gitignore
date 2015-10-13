@@ -55,3 +55,4 @@ target/
 
 # Bloquear la subida de migraciones
 migrations/
+*.pdf

@@ -64,6 +64,10 @@ class Servicio(models.Model):
 
 	def get_centro_asistencia(self):
 		return '/centro_asistencia/%i' %(self.centro.id)
+		#http://codepen.io/anon/pen/WQpXJM
+		#http://www.jqueryscript.net/form/Input-Number-Spinner-with-jQuery-Bootstrap-Spinner.html
+		#http://www.jqueryscript.net/form/Touch-Friendly-jQuery-Input-Spinner-Plugin-For-Bootstrap-3-TouchSpin.html
+		#www.virtuosoft.eu/code/bootstrap-touchspin/
 
 
 class Personal_Operativo(models.Model):

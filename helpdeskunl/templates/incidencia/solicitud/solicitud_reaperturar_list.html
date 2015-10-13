@@ -1,0 +1,106 @@
+{% extends "home/home_general.html" %}
+{% block realtime %}
+	{% load drealtimetags %}	
+	{%ishout_js%}
+{% endblock realtime %}
+{% block files_js %}	
+	<script type="text/javascript" src="/media/js/helpdeskunl/centro_asistencia.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/usuarios.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/incidencia.js"></script>
+{% endblock files_js %}
+{% load validadores_template %}
+{% block contenido %}
+	<script>
+	{% for message in messages %}
+	$(document).ready(function() {		
+		var stack_bottomright = {"dir1":"bottom", "dir2":"right", "push":"top"};
+	    new PNotify({	      
+			text: '{{ message }}.',		
+			icon: 'glyphicon glyphicon-wrench',
+			type: '{{ message.tags }}'						
+	    });
+	});
+	{% endfor %}
+	</script>
+	<br>
+	<ul class="nav nav-tabs">
+		{% url 'incidencia_list' as url_incidencias %}		
+		<li role="presentation"  class="active"> <a href="{{url_incidencias}}">Reapertura de incidencias</a></li>		
+		{% url 'solicitud_extender_list' as url_solicitudes_extender %}		
+		<li role="presentation"><a href="{{url_solicitudes_extender}}">Extender tiempo de apertura</a></li>		
+	</ul>	
+	<div class="panel panel-default">
+		<div class="panel-heading container-fluid">
+			<div class="col-sm-9 col-md-10" style="padding: 1%;">
+				<h3 class="panel-title">	
+					<span class="glyphicon glyphicon-file" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;
+					<b>Solicitudes de reapertura de incidencias</b>
+				</h3>					
+			</div>			
+		</div>
+		<br>
+		<div class="panel-body" id="div_solicitudes">
+			{% if solicitudes %}
+				<table id="tbl-solicitudes-reapertura" class="table table-bordered table-hover table-condensed" cellspacing="0" width="100%">
+					<thead>
+						<tr>							
+							<th class = 'col-sm-1'>Fecha</th>
+							<th class = 'col-sm-3'>Incidencia</th>
+							<th class = 'col-sm-5'>Motivo</th>
+							<th class = 'col-sm-2'>Solicita</th>
+							<th class = 'col-sm-1'>&nbsp;&nbsp;Acción&nbsp;&nbsp;</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for solicitud in solicitudes %}
+							<tr id='tr_solicitud{{solicitud.id}}' class="small">								
+								<td>{{solicitud.creado_en|date:"SHORT_DATE_FORMAT"}} {{solicitud.creado_en|time:"H:i"}}</td>
+								<td>{{solicitud.incidencia.titulo}}</td>
+								<td>{{solicitud.observacion}}</td>
+								<td> <small><small>{{solicitud.usuario.get_full_name}}</small></small></td>
+								<td>
+									<div class="row-fluid">
+										<div class="col-sm-12">	
+											{% if solicitud.despachado %}
+												<p><span class="small glyphicon glyphicon-ok" aria-hidden="true"></span>&nbsp;Hecho</p>	
+											{% else %}
+												{% url 'incidencia_detail' pk=solicitud.incidencia.id as url_incidencia_detail %}
+												<a href="{{url_incidencia_detail}}" class="btn btn-primary btn-sm col-sm-12" title="Reaperturar">Reaperturar</a>
+											{% endif %}
+											
+										</div>																
+									</div>										
+								</td>							
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			{% else %}
+				<i><h5>No hay solicitudes que mostrar</h5></i>
+			{% endif %}			
+		</div>
+	</div>
+
+<!--MODAL PARA EXTENDER TIEMPO APERTURA-->
+<div id="extender_modal" class="modal fade" role="dialog" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">		
+	<div class="modal-dialog">
+		<div class="modal-content">		
+		</div>
+	</div>
+</div>
+
+{% endblock contenido %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

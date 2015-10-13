@@ -66,6 +66,9 @@ MIDDLEWARE_CLASSES = (
 )
 
 # TEMPLATE_CONTEXT_PROCESSORS = (
+#     # 'django.core.context_processors.request',
+#     # 'django.contrib.auth.context_processors.auth',
+# )
 #     "django.contrib.auth.context_processors.auth",
 #     "django.core.context_processors.debug",
 #     "django.core.context_processors.i18n",
@@ -109,7 +112,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+# USE_TZ = True
 #
 
 # Static files (CSS, JavaScript, Images)

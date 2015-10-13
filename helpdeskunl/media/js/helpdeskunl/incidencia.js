@@ -7,6 +7,9 @@ function my_ready () {
 	configuracion_tabla($('#tbl-incidencias'));	
 	configuracion_tabla($('#tbl-incidenciasat'));	
 	configuracion_tabla($('#tbl-incidenciasjd'));	
+	configuracion_tabla($('#tbl-solicitudes-extension'));	
+	configuracion_tabla($('#tbl-solicitudes-reapertura'));	
+	
 	hacer_visible();
 	cambiar_opcion();	
 	multiselect_bienes();	
@@ -112,12 +115,37 @@ function temporizador () {
 		}else{
 			var caduca = new Date();
 		};		
-		$('#defaultCountdown'+id_reloj).countdown({until: caduca, compact: true});	
-		// $(this).find('td .caduca').each(function(key,value){
-		// 	console.log($(this));			
-		// 	if (key == 1) {};
-		// })
-	})
+		$('#defaultCountdown'+id_reloj).countdown({until: caduca, onExpiry: mensaje, compact: true});	
+		// liftOff(id_reloj)
+	});
+}
+
+function mensaje () {	
+	console.log("entrando");
+	$.ajax({
+		url: '/cerrar_incidencia/',
+		type: 'GET',	
+		success : function(data) {
+			console.log('pasando aqui');
+			if (data.realizado) {
+				location.reload();				
+			};
+		},
+	});		
+}
+
+function liftOff (id_incidencia) {
+	console.log("entra aqui");
+	$.ajax({
+		url: '/cerrar_incidencia/',
+		type: 'GET',			
+		data: {incidencia: id_incidencia},
+		success : function(data) {
+			if (data.realizado) {
+				// Location.reload();
+			};
+		},
+	});		
 }
 
 

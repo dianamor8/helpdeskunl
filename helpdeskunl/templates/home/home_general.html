@@ -22,10 +22,33 @@
 {% endblock navbar_dinamico %}
 
 {% block contenido %}
-<h2>HELPDESK UNL</h2>
+<br><br>
+<h2 class="text-center"><i> <b>Sistema de atención de incidencias de la <br> Universidad Nacional de Loja</b> </i></h2>
+<br><br>
+<div class= "col-sm-12">
+	<img src="media/images/slide1.png"  width="100%" height="120%">		
+	<br>.
+</div>
+
 {% endblock contenido %}
 
 {% block menu_navegacion %}
+	<div class="row">
+		<div class="thumbnail">
+		<br>						
+			{% if user.avatar %}				
+				<img class="img-circle" src="/media/{{user.avatar}}" width="100" height="100">
+			{% else %}				
+				<img class="img-circle" src="/media/images/user.png" width="100" height="100">
+			{% endif %}
+			<div class="text-center">
+				<br>
+				<p class="small"><b>Usuario:</b></p>
+				<a href="#">{{ user.nombres }} <br>{{ user.apellidos }}</a>
+			</div>
+			<br>
+		</div>
+	</div>
 	{% include "base/base_sidebar.html" %}
 {% endblock menu_navegacion %}
 

@@ -4,10 +4,12 @@ from django.shortcuts import render
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 import json
+from django.http import HttpResponseForbidden
 #MODELS
 from helpdeskunl.apps.incidencia.form import *
 from helpdeskunl.apps.incidencia.models import *
 from helpdeskunl.apps.home.models import *
+from helpdeskunl.apps.accion.models import *
 
 from django.views.generic import TemplateView,ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -32,6 +34,10 @@ from django.contrib import messages
 #FECHAS
 from datetime import datetime
 from django.utils import formats
+from django.utils import timezone
+
+# CONSULTAS
+from django.db.models import Q
 
 # Create your views here.
 # def add_dependencia_view(request):
@@ -288,11 +294,11 @@ class Incidencia_DetailView(DetailView):
 	def get_context_data(self, **kwargs):    
 		context = super(Incidencia_DetailView, self).get_context_data(**kwargs)
 		asignacion = Asignacion_Incidencia.objects.filter(incidencia=self.object)		
-		administradores = Perfil.jefes_departamento.all()
-		bandera = False
-		if self.request.user in administradores:
-			bandera = True
-			if asignacion:
+		administradores = Perfil.jefes_departamento.all()		
+		bandera = False		
+		if self.request.user in administradores:			
+			bandera = True			
+			if asignacion:				
 				bandera = False
 		context['asignar_incidencia'] = bandera
 		
@@ -414,8 +420,19 @@ class RedirigirIncidencia(UpdateView):
 		kwargs.update({'centro_asistencia': self.object.centro_asistencia})
 		return kwargs
 
-	def form_valid(self, form):
-		incidencia = form.save()		
+	def form_valid(self, form):		
+		incidencia_aux = self.get_object()		
+		if not incidencia_aux.es_vigente(self.request):			
+			ctx = {'respuesta':'ok',}
+			messages.add_message(self.request, messages.ERROR, 'No se puede redirigir. La incidencia está cerrada')										
+	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
+	 	
+		if incidencia_aux.diagnostico_inicial_set.all():			
+			ctx = {'respuesta':'ok',}
+			messages.add_message(self.request, messages.ERROR, 'No se puede redirigir la incidencia')										
+	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
+	 	
+	 	incidencia = form.save()		
 		incidencia.prioridad_asignada = ''
 		incidencia.estado_incidencia = '0'
 		incidencia.nivel = '0'
@@ -560,38 +577,337 @@ class Atender_Incidencia_Update(DeleteView):
 	model = Incidencia
 	template_name = 'incidencia/incidencia/atender_incidencia.html'
 
-	@method_decorator(login_required)	
+	@method_decorator(login_required)
+	@method_decorator(user_passes_test(es_tecnico))
 	@method_decorator(permission_required('incidencia.change_incidencia', raise_exception=permission_required))	
 	def dispatch(self, *args, **kwargs):		
-		self.incidencia_id = kwargs['pk']
+		self.incidencia_id = kwargs['pk']		
+		
 		if permiso_incidencia_detail(self):
 			return super(Atender_Incidencia_Update, self).dispatch(*args, **kwargs)
 		else:
 			raise PermissionDenied
 
 	def delete(self, request, *args, **kwargs):	
+		incidencia = Incidencia.objects.get(pk=int(self.incidencia_id))
+		hoy = timezone.now()		
+		fecha_apertura = incidencia.fecha + incidencia.apertura_maxima
+		
+		if fecha_apertura<hoy:
+			messages.add_message(self.request, messages.ERROR, 'El tiempo de apertura ha vencido')			
+			return HttpResponseRedirect(reverse_lazy('incidencia_asignada_list'))	
+
 		self.object = self.get_object()
 		incidencia = get_object_or_404(Incidencia, pk=self.object.id)
 		incidencia.caduca = self.object.calcular_caducidad()		
 		incidencia.estado_incidencia = ESTADO_ABIERTA	
 		incidencia.save()
-		historial = Historial_Incidencia(incidencia= incidencia, tipo='2', fecha = datetime.now() , tiempo_restante= incidencia.duracion)
+		
+		# LISTA DE APERTURA DE INCIDENCIAS
+		aperturas = incidencia.apertura_incidencia_set.all()
+		
+		if not aperturas:			
+			historial = Historial_Incidencia(incidencia= incidencia, tipo='2', fecha = timezone.now() , tiempo_restante= incidencia.duracion)
+			apertura = Apertura_Incidencia(incidencia=incidencia, duracion = incidencia.duracion, usuario= self.request.user, tipo=PRIMERA_APERTURA ,observacion='Primera apertura')
+		else:
+			historial = Historial_Incidencia(incidencia= incidencia, tipo='7', fecha = timezone.now() , tiempo_restante= incidencia.duracion)
+			apertura = Apertura_Incidencia(incidencia=incidencia, duracion = incidencia.duracion, tipo=REAPERTURA , usuario= self.request.user, observacion='Reapertura')
+
 		historial.save()
+		apertura.save()
 		messages.add_message(self.request, messages.SUCCESS, u"%s, se ha aperturado con éxito. Recuerde que la incidencia caduca %s" %(incidencia.titulo, formats.date_format(incidencia.caduca, "SHORT_DATETIME_FORMAT")))		
 		return HttpResponseRedirect(reverse_lazy('incidencia_asignada_list'))		
 
-# 	def form_valid(self, form):		
-# 	 	form.save()
-# 	 	if self.request.is_ajax():	 		
-# 	 		servicio = self.object
-# 	 		fila = '<tr id="tr_servicio%s"><td><a data-toggle="modal" href="/servicio/%s" data-target="#modal" title="Editar Servicio" data-tooltip>%s</a></td><td> %s</td> <td> %s</td> <td> %s</td> '\
-# 	 				'<td><a href="/servicio/%s/delete" role="button" class="btn btn-danger delete" data-toggle="modal" data-target="#delele_modal" title="Eliminar Servicio" data-nombre="%s" data-id="%s">'\
-# 	 				'<span class="glyphicon glyphicon-trash"></span></a></td></tr>' % (servicio.id, servicio.id, servicio.nombre, timedeltaformat(servicio.t_minimo), timedeltaformat(servicio.t_normal), timedeltaformat(servicio.t_maximo), servicio.id, servicio.nombre,servicio.id)
-# 	 		id_servicio = servicio.id
-# 	 		ctx = {'respuesta':'update', 'fila':fila, 'id':id_servicio,}	
-# 	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
-# 	 	else:
-# 	 		return super(ServicioUpdate, self).form_valid(form)
+
+
+class Incidencia_RecordatorioList(ListView):
+	model = Incidencia
+	template_name = 'incidencia/incidencia/recordatorio.html'
+	context_object_name = 'incidencias'
+
+	def get_queryset(self):		
+		queryset = Incidencia.objects.filter(estado=True, caduca__isnull=False , estado_incidencia='2',asignacion_incidencia__tecnico=self.request.user).distinct().order_by('-caduca')	 #order_by('asignacion_incidencia__fecha_asignacion')		
+		new_query = list()		
+		for incidencia in queryset:
+			duracion = incidencia.duracion			
+			caduca = incidencia.caduca			
+			duracion_aux = duracion/4			
+			fecha_recordar = caduca-duracion_aux			
+			# print "(%s - %s / %s /%s)" %(duracion_aux, fecha_recordar, caduca, incidencia.titulo)
+			hoy = timezone.now()			
+			if fecha_recordar<hoy:				
+				new_query.append(incidencia)		
+
+		return new_query
+
+	@method_decorator(login_required)
+	@method_decorator(user_passes_test(es_tecnico))
+	def dispatch(self, *args, **kwargs):
+		return super(Incidencia_RecordatorioList, self).dispatch(*args, **kwargs)
+
+##########################################
+#           CIERRE DE INCIDENCIA         #
+##########################################
+class Cierre_Incidencia_Create(SuccessMessageMixin, CreateView):
+	model = Cierre_Incidencia	
+	template_name = 'incidencia/incidencia/cierre.html'
+	form_class = Cierre_IncidenciaForm	
+	success_message = u"Incidencia cerrada con éxito"
+
+	@method_decorator(login_required)
+	@method_decorator(permission_required('incidencia.add_cierre_incidencia', raise_exception=permission_required))
+	def dispatch(self, *args, **kwargs):
+		return super(Cierre_Incidencia_Create, self).dispatch(*args, **kwargs)
+
+	def form_valid(self, form):
+		if self.request.is_ajax():
+			incidencia = get_object_or_404(Incidencia, pk=int(self.kwargs['incidencia_id']))				
+			if incidencia.es_vigente(request=self.request):
+				jefes_departamento = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia=incidencia.centro_asistencia)
+				if incidencia.accion_set.all() or self.request.user in jefes_departamento:
+					solicitudes = Solicitud_Recurso.objects.filter(Q(estado=True), Q(esperar=True), Q(accion__incidencia=incidencia))
+					if not solicitudes:
+						if incidencia.estado_incidencia!='3':
+							self.object = form.save(commit=False)				
+							incidencia.estado_incidencia = '3'
+							incidencia.save()
+							self.object.tipo = '1'		
+							self.object.incidencia = incidencia		
+							self.object.usuario = self.request.user		
+							asesores = Perfil.asesores_tecnicos.filter(personal_operativo__centro_asistencia=incidencia.centro_asistencia)
+							if self.request.user in asesores:
+								self.object.cerrado_tecnico = True
+							else:
+								self.object.cerrado_tecnico = False
+			
+							apertura = Apertura_Incidencia.objects.filter(incidencia=incidencia).latest('id')
+							self.object.apertura_incidencia = apertura
+							self.object.save()		
+							messages.add_message(self.request, messages.SUCCESS, 'Incidencia cerrada con éxito')				
+						else:
+							messages.add_message(self.request, messages.ERROR, 'No se puede cerrar. La incidencia ya está cerrada')				
+					else:
+						messages.add_message(self.request, messages.ERROR, 'No se puede cerrar. Hay solicitudes de recurso pendientes')			
+				else:
+					messages.add_message(self.request, messages.ERROR, 'No se puede cerrar. No se ha realizado acciones para ésta incidencia')			
+			else:			
+				messages.add_message(self.request, messages.ERROR, 'No se puede cerrar. La incidencia ya está cerrada')				
+			ctx = {'respuesta':'cerrar',}
+		 	return HttpResponse(json.dumps(ctx),content_type="application/json")
+		else:
+			return HttpResponseForbidden()
+
+	def get_success_url(self):		
+		return reverse('accion_list', kwargs={'incidencia_id': self.object.incidencia.id})
+
+	def get_context_data(self, **kwargs):
+		ctx = super(Cierre_Incidencia_Create, self).get_context_data(**kwargs)
+		ctx['incidencia'] = self.kwargs['incidencia_id']
+		return ctx
+
+
+##########################################
+#           REABRIR INCIDENCIA          #
+##########################################
+class Reabrir_Incidencia_Create(SuccessMessageMixin, UpdateView):
+	model = Incidencia	
+	template_name = 'incidencia/incidencia/despacho_reapertura.html'
+	form_class = Despacho_ReaperturaIncidenciaForm	
+	success_message = u"Incidencia reaperturada con éxito"
+
+	@method_decorator(login_required)
+	@method_decorator(permission_required('incidencia.change_incidencia', raise_exception=permission_required))
+	@method_decorator(user_passes_test(es_jefe))
+	def dispatch(self, *args, **kwargs):
+		return super(Reabrir_Incidencia_Create, self).dispatch(*args, **kwargs)
+
+	def form_valid(self, form):
+		self.object = self.get_object()
+		self.object = form.save()
+		if self.object.estado_incidencia==ESTADO_ATENDIDA:			
+			porcentaje = form.cleaned_data['porcentaje']		
+			apertura = get_object_or_404(Apertura_Incidencia, incidencia=self.object, tipo=PRIMERA_APERTURA)
+			self.object.duracion = apertura.duracion/int(porcentaje)
+			self.object.fecha = datetime.now()
+			self.object.estado_incidencia = ESTADO_REAPERTURADA
+			self.object.caduca = None			
+			solicitud = get_object_or_404(Solicitud_Reapertura_Incidencia, incidencia = self.object, despachado = False)
+			solicitud.usuario_despacha = self.request.user
+			solicitud.fecha_despacha = datetime.now()
+			solicitud.despachado = True
+			solicitud.porcentaje_despacha = porcentaje
+			solicitud.duracion_despacha = self.object.duracion
+			self.object.save()			
+			solicitud.save()
+
+			administradores = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia = self.object.centro_asistencia).distinct()
+		 	for administrador in administradores:
+		 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '9')
+				notificacion.save()			
+				notificacion.construir_notificacion()
+
+				if administrador.id == self.request.user.id:
+					messages.add_message(self.request, messages.INFO, notificacion.mensaje)
+				else:
+					notificacion.notificar()
+			messages.add_message(self.request, messages.SUCCESS, 'Solicitud reaperturada con éxito')
+		else:
+			messages.add_message(self.request, messages.ERROR, 'No es posible reabrir, la incidencia no está cerrada')				
+		ctx = {'respuesta':'cerrar',}	
+	 	return HttpResponse(json.dumps(ctx),content_type="application/json")
+		
+
+class Solicitud_Reapertura_Create(SuccessMessageMixin, CreateView):
+	model = Solicitud_Reapertura_Incidencia	
+	template_name = 'incidencia/solicitud/solicitud_reapertura.html'
+	form_class = Solicitud_ReaperturaForm	
+	success_message = u"Solicitud de reapertura creada con éxito"
+
+	@method_decorator(login_required)
+	@method_decorator(permission_required('incidencia.add_solicitud_reapertura', raise_exception=permission_required))	
+	@method_decorator(user_passes_test(es_tecnico))
+	def dispatch(self, *args, **kwargs):
+		return super(Solicitud_Reapertura_Create, self).dispatch(*args, **kwargs)
+
+	def form_valid(self, form):
+		if self.request.is_ajax():
+			incidencia = get_object_or_404(Incidencia, pk=int(self.kwargs['incidencia_id']))
+			solicitud = Solicitud_Reapertura_Incidencia.objects.filter(incidencia = incidencia, despachado = False)
+			if solicitud:				
+				messages.add_message(self.request, messages.ERROR, 'Ya ha se ha solicitado una reapertura con anterioridad')
+				ctx = {'respuesta':'cerrar',}	
+	 			return HttpResponse(json.dumps(ctx),content_type="application/json")
+			
+			self.object = form.save(commit=False)			
+			self.object.incidencia = incidencia
+			self.object.usuario = self.request.user
+			self.object.save()
+			messages.add_message(self.request, messages.SUCCESS, 'Solicitud de reapertura creada con éxito')
+
+			administradores = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia = self.object.incidencia.centro_asistencia).distinct()
+		 	for administrador in administradores:
+		 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '8')
+				notificacion.save()			
+				notificacion.construir_notificacion()
+
+				if administrador.id == self.request.user.id:
+					messages.add_message(self.request, messages.INFO, notificacion.mensaje)										
+				else:
+					notificacion.notificar()
+
+			ctx = {'respuesta':'cerrar',}	
+	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
+		else:
+			return HttpResponseForbidden()
+
+	def get_context_data(self, **kwargs):
+		ctx = super(Solicitud_Reapertura_Create, self).get_context_data(**kwargs)
+		ctx['incidencia'] = self.kwargs['incidencia_id']
+		return ctx
+
+class Solicitud_Extender_TiempoCreate(SuccessMessageMixin, CreateView):
+	model = Solicitud_Extender_Tiempo	
+	template_name = 'incidencia/solicitud/solicitud_extender.html'
+	form_class = Solicitud_Extender_TiempoForm	
+	success_message = u"Solicitud creada con éxito"
+
+	@method_decorator(login_required)
+	@method_decorator(permission_required('incidencia.add_solicitud_extender_tiempo', raise_exception=permission_required))	
+	@method_decorator(user_passes_test(es_tecnico))
+	def dispatch(self, *args, **kwargs):
+		return super(Solicitud_Extender_TiempoCreate, self).dispatch(*args, **kwargs)
+
+	def get_context_data(self, **kwargs):
+		ctx = super(Solicitud_Extender_TiempoCreate, self).get_context_data(**kwargs)
+		ctx['incidencia'] = self.kwargs['incidencia_id']
+		return ctx
+
+	def form_valid(self, form):
+		if self.request.is_ajax():
+			incidencia = get_object_or_404(Incidencia, pk=int(self.kwargs['incidencia_id']))
+			solicitud = Solicitud_Extender_Tiempo.objects.filter(incidencia = incidencia, despachado = False)
+			if solicitud:				
+				messages.add_message(self.request, messages.ERROR, 'Ya ha se ha solicitado con anterioridad')
+				ctx = {'respuesta':'cerrar',}	
+	 			return HttpResponse(json.dumps(ctx),content_type="application/json")
+			
+			self.object = form.save(commit=False)
+			self.object.incidencia = incidencia
+			self.object.usuario = self.request.user
+			self.object.fecha_anterior = incidencia.fecha
+			self.object.save()
+
+			messages.add_message(self.request, messages.SUCCESS, 'Solicitud creada con éxito')
+
+			administradores = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia = self.object.incidencia.centro_asistencia).distinct()
+		 	for administrador in administradores:
+		 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '10')
+				notificacion.save()			
+				notificacion.construir_notificacion()
+
+				if administrador.id == self.request.user.id:
+					messages.add_message(self.request, messages.INFO, notificacion.mensaje)										
+				else:
+					notificacion.notificar()
+
+			ctx = {'respuesta':'cerrar',}	
+	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
+		else:
+			return HttpResponseForbidden()
+
+
+class Solicitud_ExtenderList(ListView):
+	model = Solicitud_Extender_Tiempo
+	template_name = 'incidencia/solicitud/solicitud_extender_list.html'
+	context_object_name = 'solicitudes'
+
+	def get_queryset(self):
+		queryset = Solicitud_Extender_Tiempo.objects.filter(estado=True, incidencia__centro_asistencia__personal_operativo__usuario=self.request.user, incidencia__centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO').distinct()		
+		return queryset
+
+	@method_decorator(login_required)	
+	@method_decorator(user_passes_test(es_jefe))
+	def dispatch(self, *args, **kwargs):
+		return super(Solicitud_ExtenderList, self).dispatch(*args, **kwargs)
+
+class Solicitud_ReaperturarList(ListView):
+	model = Solicitud_Reapertura_Incidencia
+	template_name = 'incidencia/solicitud/solicitud_reaperturar_list.html'
+	context_object_name = 'solicitudes'
+
+	def get_queryset(self):
+		queryset = Solicitud_Reapertura_Incidencia.objects.filter(estado=True, incidencia__centro_asistencia__personal_operativo__usuario=self.request.user, incidencia__centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO').distinct()		
+		return queryset
+
+	@method_decorator(login_required)	
+	@method_decorator(user_passes_test(es_jefe))
+	def dispatch(self, *args, **kwargs):
+		return super(Solicitud_ReaperturarList, self).dispatch(*args, **kwargs)
+
+
+class Atender_Solicitud_Extender_Tiempo(DeleteView):
+	model = Solicitud_Extender_Tiempo
+	template_name = 'incidencia/solicitud/solicitud_extender_confirm.html'	
+	success_message = 'Extendido con éxito'	
+
+	@method_decorator(login_required)	
+	@method_decorator(user_passes_test(es_jefe))
+	@method_decorator(permission_required('incidencia.change_solicitud_extender_tiempo', raise_exception=permission_required))	
+	def dispatch(self, *args, **kwargs):		
+		self.solicitud_extender_tiempo = kwargs['pk']				
+		return super(Atender_Solicitud_Extender_Tiempo, self).dispatch(*args, **kwargs)		
+
+	def delete(self, request, *args, **kwargs):	
+		self.object = self.get_object()
+		self.object.despachado = True
+		self.object.usuario_despacha = request.user
+		incidencia = self.object.incidencia
+		incidencia.fecha = timezone.now()		
+		incidencia.save()
+		self.object.save()
+		messages.add_message(self.request, messages.SUCCESS, 'Tiempo extendido con éxito')			
+		return HttpResponseRedirect(reverse_lazy('solicitud_extender_list'))		
+	
 
 
 
@@ -625,3 +941,4 @@ class BienCreate(CreateView):
 		else:
 			context['formset'] = Caracteristica_BienFormSet()
 		return context
+

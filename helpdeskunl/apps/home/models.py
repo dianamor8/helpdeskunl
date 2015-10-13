@@ -25,6 +25,10 @@ REDIRIGIR_INCIDENCIA_USUARIOS='4'
 PROVEEDOR_RECURSOS='5'
 ACTUALIZAR_PROVEEDOR_RECURSOS='6'
 ELIMINAR_PROVEEDOR_RECURSOS='7'
+REAPERTURAR_INCIDENCIA='8'
+ACEPTAR_REAPERTURAR_INCIDENCIA='9'
+EXTENDER_TIEMPO_INCIDENCIA='10'
+ACEPTAR_EXTENDER_TIEMPO_INCIDENCIA='11'
 NOTIFICACIONES_CHOICES = (
 	(NUEVA_INCIDENCIA, 'Nueva Incidencia.'),
 	(ASIGNAR_INCIDENCIA, 'Asignación de Incidencia'),
@@ -34,6 +38,10 @@ NOTIFICACIONES_CHOICES = (
 	(PROVEEDOR_RECURSOS, 'Proveedor de Recursos'),
 	(ACTUALIZAR_PROVEEDOR_RECURSOS, 'Proveedor de Recursos'),
 	(ELIMINAR_PROVEEDOR_RECURSOS, 'Proveedor de Recursos'),
+	(REAPERTURAR_INCIDENCIA, 'Reaperturar Incidencia'),
+	(ACEPTAR_REAPERTURAR_INCIDENCIA, 'Reaperturar Incidencia Aceptada'),
+	(EXTENDER_TIEMPO_INCIDENCIA, 'Extender Tiempo De Incidencia'),
+	(ACEPTAR_EXTENDER_TIEMPO_INCIDENCIA, 'Extender Tiempo De Incidencia Aceptada'),
 )
 
 
@@ -77,6 +85,18 @@ class Notificacion(TimeStampedModel):
 
 		if self.tipo == '7': #ELIMINAR PROVEEDOR DE RECURSOS
 			mensaje = "Se ha eliminado una solicitud de recursos para la incidencia %s" % (extra) 
+
+		if self.tipo == '8': #REAPERTURAR INCIDENCIA
+			mensaje = "%s ha solicitado reaperturar una incidencia" % (self.remitente) 
+
+		if self.tipo == '9': #REAPERTURAR INCIDENCIA
+			mensaje = "%s ha aceptado tu solicitud para reaperturar una incidencia" % (self.remitente) 
+
+		if self.tipo == '10': #EXTENDER TIEMPO INCIDENCIA
+			mensaje = "%s ha solicitado extener el tiempo de apertura de una incidencia" % (self.remitente) 
+		
+		if self.tipo == '11': #EXTENDER TIEMPO DE INCIDENCIA ACEPTADA
+			mensaje = "%s ha aceptado extener el tiempo de apertura de incidencia" % (self.remitente) 
 
 		self.mensaje = mensaje
 		self.save()		

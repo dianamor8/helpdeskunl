@@ -28,59 +28,40 @@
 	{% endfor %}
 	</script>
 	
-	<ul class="nav nav-tabs">
-		{% url 'incidencia_list' as url_incidencias %}		
-		<li role="presentation"> <a href="{{url_incidencias}}">Mis incidencias</a></li>
-		{% if user|tiene_grupo:"ASESOR TECNICO" %}
-			{% url 'incidencia_asignada_list' as url_asignada_incidencias %}		
-			<li role="presentation"  class="active"><a href="{{url_asignada_incidencias}}">Incidencias Asignadas</a></li>
-		{% endif %}
-		{% if user|tiene_grupo:"JEFE DEPARTAMENTO" %}
-			{% url 'incidencia_centro_list' as url_centro_incidencias %}		
-			<li role="presentation"><a href="{{url_centro_incidencias}}">Administrar Incidencias</a></li>
-		{% endif %}
-  		
-	</ul>	
 	<div class="panel panel-default">
 		<div class="panel-heading container-fluid">
 			<div class="col-sm-9 col-md-10" style="padding: 1%;">
 				<h3 class="panel-title">
 					<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;
-					<b>Incidencias asignadas para mi</b>
+					<b>Incidencias por vencer</b>
 				</h3>					
 			</div>
 			<div class="col-sm-3 col-md-2">				
 			</div>
 		</div>
 		<br>
-		<div class="panel-body" id="div_incidencias">
+		<div class="panel-body" id="div_incidencias_recordatorio">
 			{% if incidencias %}
 				<table id="tbl-incidenciasat" class="table table-bordered table-hover table-condensed" cellspacing="0" width="100%">
 					<thead>
 						<tr>
 							<th class = 'col-sm-1'>Estado</th>
 							<th class = 'col-sm-1'>Caduca</th>
-							<th class = 'col-sm-1'>Restante</th>							
-							<th class = 'col-sm-8'>Título</th>							
-							<th class = 'col-sm-1'>Panel</th>
+							<th class = 'col-sm-2'>Expira en</th>							
+							<th class = 'col-sm-7'>Título</th>							
+							<th class = 'col-sm-1'>Panel</th>							
 						</tr>
 					</thead>
 					<tbody>
 						{% for incidencia in incidencias %}							
 							<tr id='tr_incidencia{{incidencia.id}}' class="small">						
-															
+								<input class="caduca" type="hidden" value='{{incidencia.caduca|date:"F d, Y H:i:s" }}' data-id="{{incidencia.id}}">								
 								<td class="{{incidencia.get_class_estado}}">{{incidencia.get_estado_incidencia_display}}</td>
 								<td>{{incidencia.caduca|date:"d/m/Y H:i" }}</td>
 								<td>
-									{% if incidencia.estado_incidencia != '2' %}
-										<div class="text-center">---</div>
-									{% else %}
-										<input class="caduca" type="hidden" value='{{incidencia.caduca|date:"F d, Y H:i:s" }}' data-id="{{incidencia.id}}">	
-										<small><small> <small><small><small>
-											<div id="defaultCountdown{{incidencia.id}}"></div>
-										</small></small></small></small></small>
-									{% endif %}
-									
+									<small><small> <small><small><small>
+										<div id="defaultCountdown{{incidencia.id}}"></div>
+									</small></small></small></small></small>
 								</td>								
 								<td>
 									<b>{{incidencia.titulo}} <p class="{{incidencia.get_class_prioridad_asignada_table}}">{{incidencia.get_prioridad_asignada_display}}</p></b>
@@ -93,16 +74,10 @@
 									<div class="row-fluid">										
 										<div class="col-sm-5">
 											{% if perms.incidencia.change_incidencia %}
-												{% if incidencia.estado_incidencia == '1' or  incidencia.estado_incidencia == '5' %}
-													{% if incidencia.es_aperturable %}
-														{% url 'atender_incidencia' pk=incidencia.id as url_atender_incidencia %}
-														<a data-toggle="modal" href="{{url_atender_incidencia}}" data-target="#atender_modal_i" title="Atender" data-tooltip class="btn btn-success"><span class="glyphicon glyphicon-check"></span>
-														</a>
-													{% else %}													
-														{% url 'extender_tiempo' incidencia_id=incidencia.id as url_extender_tiempo %}
-														<a data-toggle="modal" href="{{url_extender_tiempo}}" data-target="#extender_modal" title="Extender tiempo de apertura" data-tooltip class="btn btn-warning"><span class="glyphicon glyphicon-exclamation-sign"></span>
-														</a>
-													{% endif %}
+												{% if incidencia.estado_incidencia == '1' %}
+													{% url 'atender_incidencia' pk=incidencia.id as url_atender_incidencia %}
+													<a data-toggle="modal" href="{{url_atender_incidencia}}" data-target="#atender_modal_i" title="Atender" data-tooltip class="btn btn-warning"><span class="glyphicon glyphicon-check"></span>
+													</a>
 												{% else %}
 													{% url 'accion_list' incidencia_id=incidencia.id as url_acciones_incidencia %}
 													<a href="{{url_acciones_incidencia}}" class="btn btn-primary">
@@ -111,7 +86,7 @@
 												{% endif %}
 											{% endif %}										
 										</div>
-								</td>							
+								</td>								
 							</tr>
 						{% endfor %}
 					</tbody>
@@ -124,14 +99,6 @@
 
 <!--MODAL PARA ATENDER INCIDENCIA-->
 <div id="atender_modal_i" class="modal fade" role="dialog" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">		
-	<div class="modal-dialog">
-		<div class="modal-content">		
-		</div>
-	</div>
-</div>
-
-<!--MODAL PARA SOLICITAR EXTENDER TIEMPO-->
-<div id="extender_modal" class="modal fade" role="dialog" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">		
 	<div class="modal-dialog">
 		<div class="modal-content">		
 		</div>

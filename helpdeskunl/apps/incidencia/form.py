@@ -65,7 +65,7 @@ class IncidenciaForm(forms.ModelForm):
 		
 	class Meta:
 		model = Incidencia
-		exclude = 'fecha', 'solicitante', 'prioridad_asignada', 'estado_incidencia', 'estado', 'creado_por', 'nivel', 'tecnicos','servicio', 'ejecucion', 'duracion', 'caduca', 'bienes'
+		exclude = 'fecha', 'solicitante', 'prioridad_asignada', 'estado_incidencia', 'estado', 'creado_por', 'nivel', 'tecnicos','servicio', 'ejecucion', 'duracion', 'caduca', 'bienes', 'apertura_maxima'
 		
 		widgets = {
 			'titulo': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Título de solicitud.',}),
@@ -163,20 +163,23 @@ class AsignacionForm(forms.ModelForm):
 
 	class Meta:
 		model = Incidencia
-		fields = 'prioridad_asignada','servicio',
+		fields = 'prioridad_asignada','servicio','apertura_maxima',
 		widgets = {		
 			'prioridad_asignada': forms.Select(attrs={'class':'form-control required'}),	
 			'servicio': forms.Select(attrs={'class':'form-control required'}),			
+			'apertura_maxima': forms.TextInput(attrs={'class':'form-control', 'id':'apertura_maxima',}),
 		}	
 		labels = {
 			'tecnicos': ('Técnicos:'),
 			'prioridad_asignada': ('Asignar Prioridad:'),
 			'servicio': ('Acuerdo de nivel de servicio:'),
+			'apertura_maxima': ('Aperturar máximo en:'),
 		}
 		error_messages = {
 			'tecnicos': {'required': u"Seleccione al menos un valor.",},
 			'prioridad_asignada': {'required': u"Seleccione una opción.",},			
 			'servicio': {'required': u"Seleccione una opción.",},	
+			'apertura_maxima': {'required': u"Ingrese al menos un valor.",},	
 		}
 
 	def clean_servicio(self):
@@ -204,7 +207,80 @@ class RedirigirIncidenciaForm(forms.ModelForm):
 		error_messages = {			
 			'centro_asistencia': {'required': u"Seleccione el centro que atenderá su solicitud.", 'placeholder':'Seleccione.',},
 		}
-		
+
+
+class Cierre_IncidenciaForm(forms.ModelForm):	
+
+	class Meta:
+		model = Cierre_Incidencia
+		fields = 'solucionado','observacion',
+		widgets = {		
+			'observacion': forms.Textarea(attrs={'class':'form-control expandable' ,'placeholder':'Observación sobre la atención de la incidencia.',}),
+			'solucionado': forms.RadioSelect,
+		}	
+		labels = {			
+			'observacion': ('Observación:'),
+			'solucionado': ('¿Se ha solucionado?:'),
+		}
+		error_messages = {			
+			'observacion': {'required': u"Este campo no puede estar vacío.",},
+			'solucionado': {'required': u"Seleccione una opción.",},	
+		}
+
+
+class Solicitud_ReaperturaForm(forms.ModelForm):	
+
+	class Meta:
+		model = Solicitud_Reapertura_Incidencia
+		fields = 'observacion',
+		widgets = {		
+			'observacion': forms.Textarea(attrs={'class':'form-control expandable' ,'placeholder':'Describa un motivo para reaperturar la incidencia.',}),			
+		}	
+		labels = {			
+			'observacion': ('Motivo:'),
+		}
+		error_messages = {			
+			'observacion': {'required': u"Este campo no puede estar vacío.",},			
+		}
+
+CIEN = '1'
+CINCUENTA = '2'
+VEINTICINCO = '4'
+PORCENTAJE_CHOICES = (
+	(VEINTICINCO, '25%'),
+	(CINCUENTA, '50%'),
+	(CIEN, '100%'),
+)
+class Despacho_ReaperturaIncidenciaForm(forms.ModelForm):	
+	porcentaje = forms.ChoiceField(choices = PORCENTAJE_CHOICES, label="Asignar:", initial=VEINTICINCO, widget=forms.Select(attrs={'class':'form-control required'}), required=True, help_text='Porcentaje de tiempo con respecto a la duración asignada')
+	class Meta:
+		model = Incidencia
+		fields = 'apertura_maxima',
+		widgets = {		
+			'apertura_maxima': forms.TextInput(attrs={'class':'form-control', 'id':'apertura_maxima',}),
+		}	
+		labels = {			
+			'apertura_maxima': ('Aperturar máximo en:'),
+		}
+		error_messages = {			
+			'apertura_maxima': {'required': u"Este campo no puede estar vacío.",},
+		}
+
+
+
+class Solicitud_Extender_TiempoForm(forms.ModelForm):	
+	class Meta:
+		model = Solicitud_Extender_Tiempo
+		fields = 'observacion',
+		widgets = {		
+			'observacion': forms.Textarea(attrs={'class':'form-control expandable' ,'placeholder':'Describa un motivo para extender la apertura de la incidencia.',}),
+		}	
+		labels = {			
+			'observacion': ('Motivo:'),
+		}
+		error_messages = {			
+			'observacion': {'required': u"Este campo no puede estar vacío.",},
+		}
 
 
 class MyClearableFileInput(ClearableFileInput):

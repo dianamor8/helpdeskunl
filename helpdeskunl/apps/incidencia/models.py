@@ -105,12 +105,14 @@ ESTADO_DELEGADA = '1'
 ESTADO_ABIERTA = '2'
 ESTADO_ATENDIDA = '3'
 ESTADO_PENDIENTE = '4'
+ESTADO_REAPERTURADA = '5'
 ESTADO_CHOICES = (
 	(ESTADO_NUEVA, 'Nueva'),
 	(ESTADO_DELEGADA, 'Asignada'),
 	(ESTADO_ABIERTA, 'Atendiendo'),	
 	(ESTADO_ATENDIDA, 'Cerrada'),	
 	(ESTADO_PENDIENTE, 'Pendiente'),	
+	(ESTADO_REAPERTURADA, 'Reaperturada'),	
 )
 
 class Incidencia(TimeStampedModel):
@@ -121,7 +123,7 @@ class Incidencia(TimeStampedModel):
 
 	fecha = models.DateTimeField(null=True , blank=True , verbose_name='fecha de asignación')
 	titulo = models.CharField(max_length=100)	
-	descripcion = models.CharField(max_length=50)
+	descripcion = models.CharField(max_length=250)
 	solicitante = models.ForeignKey(settings.AUTH_USER_MODEL,default=get_current_user, related_name='usuario_solicitante')
 	prioridad_solicitada = models.CharField(choices=URGENCIA_CHOICES, max_length=100, default=UR_NORMAL) #Si selecciona URGENTE el campo justif_urgencia debe ser obligatorio
 	justif_urgencia = models.CharField(null=True,max_length=150, blank=True)
@@ -139,6 +141,7 @@ class Incidencia(TimeStampedModel):
 	duracion = models.DurationField(null=True , blank=True)
 	# agregar la fecha que caduca
 	caduca = models.DateTimeField(null=True , blank=True)	
+	apertura_maxima = models.DurationField(null=True , blank=True)
 	class Meta:
 		verbose_name = "Incidencia"
 		verbose_name_plural = "Incidencias"
@@ -154,6 +157,7 @@ class Incidencia(TimeStampedModel):
 			2: "btn-primary", #Atendida
 			3: "btn-danger", #Cerrada
 			4: "btn-warning", #Pendiente
+			5: "btn-default", #Reaperturada
 		}		
 		return switcher.get(int(self.estado_incidencia))
 
@@ -244,15 +248,31 @@ class Incidencia(TimeStampedModel):
 		if self.caduca is None:
 			return True
 
-		if self.caduca < hoy:
-			self.estado_incidencia = '3'
-			self.save()
-			if not self.cierre_incidencia_set.all():
-				cierre = Cierre_Incidencia(tipo='0', usuario=request.user, observacion='Cierre automático por expiración.', incidencia=self)
-				cierre.save()
+		if self.estado_incidencia=='3':				
+			return False
+
+		if self.caduca < hoy:					
+			self.estado_incidencia = '3'			
+			self.save()					
+			# if not self.cierre_incidencia_set.all():
+			cierre = Cierre_Incidencia(tipo='0', usuario=request.user, observacion='Cierre automático por expiración.', incidencia=self)
+			cierre.save()
 			return False
 		else:
 			return True
+
+	def calcular_apertura_maxima(self):
+		return self.fecha + self.apertura_maxima
+
+	def es_aperturable(self):
+		hoy = timezone.now()
+		if self.calcular_apertura_maxima()<hoy:
+			return False
+		else:
+			return True
+
+		
+
 
 
 
@@ -279,6 +299,7 @@ CREA_SOLICITUD_RECURSO = '3'
 ASIGNACION_RECURSO = '4'
 CREA_PROBLEMA = '5'
 ASIGNACION_RECURSO_PROBLEMA = '6'
+REAPERTURA_INCIDENCIA = '7'
 
 HISTORIAL_CHOICES = (
 	(CREA_INCIDENCIA, 'CREAR INCIDENCIA'),
@@ -288,6 +309,7 @@ HISTORIAL_CHOICES = (
 	(ASIGNACION_RECURSO, 'ASIGNA RECURSO'),	
 	(CREA_PROBLEMA, 'CREAR PROBLEMA'),	
 	(ASIGNACION_RECURSO_PROBLEMA, 'ASIGNAR RECURSO PROBLEMA'),	
+	(REAPERTURA_INCIDENCIA, 'REAPERTURAR INCIDENCIA'),	
 )
 class Historial_Incidencia(TimeStampedModel):
 	incidencia = models.ForeignKey(Incidencia, on_delete=models.DO_NOTHING)
@@ -303,24 +325,79 @@ class Historial_Incidencia(TimeStampedModel):
 	def __unicode__(self):
 		return '[%s , %s, %s, %s]' % (self.incidencia, self.tipo, self.fecha, self.tiempo_restante)
 
+PRIMERA_APERTURA = '0'
+REAPERTURA = '1'
+APERTURA_CHOICES = (
+	(PRIMERA_APERTURA, 'PRIMERA APERTURA'),
+	(REAPERTURA, 'REAPERTURA'),
+)
+class Apertura_Incidencia(TimeStampedModel):
+	incidencia = models.ForeignKey(Incidencia, on_delete=models.DO_NOTHING , blank=True , null=True)
+	duracion = models.DurationField(null=True , blank=True)
+	usuario = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True , null=True)
+	tipo = models.CharField(choices=APERTURA_CHOICES, max_length=2)	
+	observacion = models.CharField(max_length=250)
+	class Meta:
+		verbose_name = "Apertura de Incidencia"
+		verbose_name_plural = "Aperturas de Incidencia"
+		db_table = 'Apertura_Incidencia'
 
+
+
+BOOL_CHOICES = ((True, 'Si'), (False, 'No'))
 
 CIERRE_AUTOMATICO = '0'
 CIERRE_MANUAL = '1'
 CIERRE_CHOICES = (
-	(CIERRE_AUTOMATICO, 'CIERCierre_Incidencia AUTOMÁTICO'),
+	(CIERRE_AUTOMATICO, 'CIERRE AUTOMÁTICO'),
 	(CIERRE_MANUAL, 'CIERRE MANUAL'),
 )
 class Cierre_Incidencia(TimeStampedModel):
-	incidencia = models.ForeignKey(Incidencia, on_delete=models.DO_NOTHING)
-	tipo = models.CharField(choices=CIERRE_CHOICES, max_length=2)	
-	usuario = models.ForeignKey(settings.AUTH_USER_MODEL)
+	incidencia = models.ForeignKey(Incidencia, on_delete=models.DO_NOTHING , blank=True , null=True)
+	tipo = models.CharField(choices=CIERRE_CHOICES, max_length=2 , blank=True , null=True)	
+	usuario = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True , null=True)
 	observacion = models.CharField(max_length=250)
+	solucionado = models.BooleanField(choices=BOOL_CHOICES, default=True)
+	cerrado_tecnico = models.BooleanField(choices=BOOL_CHOICES, default=True)
+	apertura_incidencia = models.ForeignKey(Apertura_Incidencia, on_delete=models.DO_NOTHING , blank=True , null=True)
 
 	class Meta:
 		verbose_name = "Cierre de Incidencia"
 		verbose_name_plural = "Cierres de Incidencia"
 		db_table = 'Cierre_Incidencia'
+
+
+
+class Solicitud_Reapertura_Incidencia(TimeStampedModel):
+	incidencia = models.ForeignKey(Incidencia, on_delete=models.DO_NOTHING , blank=True , null=True)	
+	usuario = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True , null=True)
+	observacion = models.CharField(max_length=250)
+	despachado = models.BooleanField(choices=BOOL_CHOICES, default=False)	
+	usuario_despacha = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True , null=True, related_name='usuario_despacha')
+	fecha_despacha = models.DateTimeField(null=True , blank=True , verbose_name='fecha de despacho')
+	porcentaje_despacha = models.CharField(max_length=2 , blank=True , null=True)	
+	duracion_despacha = models.DurationField(null=True , blank=True)
+
+	class Meta:
+		verbose_name = "Solicitud de reapertura"
+		verbose_name_plural = "Solicitudes de reapertura"
+		db_table = 'Solicitud_Reapertura'
+
+
+class Solicitud_Extender_Tiempo(TimeStampedModel):
+	
+	incidencia = models.ForeignKey(Incidencia, on_delete=models.DO_NOTHING , blank=True , null=True)	
+	fecha_anterior= models.DateTimeField(null=True , blank=True)		
+	observacion = models.CharField(max_length=250)
+	despachado = models.BooleanField(choices=BOOL_CHOICES, default=False)	
+	usuario_despacha = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True , null=True, related_name='usuario_despacha_extension')	
+	
+	class Meta:
+		verbose_name = "Extender_Tiempo"
+		verbose_name_plural = "Extensiones de tiempo"
+		db_table = 'Solicitud_Extender_Tiempo'
+
+
 
 #CREAR COMO CLASE PARA PORDER ASIGNAR USUARIOS A UN DEPARTAMENTO.
 #AREA_SOPORTE = '0'	

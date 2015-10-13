@@ -6,49 +6,31 @@
 		</a>
 	</li>
 
-	<li class="dropdown">
-		<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-			<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;<b>Incidencias</b>
-			<b class="caret"></b>
-		</a>
-		<ul class="dropdown-menu" role="menu">
-			<li>
-				{% url 'incidencia_list' as url_incidencias %}
-				<a href="{{url_incidencias}}">
-					<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Mis Indicencias Registradas
-				</a>
-			</li>
-			<li>
-				{% url 'incidencia_asignada_list' as url_incidencias_asignadas %}
-				<a href="{{url_incidencias_asignadas}}">
-					<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Indicencias Asignadas
-				</a>
-			</li>
-
-			<li>
-				{% url 'incidencia_centro_list' as url_incidencias_centro %}
-				<a href="{{url_incidencias_centro}}">
-					<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Administrador de Indicencias
-				</a>
-			</li>
-		</ul>	
-	</li>
-
-
-
-	
-
 	<li>
-		
-		<a href="{{url_centro_asistencia}}">
-			<span class="glyphicon glyphicon-leaf" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Registro y Calificación
+		{% url 'incidencia_list' as url_incidencias %}
+		<a href="{{url_incidencias}}">
+			<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Mis Indicencias
+		</a>
+	</li>
+	<li>
+		{% url 'incidencia_asignada_list' as url_incidencias_asignadas %}
+		<a href="{{url_incidencias_asignadas}}">
+			<span class="glyphicon glyphicon-hand-right" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Indicencias Asignadas
 		</a>
 	</li>
 
 	<li>
-		<!--LOS RECURSOS SOLICITADOS POR USUARIO-->
-		<a href="{{url_centro_asistencia}}">
-			<span class="glyphicon glyphicon-leaf" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Solicitud de Recursos
+		{% url 'incidencia_centro_list' as url_incidencias_centro %}
+		<a href="{{url_incidencias_centro}}">
+			<span class="glyphicon glyphicon-random" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Administrador de Indicencias
+		</a>
+	</li>
+
+
+	<li>
+		{% url 'solicitud_reaperturar_list' as url_solicitudes_extender %}		
+		<a href="{{url_solicitudes_extender}}">
+			<span class="glyphicon glyphicon-file" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Solicitudes
 		</a>
 	</li>
 </ul>

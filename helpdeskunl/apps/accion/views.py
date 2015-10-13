@@ -102,9 +102,13 @@ class Diagnostico_Inicial_Create(SuccessMessageMixin, CreateView):
 	def dispatch(self, *args, **kwargs):
 		incidencia = get_object_or_404(Incidencia, pk=int(self.kwargs['incidencia_id']))		
 		if incidencia.es_vigente(request=self.request):				
-			return super(Diagnostico_Inicial_Create, self).dispatch(*args, **kwargs)
-		else:
-			messages.add_message(self.request, messages.ERROR, 'No se puede diagnosticar. La incidencia ha expirado')			
+			if incidencia.estado_incidencia == ESTADO_ABIERTA:
+				return super(Diagnostico_Inicial_Create, self).dispatch(*args, **kwargs)
+			else:			
+				messages.add_message(self.request, messages.ERROR, 'No se puede diagnosticar')			
+				return HttpResponseRedirect(reverse_lazy('accion_list', kwargs={'incidencia_id':incidencia.id}))		
+		else:			
+			messages.add_message(self.request, messages.ERROR, 'No se puede diagnosticar. La incidencia está cerrada')			
 			return HttpResponseRedirect(reverse_lazy('accion_list', kwargs={'incidencia_id':incidencia.id}))		
 
 	def get_context_data(self, **kwargs):
@@ -151,10 +155,13 @@ class Diagnostico_Inicial_Update(SuccessMessageMixin, UpdateView):
 		diagnostico = get_object_or_404(Diagnostico_Inicial, pk=int(self.diagnostico_id))		
 		
 		if diagnostico.incidencia.es_vigente(request=self.request):				
-			return super(Diagnostico_Inicial_Update, self).dispatch(*args, **kwargs)
+			if diagnostico.incidencia.estado_incidencia == ESTADO_ABIERTA:
+				return super(Diagnostico_Inicial_Update, self).dispatch(*args, **kwargs)
+			else:			
+				messages.add_message(self.request, messages.ERROR, 'No se puede diagnosticar')			
 		else:
-			messages.add_message(self.request, messages.ERROR, 'No se puede actualizar. La incidencia ha expirado')			
-			return HttpResponseRedirect(reverse_lazy('accion_list', kwargs={'incidencia_id':diagnostico.incidencia.id}))		
+			messages.add_message(self.request, messages.ERROR, 'No se puede actualizar. La incidencia está cerrada')			
+		return HttpResponseRedirect(reverse_lazy('accion_list', kwargs={'incidencia_id':diagnostico.incidencia.id}))		
 	
 		
 
@@ -212,7 +219,7 @@ class AccionList(ListView):
 	@method_decorator(login_required)	
 	def dispatch(self, *args, **kwargs):
 		if permiso_incidencia_detail(self):
-			return super(AccionList, self).dispatch(*args, **kwargs)
+			return super(AccionList, self).dispatch(*args, **kwargs)			
 		else:
 			raise PermissionDenied
 
@@ -222,8 +229,7 @@ class AccionList(ListView):
 		try:
 			diagnostico = Diagnostico_Inicial.objects.get(incidencia = incidencia)
 		except Diagnostico_Inicial.DoesNotExist:
-			diagnostico = None
-		
+			diagnostico = None		
 		context['incidencia'] = incidencia
 		context['diagnostico'] = diagnostico
 		return context
@@ -246,10 +252,13 @@ class AccionCreate(SuccessMessageMixin, CreateView):
 		if permiso_incidencia_detail(self):
 			incidencia = get_object_or_404(Incidencia, pk= int(self.kwargs['incidencia_id']))
 			if incidencia.es_vigente(request=self.request):				
-				return super(AccionCreate, self).dispatch(*args, **kwargs)
+				if incidencia.estado_incidencia == ESTADO_ABIERTA:				
+					return super(AccionCreate, self).dispatch(*args, **kwargs)
+				else:			
+					messages.add_message(self.request, messages.ERROR, 'No se puede crear acciones')				
 			else:
-				messages.add_message(self.request, messages.ERROR, 'Imposible crear acción. La incidencia ha expirado')			
-				return HttpResponseRedirect(reverse_lazy('accion_list', kwargs={'incidencia_id':incidencia.id}))
+				messages.add_message(self.request, messages.ERROR, 'Imposible crear acción. La incidencia está cerrada')			
+			return HttpResponseRedirect(reverse_lazy('accion_list', kwargs={'incidencia_id':incidencia.id}))
 		else:
 			raise PermissionDenied
 	
@@ -306,13 +315,15 @@ class AccionUpdate(SuccessMessageMixin, UpdateView):
 		if permiso_incidencia_detail(self):
 			if accion.incidencia.es_vigente(request=self.request):
 				if accion.tecnico == self.request.user:								
-					return super(AccionUpdate, self).dispatch(*args, **kwargs)
+					if accion.incidencia.estado_incidencia == ESTADO_ABIERTA:				
+						return super(AccionUpdate, self).dispatch(*args, **kwargs)
+					else:			
+						messages.add_message(self.request, messages.ERROR, 'No se puede actualizar acciones')
 				else:
 					raise PermissionDenied
 			else:
-				messages.add_message(self.request, messages.ERROR, 'Imposible actualizar. La incidencia ha expirado')			
-				return HttpResponseRedirect(reverse_lazy('accion_list', kwargs={'incidencia_id':accion.incidencia.id}))
-			return super(AccionUpdate, self).dispatch(*args, **kwargs)
+				messages.add_message(self.request, messages.ERROR, 'Imposible actualizar. La incidencia está cerrada')			
+			return HttpResponseRedirect(reverse_lazy('accion_list', kwargs={'incidencia_id':accion.incidencia.id}))			
 		else:
 			raise PermissionDenied
 	
@@ -376,7 +387,7 @@ class AccionDelete(DeleteView):
 				self.object.save()		
 				messages.success(self.request, self.success_message)
 		else:
-			messages.add_message(self.request, messages.ERROR, 'No se puede eliminar. La incidencia ha expirado')
+			messages.add_message(self.request, messages.ERROR, 'No se puede eliminar. La incidencia está cerrada')
 		return HttpResponseRedirect(reverse_lazy('accion_list', kwargs={'incidencia_id':accion.incidencia.id}))
 
 
@@ -462,7 +473,7 @@ class SolicitudCreate(SuccessMessageMixin, CreateView):
 				else:
 					raise PermissionDenied
 			else:
-				messages.add_message(self.request, messages.ERROR, 'No se puede agregar. La incidencia ha expirado')			
+				messages.add_message(self.request, messages.ERROR, 'No se puede agregar. La incidencia está cerrada')			
 				return HttpResponseRedirect(reverse_lazy('solicitudes_list', kwargs={'incidencia_id':accion.incidencia.id, 'accion_id':accion.id}))
 		else:
 			raise PermissionDenied
@@ -490,7 +501,11 @@ class SolicitudCreate(SuccessMessageMixin, CreateView):
 		if self.object.notificar_email:
 			centro_asistencia = self.object.accion.incidencia.centro_asistencia
 			mensaje = "Se ha solicitado un recurso desde el %s, que se detalla en el siguiente archivo adjunto." %(centro_asistencia.nombre) 
-			email = EmailMessage('SOLICITUD DE RECURSO', mensaje , settings.EMAIL_HOST_USER ,[self.object.proveedor.correo]) 		
+			if self.proveedor.perfil:
+				correo_para = self.proveedor.perfil.email
+			else:
+				correo_para = self.object.proveedor.correo
+			email = EmailMessage('SOLICITUD DE RECURSO', mensaje , settings.EMAIL_HOST_USER ,[correo_para]) 		
 			email.attach_file(convertHtmlToPdf(self.object.id))
 			email.send(fail_silently=False)
 
@@ -499,18 +514,17 @@ class SolicitudCreate(SuccessMessageMixin, CreateView):
 			convertHtmlToPdf(self.object.id)
 		
 		# DEJAR O NO EN ESPERA 
-		if self.object.esperar: # 0 == SI
+		if self.object.esperar: # 0 == SI			
 			solicitudes = Solicitud_Recurso.objects.filter(Q(estado=True), Q(esperar=True), ~Q(id=self.object.id))
-			# SI HO HAY SOLICITUDES QUE DEJEN EN ESPERA A LA INCIDENCIA 
-			if not solicitudes:
+			# SI HO HAY SOLICITUDES QUE DEJEN EN ESPERA A LA INCIDENCIA 			
+			if not solicitudes or (accion.incidencia.estado_incidencia != ESTADO_PENDIENTE):				
 				# función de esperar				
-				incidencia = accion.incidencia
-				incidencia.caduca = None
-				incidencia.estado_incidencia = ESTADO_PENDIENTE
-				incidencia.save()
-
+				incidencia = accion.incidencia			
+				incidencia.caduca = None				
+				incidencia.estado_incidencia = ESTADO_PENDIENTE				
+				incidencia.save()				
 				#calcular duracion restante
-				historial_aux = Historial_Incidencia.objects.filter(incidencia=incidencia).latest('id')				
+				historial_aux = Historial_Incidencia.objects.filter(incidencia=incidencia).latest('id')								
 				hoy = timezone.now()				
 				utilizado = hoy - historial_aux.fecha				
 				restante= historial_aux.tiempo_restante - utilizado				
@@ -567,7 +581,7 @@ class SolicitudUpdate(SuccessMessageMixin, UpdateView):
 				else:
 					raise PermissionDenied
 			else:
-				messages.add_message(self.request, messages.ERROR, 'No se puede actualizar. La incidencia ha expirado')			
+				messages.add_message(self.request, messages.ERROR, 'No se puede actualizar. La incidencia está cerrada')			
 				return HttpResponseRedirect(reverse_lazy('solicitudes_list', kwargs={'incidencia_id':solicitud.accion.incidencia.id, 'accion_id':solicitud.accion.id}))							
 		else:
 			raise PermissionDenied
@@ -660,7 +674,7 @@ class SolicitudUpdate(SuccessMessageMixin, UpdateView):
 			solicitudes = Solicitud_Recurso.objects.filter(Q(estado=True), Q(esperar=True), ~Q(id=self.object.id))
 			if self.object.esperar:				
 				# SI HO HAY SOLICITUDES QUE DEJEN EN ESPERA A LA INCIDENCIA 
-				if not solicitudes:
+				if not solicitudes or (self.object.accion.incidencia.estado_incidencia != ESTADO_PENDIENTE):
 					# función de esperar				
 					incidencia = self.object.accion.incidencia
 					incidencia.caduca = None
@@ -712,7 +726,11 @@ class SolicitudDelete(DeleteView):
 		if self.object.accion.tecnico != self.request.user:			
 			messages.add_message(self.request, messages.ERROR, 'Permiso Denegado')
 			return HttpResponseRedirect(reverse_lazy('solicitudes_list', kwargs={'accion_id':self.object.accion.id, 'incidencia_id':self.object.accion.incidencia.id}))
-			
+		
+		if self.object.despachado:
+			messages.add_message(self.request, messages.ERROR, 'No se puede eliminar. Este recurso ya se ha despachado')			
+			return HttpResponseRedirect(reverse_lazy('solicitudes_list', kwargs={'accion_id':self.object.accion.id, 'incidencia_id':self.object.accion.incidencia.id}))
+
 
 		solicitud = get_object_or_404(Solicitud_Recurso, pk=id_solicitud)				
 
@@ -737,7 +755,163 @@ class SolicitudDelete(DeleteView):
 		return HttpResponseRedirect(reverse_lazy('solicitudes_list', kwargs={'accion_id':self.object.accion.id, 'incidencia_id':self.object.accion.incidencia.id}))
 
 
+
+########################################
+#  ENTRADA DE  SOLICITUDES DE RECURSO  #
+########################################
+
+class AccionEntradasList(ListView):
+	model = Entrada_Recurso
+	template_name = 'accion/accion/accion_list_entrada.html'
+	context_object_name = 'entradas'
+
+	@method_decorator(login_required)	
+	def dispatch(self, *args, **kwargs):
+		if permiso_incidencia_detail(self):
+			return super(AccionEntradasList, self).dispatch(*args, **kwargs)
+		else:
+			raise PermissionDenied
+
+	def get_context_data(self, **kwargs):
+		context = super(AccionEntradasList, self).get_context_data(**kwargs)		
+		incidencia = get_object_or_404(Incidencia, pk=int(self.kwargs['incidencia_id']))
+		try:
+			diagnostico = Diagnostico_Inicial.objects.get(incidencia = incidencia)
+		except Diagnostico_Inicial.DoesNotExist:
+			diagnostico = None
 		
+		context['incidencia'] = incidencia
+		context['diagnostico'] = diagnostico
+		return context
+
+	def get_queryset(self):
+		incidencia = self.kwargs['incidencia_id']	
+		queryset = Entrada_Recurso.objects.filter(Q(estado=True), Q(solicitud_recurso__accion__incidencia_id=incidencia))		
+		return queryset
+
+
+class EntradaCreate(SuccessMessageMixin, CreateView):
+	model = Entrada_Recurso
+	template_name = 'accion/recurso/entrada_create_form.html'
+	form_class = Entrada_RecursoForm
+	success_message = u"Entrada de recurso se ha creado con éxito"
+
+	@method_decorator(login_required)
+	@method_decorator(permission_required('accion.add_entrada_recurso', raise_exception=permission_required))
+	def dispatch(self, *args, **kwargs):		
+		# self.proviene =  self.request.resolver_match.url_name
+
+		solicitud = get_object_or_404(Solicitud_Recurso, pk= int(self.kwargs['solicitud_id']))
+		self.kwargs['incidencia_id'] = solicitud.accion.incidencia.id		
+		if permiso_incidencia_detail(self):
+			if solicitud.accion.incidencia.es_vigente(request=self.request):	
+				if solicitud.tecnico == self.request.user:
+					entrada = Entrada_Recurso.objects.filter(solicitud_recurso=solicitud)
+					if not entrada:													
+						return super(EntradaCreate, self).dispatch(*args, **kwargs)
+					else:
+						messages.add_message(self.request, messages.ERROR, 'Ya se ha generado una entrada de recurso para ésta solicitud')			
+						return HttpResponseRedirect(reverse_lazy('accion_list_solicitud', kwargs={'incidencia_id':solicitud.accion.incidencia.id}))
+				else:
+					raise PermissionDenied
+			else:
+				messages.add_message(self.request, messages.ERROR, 'No se puede agregar. La incidencia está cerrada')			
+				return HttpResponseRedirect(reverse_lazy('accion_list_solicitud', kwargs={'incidencia_id':solicitud.accion.incidencia.id}))
+		else:
+			raise PermissionDenied
+
+	def get_success_url(self):
+		try:
+			return reverse('accion_list_solicitud', kwargs={'incidencia_id': self.object.solicitud_recurso.accion.incidencia.id})
+		except Exception, e:
+			print e
+
+	def get_context_data(self, **kwargs):
+		context = super(EntradaCreate, self).get_context_data(**kwargs)				
+		solicitud = get_object_or_404(Solicitud_Recurso, pk=int(self.kwargs['solicitud_id']))				
+		context['solicitud'] = solicitud
+		return context
+
+	def form_valid(self, form):
+		solicitud = get_object_or_404(Solicitud_Recurso, pk= int(self.kwargs['solicitud_id']))		
+		self.object = form.save(commit=False)		
+		self.object.solicitud_recurso = solicitud
+		self.object.usuario_registra = self.request.user	
+		self.object.save()		
+		if self.object.solicitud_recurso.esperar:			
+			self.object.solicitud_recurso.esperar = False						
+			solicitudes = Solicitud_Recurso.objects.filter(Q(estado=True), Q(esperar=True), ~Q(id=self.object.solicitud_recurso.id))			
+			if not solicitudes:									
+				incidencia = self.object.solicitud_recurso.accion.incidencia				
+				historial_aux = Historial_Incidencia.objects.filter(incidencia=self.object.solicitud_recurso.accion.incidencia).latest('id')				
+				print historial_aux
+				hoy = timezone.now()
+				
+				incidencia.caduca = hoy + historial_aux.tiempo_restante
+				incidencia.estado_incidencia = ESTADO_ABIERTA
+				print "entra 8"
+				incidencia.save()
+		
+		self.object.solicitud_recurso.despachado = True
+		self.object.solicitud_recurso.save()
+			
+		return super(EntradaCreate, self).form_valid(form)
+
+
+
+
+class EntradaUpdate(SuccessMessageMixin, UpdateView):
+	model = Entrada_Recurso
+	template_name = 'accion/recurso/entrada_create_form.html'
+	form_class = Entrada_Recurso_EditForm
+	success_message = u"Entrada de recurso se ha actualizado con éxito"
+
+	@method_decorator(login_required)
+	@method_decorator(permission_required('accion.change_entrada_recurso', raise_exception=permission_required))
+	def dispatch(self, *args, **kwargs):		
+		entrada = get_object_or_404(Entrada_Recurso, pk= int(self.kwargs['pk']))
+		self.kwargs['incidencia_id'] = entrada.solicitud_recurso.accion.incidencia.id		
+		if permiso_incidencia_detail(self):			
+			if entrada.solicitud_recurso.accion.incidencia.es_vigente(request=self.request):				
+				if entrada.usuario_registra == self.request.user:								
+					return super(EntradaUpdate, self).dispatch(*args, **kwargs)
+				else:					
+					raise PermissionDenied
+			else:
+				messages.add_message(self.request, messages.ERROR, 'No se puede actualizar. La incidencia está cerrada')			
+				return HttpResponseRedirect(reverse_lazy('accion_list_entrada', kwargs={'incidencia_id':entrada.solicitud_recurso.accion.incidencia.id}))
+		else:
+			raise PermissionDenied
+
+	def get_success_url(self):	
+		entrada  = self.get_object()	
+		try:
+			return reverse('accion_list_entrada', kwargs={'incidencia_id': entrada.solicitud_recurso.accion.incidencia.id})
+		except Exception, e:
+			print e
+
+	def get_context_data(self, **kwargs):
+		context = super(EntradaUpdate, self).get_context_data(**kwargs)		
+		entrada  = self.get_object()				
+		context['solicitud'] = entrada.solicitud_recurso
+		return context	
+
+
+class EntradaUpdatedetail(DetailView):
+	model = Entrada_Recurso
+	template_name = 'accion/recurso/vista_entrada_form.html'
+
+	@method_decorator(login_required)
+	@method_decorator(permission_required('accion.add_entrada_recurso', raise_exception=permission_required))
+	def dispatch(self, *args, **kwargs):			
+		entrada = get_object_or_404(Entrada_Recurso, pk= int(self.kwargs['pk']))
+		self.kwargs['incidencia_id'] = entrada.solicitud_recurso.accion.incidencia.id		
+		if permiso_incidencia_detail(self):			
+			return super(EntradaUpdatedetail, self).dispatch(*args, **kwargs)			
+		else:
+			raise PermissionDenied
+
+
 #AGREGAR CUANDO CREE LA SOLICITUD DE INCIDENCIA
 # # AGREGA LA INCIDENCIA AL HISTORIAL CON FECHAS
 		# historial = Historial_Incidencia(incidencia= self.object, tipo='0', fecha = datetime.now() , tiempo_restante= None)
