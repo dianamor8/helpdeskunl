@@ -39,6 +39,9 @@ from django.utils import timezone
 # CONSULTAS
 from django.db.models import Q
 
+# ENCRIPTAR
+import base64   
+
 # Create your views here.
 # def add_dependencia_view(request):
 # 	if request.method == 'POST':
@@ -151,8 +154,12 @@ class IncidenciaCreate(SuccessMessageMixin, CreateView):
 			print e
 			
 	 	administradores = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia = self.object.centro_asistencia).distinct()
+	 	
+	 	url = base64.encodestring(reverse_lazy('incidencia_centro_list'))
+
 	 	for administrador in administradores:
-	 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '0')
+
+	 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '0', dirigirse=url)
 			notificacion.save()			
 			notificacion.construir_notificacion(extra=self.object.centro_asistencia.nombre)
 
@@ -262,14 +269,96 @@ class Incidencia_AsignadaList(ListView):
 	context_object_name = 'incidencias'
 
 	def get_queryset(self):		
-		# CONSULTA PARA INCIDENCIAS ASIGNADAS PARA MI
-		queryset = Incidencia.objects.filter(estado=True, asignacion_incidencia__tecnico=self.request.user).distinct().order_by('-caduca')	 #order_by('asignacion_incidencia__fecha_asignacion')
+		# CONSULTA PARA INCIDENCIAS ASIGNADAS PARA MI		
+		if self.request.GET.get('criterio'):	
+			criterio =	self.request.GET.get('criterio')
+			
+			if criterio == 'Todas':
+				self.tipo = 'Todas las incidencias'
+				queryset = Incidencia.objects.filter(estado=True, asignacion_incidencia__tecnico=self.request.user)
+			if criterio == 'Estado':
+				estado = self.request.GET.get('estado')
+				self.tipo = 'Todas las incidencias de estado << %s >>' %(estado)
+				if estado == 'Nueva':				
+					queryset = Incidencia.objects.filter(estado=True, asignacion_incidencia__tecnico=self.request.user, estado_incidencia=ESTADO_NUEVA).distinct()
+				if estado == 'Asignada':
+					queryset = Incidencia.objects.filter(estado=True, asignacion_incidencia__tecnico=self.request.user, estado_incidencia=ESTADO_DELEGADA).distinct()
+				if estado == 'Atendiendo':
+					queryset = Incidencia.objects.filter(estado=True, asignacion_incidencia__tecnico=self.request.user, estado_incidencia=ESTADO_ABIERTA).distinct()
+				if estado == 'Cerrada':
+					queryset = Incidencia.objects.filter(estado=True, asignacion_incidencia__tecnico=self.request.user, estado_incidencia=ESTADO_ATENDIDA).distinct()
+				if estado == 'Pendiente':
+					queryset = Incidencia.objects.filter(estado=True, asignacion_incidencia__tecnico=self.request.user, estado_incidencia=ESTADO_PENDIENTE).distinct()
+				if estado == 'Reaperturada':
+					queryset = Incidencia.objects.filter(estado=True, asignacion_incidencia__tecnico=self.request.user, estado_incidencia=ESTADO_REAPERTURADA).distinct()				
+			if criterio == unicode(u'Título'):
+				valor = self.request.GET.get('valor')
+				self.tipo = u'Incidencias de título << %s >>' %valor				
+				queryset = Incidencia.objects.filter(estado=True, asignacion_incidencia__tecnico=self.request.user, titulo__icontains=valor)
+			if criterio == 'Solicitante':
+				valor = self.request.GET.get('valor')
+				self.tipo = 'Incidencias para el solicitante  << %s >>' %(valor)
+				queryset = Incidencia.objects.filter(Q(estado=True), Q(asignacion_incidencia__tecnico=self.request.user), Q(solicitante__nombres__icontains=valor) | Q(solicitante__apellidos__icontains=valor))
+			if criterio == unicode(u'Técnico'):
+
+				valor = self.request.GET.get('valor')				
+				self.tipo = u'Incidencias para el técnico  << %s >>' %(valor)				
+				queryset = Incidencia.objects.filter(Q(estado=True), Q(asignacion_incidencia__tecnico=self.request.user) and ( Q(asignacion_incidencia__tecnico__nombres__icontains=valor) | Q(asignacion_incidencia__tecnico__apellidos__icontains=valor)))				
+
+			if criterio == 'Prioridad':
+				prioridad = self.request.GET.get('prioridad')
+				self.tipo = 'Incidencias de prioridad << %s >>' %(prioridad)
+				if prioridad == 'Bajo':				
+					queryset = Incidencia.objects.filter(Q(estado=True), Q(asignacion_incidencia__tecnico=self.request.user), Q(prioridad_asignada=UR_BAJO))
+				if prioridad == 'Normal':				
+					queryset = Incidencia.objects.filter(Q(estado=True), Q(asignacion_incidencia__tecnico=self.request.user), Q(prioridad_asignada=UR_NORMAL))
+				if prioridad == 'Alta':				
+					queryset = Incidencia.objects.filter(Q(estado=True), Q(asignacion_incidencia__tecnico=self.request.user), Q(prioridad_asignada=UR_ALTO))		
+			if criterio == unicode(u'Fecha creación'):
+
+				fecha_desde = datetime.strptime(self.request.GET.get('fecha_desde'), "%Y-%m-%d")
+				fecha_hasta = datetime.strptime(self.request.GET.get('fecha_hasta'), "%Y-%m-%d")
+				self.tipo = u'Incidencias con fecha de creación << Desde: %s - Hasta: %s >>' %(self.request.GET.get('fecha_desde'),self.request.GET.get('fecha_hasta'))
+				fecha_hasta += timedelta(days=1)
+				queryset = Incidencia.objects.filter(Q(estado=True), Q(asignacion_incidencia__tecnico=self.request.user), Q(creado_en__range=[fecha_desde, fecha_hasta]))				
+				
+			if criterio == unicode(u'Fecha asignación') :
+				fecha_desde = datetime.strptime(self.request.GET.get('fecha_desde'), "%Y-%m-%d")
+				fecha_hasta = datetime.strptime(self.request.GET.get('fecha_hasta'), "%Y-%m-%d")
+				self.tipo = u'Incidencias con fecha de asignación << Desde: %s - Hasta: %s >>' %(self.request.GET.get('fecha_desde'),self.request.GET.get('fecha_hasta'))
+				fecha_hasta += timedelta(days=1)
+				queryset = Incidencia.objects.filter(Q(estado=True), Q(asignacion_incidencia__tecnico=self.request.user), Q(fecha__range=[fecha_desde, fecha_hasta]))
+			
+			if criterio == 'Fecha caducidad':
+				fecha_desde = datetime.strptime(self.request.GET.get('fecha_desde'), "%Y-%m-%d")
+				fecha_hasta = datetime.strptime(self.request.GET.get('fecha_hasta'), "%Y-%m-%d")
+				self.tipo = u'Incidencias con fecha de caducidad << Desde: %s - Hasta: %s >>' %(self.request.GET.get('fecha_desde'),self.request.GET.get('fecha_hasta'))
+				fecha_hasta += timedelta(days=1)
+				queryset = Incidencia.objects.filter(Q(estado=True), Q(asignacion_incidencia__tecnico=self.request.user), Q(caduca__range=[fecha_desde, fecha_hasta]))
+						
+		else:			
+			self.tipo = 'Todas las incidencias'
+			queryset = Incidencia.objects.filter(estado=True, asignacion_incidencia__tecnico=self.request.user).distinct().order_by('-caduca')	 #order_by('asignacion_incidencia__fecha_asignacion')
+		
 		return queryset
 
 	@method_decorator(login_required)
 	@method_decorator(user_passes_test(es_tecnico))
 	def dispatch(self, *args, **kwargs):
 		return super(Incidencia_AsignadaList, self).dispatch(*args, **kwargs)
+
+
+	def get_context_data(self, **kwargs):    
+		context = super(Incidencia_AsignadaList, self).get_context_data(**kwargs)		
+		if self.request.GET.get('cerrada'):
+			context['render_div'] = "display:true"
+		else:
+			context['render_div'] = "display:none"
+		
+		context['title'] = self.tipo
+		
+		return context
+
 
 
 class Incidencia_CentroList(ListView):
@@ -279,8 +368,87 @@ class Incidencia_CentroList(ListView):
 
 	def get_queryset(self):
 		# INCIDENCIAS AGRUPADAS POR CENTRO DE ASISTENCIA
-		queryset = Incidencia.objects.filter(estado=True, centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO').distinct()
+		# queryset = Incidencia.objects.filter(estado=True, centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO').distinct()
+		# return queryset
+
+		if self.request.GET.get('criterio'):	
+			criterio =	self.request.GET.get('criterio')
+			
+			if criterio == 'Todas':
+				self.tipo = 'Todas las incidencias'
+				queryset = Incidencia.objects.filter(estado=True, centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO')
+			if criterio == 'Estado':
+				estado = self.request.GET.get('estado')
+				self.tipo = 'Todas las incidencias de estado << %s >>' %(estado)
+				if estado == 'Nueva':				
+					queryset = Incidencia.objects.filter(estado=True, centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO', estado_incidencia=ESTADO_NUEVA).distinct()
+				if estado == 'Asignada':
+					queryset = Incidencia.objects.filter(estado=True, centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO', estado_incidencia=ESTADO_DELEGADA).distinct()
+				if estado == 'Atendiendo':
+					queryset = Incidencia.objects.filter(estado=True, centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO', estado_incidencia=ESTADO_ABIERTA).distinct()
+				if estado == 'Cerrada':
+					queryset = Incidencia.objects.filter(estado=True, centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO', estado_incidencia=ESTADO_ATENDIDA).distinct()
+				if estado == 'Pendiente':
+					queryset = Incidencia.objects.filter(estado=True, centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO', estado_incidencia=ESTADO_PENDIENTE).distinct()
+				if estado == 'Reaperturada':
+					queryset = Incidencia.objects.filter(estado=True, centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO', estado_incidencia=ESTADO_REAPERTURADA).distinct()				
+			if criterio == unicode(u'Título'):
+				valor = self.request.GET.get('valor')
+				self.tipo = u'Incidencias de título << %s >>' %valor				
+				queryset = Incidencia.objects.filter(estado=True, centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO', titulo__icontains=valor)
+			if criterio == 'Solicitante':
+				valor = self.request.GET.get('valor')
+				self.tipo = 'Incidencias para el solicitante  << %s >>' %(valor)
+				queryset = Incidencia.objects.filter(Q(estado=True), Q(centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO'), Q(solicitante__nombres__icontains=valor) | Q(solicitante__apellidos__icontains=valor))
+			if criterio == unicode(u'Técnico'):
+
+				valor = self.request.GET.get('valor')				
+				self.tipo = u'Incidencias para el técnico  << %s >>' %(valor)				
+				queryset = Incidencia.objects.filter(Q(estado=True), Q(centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO') and ( Q(asignacion_incidencia__tecnico__nombres__icontains=valor) | Q(asignacion_incidencia__tecnico__apellidos__icontains=valor)))				
+
+			if criterio == 'Prioridad':
+				prioridad = self.request.GET.get('prioridad')
+				self.tipo = 'Incidencias de prioridad << %s >>' %(prioridad)
+				if prioridad == 'Bajo':				
+					queryset = Incidencia.objects.filter(Q(estado=True), Q(centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO'), Q(prioridad_asignada=UR_BAJO))
+				if prioridad == 'Normal':				
+					queryset = Incidencia.objects.filter(Q(estado=True), Q(centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO'), Q(prioridad_asignada=UR_NORMAL))
+				if prioridad == 'Alta':				
+					queryset = Incidencia.objects.filter(Q(estado=True), Q(centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO'), Q(prioridad_asignada=UR_ALTO))		
+			if criterio == unicode(u'Fecha creación'):
+
+				fecha_desde = datetime.strptime(self.request.GET.get('fecha_desde'), "%Y-%m-%d")
+				fecha_hasta = datetime.strptime(self.request.GET.get('fecha_hasta'), "%Y-%m-%d")
+				self.tipo = u'Incidencias con fecha de creación << Desde: %s - Hasta: %s >>' %(self.request.GET.get('fecha_desde'),self.request.GET.get('fecha_hasta'))
+				fecha_hasta += timedelta(days=1)
+				queryset = Incidencia.objects.filter(Q(estado=True), Q(centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO'), Q(creado_en__range=[fecha_desde, fecha_hasta]))				
+				
+			if criterio == unicode(u'Fecha asignación') :
+				fecha_desde = datetime.strptime(self.request.GET.get('fecha_desde'), "%Y-%m-%d")
+				fecha_hasta = datetime.strptime(self.request.GET.get('fecha_hasta'), "%Y-%m-%d")
+				self.tipo = u'Incidencias con fecha de asignación << Desde: %s - Hasta: %s >>' %(self.request.GET.get('fecha_desde'),self.request.GET.get('fecha_hasta'))
+				fecha_hasta += timedelta(days=1)
+				queryset = Incidencia.objects.filter(Q(estado=True), Q(centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO'), Q(fecha__range=[fecha_desde, fecha_hasta]))
+			
+			if criterio == 'Fecha caducidad':
+				fecha_desde = datetime.strptime(self.request.GET.get('fecha_desde'), "%Y-%m-%d")
+				fecha_hasta = datetime.strptime(self.request.GET.get('fecha_hasta'), "%Y-%m-%d")
+				self.tipo = u'Incidencias con fecha de caducidad << Desde: %s - Hasta: %s >>' %(self.request.GET.get('fecha_desde'),self.request.GET.get('fecha_hasta'))
+				fecha_hasta += timedelta(days=1)
+				queryset = Incidencia.objects.filter(Q(estado=True), Q(centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO'), Q(caduca__range=[fecha_desde, fecha_hasta]))
+						
+		else:			
+			self.tipo = 'Todas las incidencias'
+			queryset = Incidencia.objects.filter(estado=True, centro_asistencia__personal_operativo__usuario=self.request.user, centro_asistencia__personal_operativo__grupo__name='JEFE DEPARTAMENTO').distinct().order_by('-caduca')	 #order_by('asignacion_incidencia__fecha_asignacion')
+		
 		return queryset
+
+
+	def get_context_data(self, **kwargs):    
+		context = super(Incidencia_CentroList, self).get_context_data(**kwargs)		
+		context['title'] = self.tipo
+		
+		return context
 	
 	@method_decorator(login_required)
 	@method_decorator(user_passes_test(es_jefe))
@@ -359,8 +527,8 @@ class AsignarIncidencia(UpdateView):
 					t.administrador= self.request.user
 					t.observacion='Creado por asignación'
 					t.save()
-					
-					notificacion = Notificacion(remitente=self.request.user, destinatario = tecnico, tipo = '1')					
+					url = base64.encodestring(reverse_lazy('incidencia_asignada_list'))
+					notificacion = Notificacion(remitente=self.request.user, destinatario = tecnico, tipo = '1', dirigirse=url)					
 					notificacion.save()						
 					notificacion.construir_notificacion()					
 
@@ -440,7 +608,8 @@ class RedirigirIncidencia(UpdateView):
 
 		for asignacion in asignaciones:
 			# NOTIFICAR A LOS USUARIOS QUE FUERON ASIGNADOS
-			notificacion = Notificacion(remitente=self.request.user, destinatario = asignacion.tecnico, tipo = '4')						
+			url = base64.encodestring(reverse_lazy('incidencia_asignada_list'))	 	
+			notificacion = Notificacion(remitente=self.request.user, destinatario = asignacion.tecnico, tipo = '4', dirigirse=url)	
 			notificacion.save()
 			notificacion.construir_notificacion(extra=self.object.titulo)
 
@@ -459,7 +628,8 @@ class RedirigirIncidencia(UpdateView):
 
 		administradores = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia = incidencia.centro_asistencia).distinct()
 	 	for administrador in administradores:
-	 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '2')
+	 		url = base64.encodestring(reverse_lazy('incidencia_centro_list'))	
+	 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '2', dirigirse=url)
 			notificacion.save()			
 			notificacion.construir_notificacion(extra=self.object.centro_asistencia.nombre)
 
@@ -511,8 +681,9 @@ class IncidenciaCompleteUpdate(SuccessMessageMixin, UpdateView):
 		tecnicos_existentes = list()		
 		
 		for asignacion in asignaciones:			
-			if asignacion.tecnico not in tecnicos:												
-				notificacion = Notificacion(remitente=self.request.user, destinatario = asignacion.tecnico, tipo = '3')					
+			if asignacion.tecnico not in tecnicos:
+				url = base64.encodestring(reverse_lazy('incidencia_asignada_list'))	
+				notificacion = Notificacion(remitente=self.request.user, destinatario = asignacion.tecnico, tipo = '3', dirigirse=url)					
 				notificacion.save()						
 				notificacion.construir_notificacion(extra=str(incidencia_test.titulo))
 
@@ -534,7 +705,8 @@ class IncidenciaCompleteUpdate(SuccessMessageMixin, UpdateView):
 				t.observacion='Creado por actualización'
 				t.save()
 
-				notificacion = Notificacion(remitente=self.request.user, destinatario = tecnico, tipo = '1')					
+				url = base64.encodestring(reverse_lazy('incidencia_asignada_list'))	
+				notificacion = Notificacion(remitente=self.request.user, destinatario = tecnico, tipo = '1', dirigirse=url)					
 				notificacion.save()						
 				notificacion.construir_notificacion()
 
@@ -667,11 +839,11 @@ class Cierre_Incidencia_Create(SuccessMessageMixin, CreateView):
 				if incidencia.accion_set.all() or self.request.user in jefes_departamento:
 					solicitudes = Solicitud_Recurso.objects.filter(Q(estado=True), Q(esperar=True), Q(accion__incidencia=incidencia))
 					if not solicitudes:
-						if incidencia.estado_incidencia!='3':
+						if incidencia.estado_incidencia!=ESTADO_ATENDIDA:
 							self.object = form.save(commit=False)				
-							incidencia.estado_incidencia = '3'
+							incidencia.estado_incidencia = ESTADO_ATENDIDA
 							incidencia.save()
-							self.object.tipo = '1'		
+							self.object.tipo = CIERRE_MANUAL
 							self.object.incidencia = incidencia		
 							self.object.usuario = self.request.user		
 							asesores = Perfil.asesores_tecnicos.filter(personal_operativo__centro_asistencia=incidencia.centro_asistencia)
@@ -684,6 +856,19 @@ class Cierre_Incidencia_Create(SuccessMessageMixin, CreateView):
 							self.object.apertura_incidencia = apertura
 							self.object.save()		
 							messages.add_message(self.request, messages.SUCCESS, 'Incidencia cerrada con éxito')				
+
+							# CORREGIR
+							url = base64.encodestring(reverse_lazy('incidencia_centro_list'))	
+							# 
+
+							notificacion = Notificacion(remitente=self.request.user, destinatario = self.object.incidencia.solicitante, tipo = '12', dirigirse=url)
+							notificacion.save()			
+							notificacion.construir_notificacion(extra=self.object.incidencia.titulo)
+
+							if self.object.incidencia.solicitante.id == self.request.user.id:
+								messages.add_message(self.request, messages.INFO, notificacion.mensaje)
+							else:
+								notificacion.notificar()
 						else:
 							messages.add_message(self.request, messages.ERROR, 'No se puede cerrar. La incidencia ya está cerrada')				
 					else:
@@ -725,32 +910,65 @@ class Reabrir_Incidencia_Create(SuccessMessageMixin, UpdateView):
 		self.object = self.get_object()
 		self.object = form.save()
 		if self.object.estado_incidencia==ESTADO_ATENDIDA:			
-			porcentaje = form.cleaned_data['porcentaje']		
-			apertura = get_object_or_404(Apertura_Incidencia, incidencia=self.object, tipo=PRIMERA_APERTURA)
-			self.object.duracion = apertura.duracion/int(porcentaje)
-			self.object.fecha = datetime.now()
-			self.object.estado_incidencia = ESTADO_REAPERTURADA
-			self.object.caduca = None			
-			solicitud = get_object_or_404(Solicitud_Reapertura_Incidencia, incidencia = self.object, despachado = False)
-			solicitud.usuario_despacha = self.request.user
-			solicitud.fecha_despacha = datetime.now()
-			solicitud.despachado = True
-			solicitud.porcentaje_despacha = porcentaje
-			solicitud.duracion_despacha = self.object.duracion
-			self.object.save()			
-			solicitud.save()
+			try:
+				solicitud = Solicitud_Reapertura_Incidencia.objects.get(incidencia = self.object, despachado = False)
+			except Solicitud_Reapertura_Incidencia.DoesNotExist:
+				solicitud = None
 
-			administradores = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia = self.object.centro_asistencia).distinct()
-		 	for administrador in administradores:
-		 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '9')
+			if solicitud:
+				porcentaje = form.cleaned_data['porcentaje']		
+				apertura = get_object_or_404(Apertura_Incidencia, incidencia=self.object, tipo=PRIMERA_APERTURA)
+				self.object.duracion = apertura.duracion/int(porcentaje)
+				self.object.fecha = datetime.now()
+				self.object.estado_incidencia = ESTADO_REAPERTURADA
+				self.object.caduca = None			
+				
+				solicitud.usuario_despacha = self.request.user
+				solicitud.fecha_despacha = datetime.now()
+				solicitud.despachado = True
+				solicitud.porcentaje_despacha = porcentaje
+				solicitud.duracion_despacha = self.object.duracion
+				self.object.save()			
+				solicitud.save()
+
+				administradores = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia = self.object.centro_asistencia).distinct()
+			 	for administrador in administradores:
+			 		
+			 		url = base64.encodestring(reverse_lazy('incidencia_asignada_list'))	
+
+			 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '9',dirigirse=url)
+					notificacion.save()			
+					notificacion.construir_notificacion()
+
+					if administrador.id == self.request.user.id:
+						messages.add_message(self.request, messages.INFO, notificacion.mensaje)
+					else:
+						notificacion.notificar()
+
+				# NOTIFICAR AL SOLICITANTE
+				# CORREGIR - AGREGAR AL DETAIL DE INCIDENCIA DEL USUARIO FINAAL
+				url = base64.encodestring(reverse_lazy('incidencia_asignada_list'))	
+				# 
+				notificacion = Notificacion(remitente=self.request.user, destinatario = self.object.solicitante, tipo = '13', dirigirse=url)
 				notificacion.save()			
-				notificacion.construir_notificacion()
+				notificacion.construir_notificacion(extra=self.object.titulo)
 
-				if administrador.id == self.request.user.id:
+				if self.object.solicitante.id == self.request.user.id:
 					messages.add_message(self.request, messages.INFO, notificacion.mensaje)
 				else:
 					notificacion.notificar()
-			messages.add_message(self.request, messages.SUCCESS, 'Solicitud reaperturada con éxito')
+
+				messages.add_message(self.request, messages.SUCCESS, 'Solicitud reaperturada con éxito')
+
+				# SI TIENE SOLICITUDES PENDIENTES -- POR VERIFICAR
+				solicitudes_recurso = Solicitud_Recurso.objects.filter(Q(estado=True), Q(esperar=True), Q(accion__incidencia=self.object))
+				if solicitudes_recurso:
+					historial_aux = Historial_Incidencia.objects.filter(incidencia=self.object).latest('id')
+					historial_aux.tiempo_restante = self.object.duracion
+					historial_aux.save()
+
+			else:
+				messages.add_message(self.request, messages.ERROR, 'No es posible reabrir, no existe una solicitud de reapertura')
 		else:
 			messages.add_message(self.request, messages.ERROR, 'No es posible reabrir, la incidencia no está cerrada')				
 		ctx = {'respuesta':'cerrar',}	
@@ -786,7 +1004,10 @@ class Solicitud_Reapertura_Create(SuccessMessageMixin, CreateView):
 
 			administradores = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia = self.object.incidencia.centro_asistencia).distinct()
 		 	for administrador in administradores:
-		 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '8')
+
+		 		url = base64.encodestring(reverse_lazy('solicitud_reaperturar_list'))	
+		 		
+		 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '8', dirigirse=url)
 				notificacion.save()			
 				notificacion.construir_notificacion()
 
@@ -841,7 +1062,9 @@ class Solicitud_Extender_TiempoCreate(SuccessMessageMixin, CreateView):
 
 			administradores = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia = self.object.incidencia.centro_asistencia).distinct()
 		 	for administrador in administradores:
-		 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '10')
+		 		
+		 		url = base64.encodestring(reverse_lazy('solicitud_extender_list'))	
+		 		notificacion = Notificacion(remitente=self.request.user, destinatario = administrador, tipo = '10', dirigirse=url)
 				notificacion.save()			
 				notificacion.construir_notificacion()
 

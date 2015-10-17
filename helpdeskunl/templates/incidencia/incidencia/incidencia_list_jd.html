@@ -40,11 +40,94 @@
 	</ul>	
 	<div class="panel panel-default">
 		<div class="panel-heading container-fluid">
-			<div class="col-sm-9 col-md-10" style="padding: 1%;">
+			<div class="col-sm-10" style="padding: 1%;">
 				<h3 class="panel-title">
 					<span class="glyphicon glyphicon-check" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;
-					<b>Panel general de administración de incidencias</b>					
-				</h3>					
+					<b>Panel general de administración de incidencias</b>	
+				</h3>									
+				<br><i><p class="small small">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{title}}</p></i>
+			</div>
+			<div class="text-right col-sm-2" style="padding: 1%;">
+				<small><small><i><button type="button" id="btn_personalizada">Búsqueda Personalizada</button></i></small></small><br>				
+			</div>	
+
+			<div class="panel panel-default col-sm-12"  id='busqueda_personalizada' style="display:none;">
+				<div class="panel-body">
+					<p class="small text-left">&nbsp;&nbsp;&nbsp;BUSCAR INCIDENCIA POR:</p>	
+					<div class="btn-group btn-group-md col-sm-12">
+						<form action="{{url_list}}" method="GET" accept-charset="utf-8" id='form_busqueda_personalizada'>
+							<div class="col-sm-3" id="div_criterio_busqueda" style="display:true;">
+								<div class="input-group-btn">
+									<button id="button_opciones_criterio" class="btn" disabled>Opciones.</button>
+									<button class="btn dropdown-toggle" data-toggle="dropdown">
+										<span class="caret"></span>
+									</button>
+									<ul id="criterio_busqueda_incidencia" class="dropdown-menu" role="menu">
+										<li><a>Todas</a></li>
+										<li><a>Estado</a></li>
+										<li><a>Título</a></li>
+										<li><a>Solicitante</a></li>
+										<li><a>Técnico</a></li>
+										<li><a>Prioridad</a></li>
+										<li><a>Fecha creación</a></li>
+										<li><a>Fecha asignación</a></li>
+										<li><a>Fecha caducidad</a></li>
+									</ul>								
+								</div>
+								<input type="hidden" name="criterio" id="criterio">
+							</div> 
+							<div class="col-sm-3"  id="div_estado_incidencia" style="display:none;">
+								<div class="input-group-btn">
+									<button id="button_opciones_incidencia" class="btn" disabled>Elegir</button>
+									<button class="btn dropdown-toggle" data-toggle="dropdown">
+										<span class="caret"></span>
+									</button>
+									<ul id="ul_estado_incidencia" class="dropdown-menu" role="menu">
+										<li><a>Nueva</a></li>
+										<li><a>Asignada</a></li>
+										<li><a>Atendiendo</a></li>
+										<li><a>Cerrada</a></li>
+										<li><a>Pendiente</a></li>
+										<li><a>Reaperturada</a></li>									
+									</ul>
+								</div>
+								<input type="hidden" name="estado" id="estado">
+							</div>
+							<div id="div_texto_incidencia" class="col-sm-7" style="display:none;">
+								<input type="text" id="valor" class="form-control" name="valor">
+							</div>
+							<div id="div_fechas" class="col-sm-7" style="display:none;">						
+								<input class="datepicker" type="text" placeholder="Desde" name="fecha_desde" id="fecha_desde" >
+								<input class="datepicker" type="text" placeholder="Hasta" name="fecha_hasta" id="fecha_hasta">
+								<br><i><p id="mensaje" class="small small">	</p></i>
+							</div>
+							<div id="div_prioridad" style="display:none;" class="col-sm-2" >
+								<div class="input-group-btn">
+									<button id="button_opciones_prioridad" class="btn" disabled>Elegir</button>
+									<button class="btn dropdown-toggle" data-toggle="dropdown">
+										<span class="caret"></span>
+									</button>
+									<ul id="ul_prioridad_incidencia" class="dropdown-menu" role="menu">
+										<li><a>Normal</a></li>
+										<li><a>Bajo</a></li>
+										<li><a>Alta</a></li>										
+									</ul>
+								</div>
+								<input type="hidden" name="prioridad" id="prioridad">
+							</div>
+
+
+							<div class="col-sm-1">
+								{% url 'incidencia_centro_list' as url_list %}
+								<input id="buscar" type="submit" class="btn btn-default " value="Buscar" disabled>
+							</div>
+
+
+							
+									<!--<input id="tipo_busqueda" type="hidden" value="cerrada" name="cerrada">-->
+						</form>		
+					</div>					
+				</div>				
 			</div>			
 		</div>
 		<br>

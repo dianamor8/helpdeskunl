@@ -2,6 +2,19 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User, Group
 
+# CVB DJANGO
+from django.views.generic import TemplateView,ListView
+
+# MODELS HOME
+from helpdeskunl.apps.home.models import *
+
+
+# METODOS DECORADORES
+from django.contrib.auth.decorators import login_required, permission_required
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import user_passes_test
+
+
 # Create your views here.
 # def index_view(request):
 # 	if request.user.is_authenticated():
@@ -74,3 +87,26 @@ def panel_view(request, dni):
 	# https://www.youtube.com/watch?v=TO3O38L0YsI
 	# http://danyalejandro.com/portafolio/articulos/web-services-php-breve-introduccion
 	# https://docs.djangoproject.com/en/1.8/topics/auth/
+
+
+##############################
+#       NOTIFICACIONES       #
+##############################
+class NotificacionesList(ListView):
+	model = Notificacion
+	template_name = 'home/notificacion/notificacion_list.html'
+	context_object_name = 'notificaciones'
+
+	@method_decorator(login_required)	
+	def dispatch(self, *args, **kwargs):		
+		return super(NotificacionesList, self).dispatch(*args, **kwargs)	
+
+	def get_queryset(self):		
+		queryset = Notificacion.objects.filter(estado=True, destinatario=self.request.user)		
+		return queryset
+
+	def get_context_data(self, **kwargs):
+		ctx = super(NotificacionesList, self).get_context_data(**kwargs)
+		contador = Notificacion.objects.filter(visto=False).count()
+		ctx['contador'] = contador
+		return ctx

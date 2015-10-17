@@ -42,6 +42,21 @@
 	
 	<!--APLICACIONES-->
 	{% block files_js %}{% endblock files_js %}
+
+	
+	<!-- PICKER -->
+	
+	<link rel="stylesheet" href="/media/css/default.css">	
+	<link rel="stylesheet" href="/media/css/default.date.css">	
+	<link rel="stylesheet" href="/media/css/default.time.css">	
+	<script type="text/javascript" src='/media/js/picker.js'></script>
+	<script type="text/javascript" src='/media/js/picker.date.js'></script>
+	<script type="text/javascript" src='/media/js/picker.time.js'></script>
+
+
+	
+	
+
 </head> 
 	<body>		
 		<div class="container">
@@ -71,7 +86,8 @@
 										{% block navbar_dinamico %}{% endblock navbar_dinamico %}
 										{% url 'incidencia_recordatorio_list' as incidencias_list %}
 										<li><a href="{{incidencias_list}}">Recordatorio</a></li>
-										<li role="presentation"><a href="#">Notificaciones <span class="badge">3</span></a></li>					
+										{% url 'notificacion_list' as notificaciones_list %}
+										<li role="presentation"><a href="{{notificaciones_list}}">Notificaciones <span class="badge">3</span></a></li>					
 										<li class="dropdown">
 											<a href="#" class="dropdown-toggle" data-toggle="dropdown">
 												<b>{{user.nombres}}</b>

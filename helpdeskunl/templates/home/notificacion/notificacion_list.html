@@ -1,0 +1,83 @@
+{% extends "home/home_general.html" %}
+{% block realtime %}
+	{% load drealtimetags %}	
+	{%ishout_js%}
+{% endblock realtime %}
+{% block files_js %}	
+	<script type="text/javascript" src="/media/js/helpdeskunl/centro_asistencia.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/usuarios.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/incidencia.js"></script>
+{% endblock files_js %}
+{% load validadores_template %}
+{% block contenido %}
+	<script>
+	{% for message in messages %}
+	$(document).ready(function() {		
+		var stack_bottomright = {"dir1":"bottom", "dir2":"right", "push":"top"};
+	    new PNotify({	      
+			text: '{{ message }}.',		
+			icon: 'glyphicon glyphicon-wrench',
+			type: '{{ message.tags }}'			
+	    });
+	});
+	{% endfor %}
+	</script>
+	<br>
+		
+	<div class="panel panel-default">
+		<div class="panel-heading container-fluid">		
+			<h3 class="panel-title">	
+				<span class="glyphicon glyphicon-file" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;
+				<b>Notificaciones</b><br>				
+			</h3>					
+		</div>
+		<div class="panel-body" id="div_notificaciones">
+			{% if notificaciones %}
+				<table id="tbl-notificaciones" class="table table-bordered table-hover table-condensed" cellspacing="0" width="100%">
+					<thead>
+						<tr>											
+							<th class = 'col-sm-1'>&nbsp;&nbsp;Acción&nbsp;&nbsp;</th>
+							<th class = 'col-sm-2'>Fecha</th>
+							<th class = 'col-sm-9'>Mensaje</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for notificacion in notificaciones %}
+							<tr id='tr_notificacion{{notificacion.id}}' class="small">							
+								<td>
+									<div class="row-fluid">
+										{% if  notificacion.visto %}
+											<!--DESPACHADO-->
+											<p><span class="small glyphicon glyphicon-ok" aria-hidden="true"></span>&nbsp;Visto</p>
+										{% else %}												
+											<a href="{{notificacion.get_enlace}}" data-id="{{notificacion.id}}" title="Despachar" class="btn btn-primary btn-sm col-sm-12 ver">Ver</a>
+										{% endif %}											
+									</div>										
+								</td>
+								<td>{{notificacion.fecha|date:"SHORT_DATE_FORMAT"}} {{notificacion.fecha|time:"H:i"}}</td>
+								<td><small>{{notificacion.mensaje}}</small></td>							
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			{% else %}
+				<i><h5>No hay solicitudes que mostrar</h5></i>
+			{% endif %}			
+		</div>
+	</div>
+
+{% endblock contenido %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -3,9 +3,12 @@ from django.db import models
 from django.conf import settings
 from helpdeskunl.apps.home.current_user import get_current_user
 from django.core.urlresolvers import reverse
+# ENCRIPTAR
+import base64   
 
 from drealtime import iShoutClient
 ishout_client = iShoutClient()
+
 
 class TimeStampedModel(models.Model):
 	creado_en = models.DateTimeField(auto_now_add=True)
@@ -29,6 +32,8 @@ REAPERTURAR_INCIDENCIA='8'
 ACEPTAR_REAPERTURAR_INCIDENCIA='9'
 EXTENDER_TIEMPO_INCIDENCIA='10'
 ACEPTAR_EXTENDER_TIEMPO_INCIDENCIA='11'
+CIERRE_INCIDENCIA='12'
+CIERRE_INCIDENCIA_SOLICITANTE='13'
 NOTIFICACIONES_CHOICES = (
 	(NUEVA_INCIDENCIA, 'Nueva Incidencia.'),
 	(ASIGNAR_INCIDENCIA, 'Asignación de Incidencia'),
@@ -42,6 +47,8 @@ NOTIFICACIONES_CHOICES = (
 	(ACEPTAR_REAPERTURAR_INCIDENCIA, 'Reaperturar Incidencia Aceptada'),
 	(EXTENDER_TIEMPO_INCIDENCIA, 'Extender Tiempo De Incidencia'),
 	(ACEPTAR_EXTENDER_TIEMPO_INCIDENCIA, 'Extender Tiempo De Incidencia Aceptada'),
+	(CIERRE_INCIDENCIA, 'Cierre de Incidencia'),
+	(CIERRE_INCIDENCIA_SOLICITANTE, 'Cierre de Incidencia Solicitante'),	
 )
 
 
@@ -53,6 +60,7 @@ class Notificacion(TimeStampedModel):
 	visto = models.BooleanField(default=False)
 	tipo = models.CharField(choices=NOTIFICACIONES_CHOICES, max_length=10)
 	fecha = models.DateTimeField(auto_now=True)
+	dirigirse = models.CharField(max_length=250)
 	
 	class Meta:
 		verbose_name = "Notificación"
@@ -98,14 +106,25 @@ class Notificacion(TimeStampedModel):
 		if self.tipo == '11': #EXTENDER TIEMPO DE INCIDENCIA ACEPTADA
 			mensaje = "%s ha aceptado extener el tiempo de apertura de incidencia" % (self.remitente) 
 
-		self.mensaje = mensaje
+		if self.tipo == '12': #CIERRE DE INCIDENCIA
+			mensaje = "La atención a la incidencia %s ha terminado" % (extra) 
+
+		if self.tipo == '13': #CIERRE DE INCIDENCIA SOLICITANTE
+			mensaje = "Se ha reaperturado la incidencia %s" % (extra) 
+
+
+		self.mensaje = mensaje.upper()
 		self.save()		
 		
 	def notificar(self):
 		ishout_client.emit(self.destinatario.id, 'notificaciones', data = {'msg': self.mensaje, 'tipo':self.get_tipo_display()})
+
+	def get_enlace(self):
+		return base64.decodestring(self.dirigirse)
 	
 	def __unicode__(self):
 		return self.mensaje
+
 
 USUARIO='0'
 INSTITUCIONAL='1'

@@ -488,6 +488,11 @@ class SolicitudCreate(SuccessMessageMixin, CreateView):
 		# SI EL RECURSO SOLICITADO ES HACIA EL USUARIO QUE GENERA LA INCIDENCIA			
 		if self.object.proveedor.perfil:			
 			if self.object.proveedor.perfil == accion.incidencia.solicitante:				
+				
+				# CORREGIR AGREGAR URL PARA LISTAS DE SOLICITUDES DE RECURSO EN USUARIO FINAL
+				url = base64.encodestring(reverse_lazy('incidencia_centro_list'))
+				# 
+
 				notificacion = Notificacion(remitente=self.request.user, destinatario = self.object.proveedor.perfil , tipo = '5')
 				notificacion.save()			
 				notificacion.construir_notificacion(extra=self.object.accion.incidencia.titulo)
@@ -516,6 +521,7 @@ class SolicitudCreate(SuccessMessageMixin, CreateView):
 		# DEJAR O NO EN ESPERA 
 		if self.object.esperar: # 0 == SI			
 			solicitudes = Solicitud_Recurso.objects.filter(Q(estado=True), Q(esperar=True), ~Q(id=self.object.id))
+			
 			# SI HO HAY SOLICITUDES QUE DEJEN EN ESPERA A LA INCIDENCIA 			
 			if not solicitudes or (accion.incidencia.estado_incidencia != ESTADO_PENDIENTE):				
 				# función de esperar				
@@ -618,7 +624,9 @@ class SolicitudUpdate(SuccessMessageMixin, UpdateView):
 			else:
 				if anterior_contacto.perfil:
 					# ELIMINAR SOLICITUD DE RECURSO
-					notificacion = Notificacion(remitente=self.request.user, destinatario = anterior_contacto.perfil , tipo = '7')
+					url = base64.encodestring(reverse_lazy('solicitudes_list', kwargs={'accion_id': self.object.accion.id ,'incidencia_id': self.object.accion.incidencia.id}))
+
+					notificacion = Notificacion(remitente=self.request.user, destinatario = anterior_contacto.perfil , tipo = '7', dirigir=url)
 					notificacion.save()			
 					notificacion.construir_notificacion(extra=self.object.accion.incidencia.titulo)
 					# SI EL PROVEEDOR SOY YO
@@ -628,8 +636,10 @@ class SolicitudUpdate(SuccessMessageMixin, UpdateView):
 						notificacion.notificar()
 				
 				if self.object.proveedor.perfil:					
-					# NOTIFICAR COMO CREAR
-					notificacion = Notificacion(remitente=self.request.user, destinatario = self.object.proveedor.perfil , tipo = '5')
+					# CORREGIR EL MISMO DE MAS ARRIBA TIPO 5
+					url = base64.encodestring(reverse_lazy('solicitudes_list', kwargs={'accion_id': self.object.accion.id ,'incidencia_id': self.object.accion.incidencia.id}))
+					#
+					notificacion = Notificacion(remitente=self.request.user, destinatario = self.object.proveedor.perfil , tipo = '5', dirigir=url)
 					notificacion.save()			
 					notificacion.construir_notificacion(extra=self.object.accion.incidencia.titulo)
 					
@@ -639,8 +649,11 @@ class SolicitudUpdate(SuccessMessageMixin, UpdateView):
 						notificacion.notificar()
 		else:
 			if self.object.proveedor.perfil:			
-				if self.object.proveedor.perfil == self.object.accion.incidencia.solicitante:				
-					notificacion = Notificacion(remitente=self.request.user, destinatario = self.object.proveedor.perfil , tipo = '6')
+				if self.object.proveedor.perfil == self.object.accion.incidencia.solicitante:	
+					# CORREGIR LO MISMO DEL TIPO 5
+					url = base64.encodestring(reverse_lazy('solicitudes_list', kwargs={'accion_id': self.object.accion.id ,'incidencia_id': self.object.accion.incidencia.id}))			
+					
+					notificacion = Notificacion(remitente=self.request.user, destinatario = self.object.proveedor.perfil , tipo = '6', dirigir=url)
 					notificacion.save()			
 					notificacion.construir_notificacion(extra=self.object.accion.incidencia.titulo)
 					# SI EL PROVEEDOR SOY YO

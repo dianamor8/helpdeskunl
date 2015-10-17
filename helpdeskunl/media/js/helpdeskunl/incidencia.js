@@ -9,6 +9,7 @@ function my_ready () {
 	configuracion_tabla($('#tbl-incidenciasjd'));	
 	configuracion_tabla($('#tbl-solicitudes-extension'));	
 	configuracion_tabla($('#tbl-solicitudes-reapertura'));	
+	configuracion_tabla($('#tbl-notificaciones'));	
 	
 	hacer_visible();
 	cambiar_opcion();	
@@ -31,7 +32,34 @@ function my_ready () {
 	buscar_bien();
 	eliminar_bien();
 
+	ver_notificacion();
+
+	// BUSQUEDA PERSONALIZADA INCIDENCIAS
+	cambiar_criterio_busqueda_incidencia();
+	cambiar_criterio_busqueda_estado();
+	cambiar_criterio_busqueda_prioridad();
+	formato_fecha($('.datepicker'));
+
+	renderizar_panel_busqueda();
+	
+	eliminar_parametros();
+	limpiar_mensaje();
 }
+
+function formato_fecha (datepicker) {
+	$(datepicker).pickadate({		
+		monthsFull: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+		monthsShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+		weekdaysFull: ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'],
+		weekdaysShort: ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'],
+		format: 'yyyy-mm-dd',
+		max: new Date(),
+		today: 'Hoy',
+		clear: 'Borrar',
+		close: 'Cerrar',
+	});	
+}
+
 
 function hacer_visible () {
 	var form_padre = ($('#Input_urgencia').parent('div')).parent('div');
@@ -189,7 +217,7 @@ function prioridad_onchange () {
 ///////////////////
 
 function cambiar_criterio_busqueda () {
-	$(".dropdown-menu").on('click', 'li a', function(){		
+	$(".incidencia").on('click', 'li a', function(){			
 		$("#button_opciones:first-child").text($(this).text());
 		$("#button_opciones:first-child").val($(this).text());
 		var opcion = $('#button_opciones:first-child').text();		
@@ -311,3 +339,196 @@ function eliminar_bien () {
 	}); 	
 }
 
+function ver_notificacion () {
+	$('.ver').click(function(event) {					
+		$.ajax({
+			url: '/notificacion/ver/'+$(this).data('id'),			
+			type: 'GET',			
+		});
+	});
+}
+
+function cambiar_criterio_busqueda_incidencia () {
+	$("#criterio_busqueda_incidencia").on('click', 'li a', function(){			
+		console.log($(this).text())
+		$("#button_opciones_criterio:first-child").text($(this).text());
+		$("#button_opciones_criterio:first-child").val($(this).text());
+		var opcion = $('#button_opciones_criterio:first-child').text();			
+		
+		$('#buscar').removeAttr( "disabled" );
+		$('#criterio').val(opcion);			
+		
+		if (opcion == 'Todas') {
+			$('#div_estado_incidencia').hide();
+			$('#div_texto_incidencia').hide();
+			$('#div_prioridad').hide();
+			$('#div_fechas').hide();
+		};
+		if (opcion == 'Estado') {			
+			// input_attr.attr('placeholder','Código del Sistema Financiero Nacional.');
+			$('#div_estado_incidencia').show();
+			$('#div_texto_incidencia').hide();
+			$('#div_prioridad').hide();
+			$('#div_fechas').hide();
+			$('#buscar').attr('disabled', true);
+		};
+		if (opcion == 'Título' || opcion == 'Solicitante' || opcion == 'Técnico') {						
+			var input = document.getElementById("valor");
+			if (opcion == 'Título') {
+				$("#valor").attr('placeholder','Ingrese el título de la incidencia.');
+			};
+			if (opcion == 'Solicitante') {
+				$("#valor").attr('placeholder','Ingrese el nombre de quien ha solicitado la incidencia.');
+			};
+			if (opcion == 'Técnico') {
+				$("#valor").attr('placeholder','Ingrese el nombre del técnico que atiende la incidencia.');
+			};
+			input.value = '';
+			$('#div_estado_incidencia').hide();
+			$('#div_texto_incidencia').show();
+			$('#div_prioridad').hide();
+			$('#div_fechas').hide();
+		};
+		if (opcion == 'Prioridad') {			
+			$('#div_estado_incidencia').hide();
+			$('#div_texto_incidencia').hide();
+			$('#div_prioridad').show();
+			$('#div_fechas').hide();
+			$('#buscar').attr('disabled', true);
+		};
+		if (opcion == 'Fecha creación' || opcion == 'Fecha asignación' || opcion == 'Fecha caducidad') {			
+			console.log("entra");
+			$('#div_estado_incidencia').hide();
+			$('#div_texto_incidencia').hide();
+			$('#div_prioridad').hide();
+			$('#div_fechas').show();
+			$('#mensaje').text('');
+			$('#fecha_desde').val('');
+			$('#fecha_hasta').val('');
+		};
+
+		if (opcion == 'Opciones.') {
+			$('#buscar').disabled = true;			
+		};
+		
+	});
+}
+
+
+function cambiar_criterio_busqueda_estado () {
+	$("#ul_estado_incidencia").on('click', 'li a', function(){		
+		$("#button_opciones_incidencia:first-child").text($(this).text());
+		$("#button_opciones_incidencia:first-child").val($(this).text());
+		var opcion = $('#button_opciones_incidencia:first-child').text();					
+		$('#buscar').removeAttr( "disabled" );
+		$('#estado').val(opcion); 	 	
+	});
+}
+
+function cambiar_criterio_busqueda_prioridad () {
+	$("#ul_prioridad_incidencia").on('click', 'li a', function(){		
+		$("#button_opciones_prioridad:first-child").text($(this).text());
+		$("#button_opciones_prioridad:first-child").val($(this).text());
+		var opcion = $('#button_opciones_prioridad:first-child').text();					
+		$('#buscar').removeAttr( "disabled" );
+		$('#prioridad').val(opcion); 	 	
+	});
+}
+
+function renderizar_panel_busqueda () {
+	$('#btn_personalizada').click(function(event) {
+		if ($('#busqueda_personalizada').is(":visible")) {
+			$('#busqueda_personalizada').hide();
+		}else{
+			$('#busqueda_personalizada').show();
+		};	
+	});
+}
+
+function eliminar_parametros () {
+
+	$('#form_busqueda_personalizada').submit(function(event) {
+		console.log('entraaa-----');
+		var criterio = $('#criterio').val();
+		console.log(criterio);
+		if (criterio == 'Todas') {
+			$('#estado').remove();
+			$('#valor').remove();
+			$('#fecha_desde').remove();
+			$('#fecha_hasta').remove();
+			$('#prioridad').remove();
+		};
+		if (criterio == 'Estado') {			
+			$('#valor').remove();
+			$('#fecha_desde').remove();
+			$('#fecha_hasta').remove();
+			$('#prioridad').remove();
+		};
+		if (criterio == 'Título' || criterio == 'Solicitante' || criterio == 'Técnico') {		
+			$('#estado').remove();				
+			$('#fecha_desde').remove();
+			$('#fecha_hasta').remove();
+			$('#prioridad').remove();
+		};
+		if (criterio == 'Prioridad') {
+			$('#estado').remove();
+			$('#valor').remove();
+			$('#fecha_desde').remove();
+			$('#fecha_hasta').remove();			
+		};
+		if (criterio == 'Fecha creación' || criterio == 'Fecha asignación' || criterio == 'Fecha caducidad') {
+						
+			var parts_desde =($('#fecha_desde').val()).split('-');
+			var parts_hasta =($('#fecha_hasta').val()).split('-');		
+			var f_desde = new Date(parts_desde[0], parts_desde[1]-1, parts_desde[2]);
+			var f_hasta = new Date(parts_hasta[0], parts_hasta[1]-1, parts_hasta[2]);
+		
+			if (f_desde <= f_hasta) {
+				$('#estado').remove();	
+				$('#valor').remove();						
+				$('#prioridad').remove();
+			}else{
+				$('#mensaje').text('Intervalo de fechas no válido');			
+				return false;
+
+			};
+		};
+	});	
+}
+
+
+function verificar_fecha () {
+
+	$('.datepicker')
+
+}
+
+
+function limpiar_mensaje () {
+		
+	$('.datepicker').change(function(event) {
+		$('#mensaje').text('');
+		var id_datepicker = $(this).attr('id');
+		if (id_datepicker == 'fecha_desde') {
+			if ($('#fecha_hasta').val()) {
+				var parts_desde =($('#fecha_desde').val()).split('-');
+				var parts_hasta =($('#fecha_hasta').val()).split('-');		
+				var f_desde = new Date(parts_desde[0], parts_desde[1]-1, parts_desde[2]);
+				var f_hasta = new Date(parts_hasta[0], parts_hasta[1]-1, parts_hasta[2]);
+				if (f_desde > f_hasta) {				
+					$('#mensaje').text('Intervalo de fechas no válido');					
+				};				
+			};
+		}else{
+			if ($('#fecha_desde').val()) {
+				var parts_desde =($('#fecha_desde').val()).split('-');
+				var parts_hasta =($('#fecha_hasta').val()).split('-');		
+				var f_desde = new Date(parts_desde[0], parts_desde[1]-1, parts_desde[2]);
+				var f_hasta = new Date(parts_hasta[0], parts_hasta[1]-1, parts_hasta[2]);
+				if (f_desde > f_hasta) {				
+					$('#mensaje').text('Intervalo de fechas no válido');					
+				};				
+			};
+		};
+	});
+}
