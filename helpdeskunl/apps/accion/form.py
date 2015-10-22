@@ -2,8 +2,8 @@
 from django import forms
 from django.forms import ModelForm
 from helpdeskunl.apps.incidencia.models import *
-from helpdeskunl.apps.problema.models import *
-from helpdeskunl.apps.cambio.models import *
+# from helpdeskunl.apps.problema.models import *
+# from helpdeskunl.apps.cambio.models import *
 from helpdeskunl.apps.centro_asistencia.models import *
 from helpdeskunl.apps.usuarios.models import *
 from helpdeskunl.apps.accion.models import *

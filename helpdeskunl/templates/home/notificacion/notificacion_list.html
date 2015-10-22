@@ -24,7 +24,7 @@
 	</script>
 	<br>
 		
-	<div class="panel panel-default">
+	<div class="panel panel-success">
 		<div class="panel-heading container-fluid">		
 			<h3 class="panel-title">	
 				<span class="glyphicon glyphicon-file" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;
@@ -44,18 +44,16 @@
 					<tbody>
 						{% for notificacion in notificaciones %}
 							<tr id='tr_notificacion{{notificacion.id}}' class="small">							
-								<td>
-									<div class="row-fluid">
-										{% if  notificacion.visto %}
-											<!--DESPACHADO-->
-											<p><span class="small glyphicon glyphicon-ok" aria-hidden="true"></span>&nbsp;Visto</p>
-										{% else %}												
-											<a href="{{notificacion.get_enlace}}" data-id="{{notificacion.id}}" title="Despachar" class="btn btn-primary btn-sm col-sm-12 ver">Ver</a>
-										{% endif %}											
-									</div>										
+								<td>									
+									{% if notificacion.visto %}
+										<p><span class="small glyphicon glyphicon-ok" aria-hidden="true"></span>&nbsp;Visto</p>
+									{% else %}
+										<button type="button" class="ver btn btn-sm btn-primary col-sm-12" data-id="{{notificacion.id}}" data-enlace= "{{notificacion.get_enlace}}">Ver</button>	
+									{% endif %}
 								</td>
 								<td>{{notificacion.fecha|date:"SHORT_DATE_FORMAT"}} {{notificacion.fecha|time:"H:i"}}</td>
-								<td><small>{{notificacion.mensaje}}</small></td>							
+								<td><small>{{notificacion.mensaje}}</small>									
+								</td>							
 							</tr>
 						{% endfor %}
 					</tbody>

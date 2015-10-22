@@ -1,0 +1,141 @@
+{% extends "home/home_general.html" %}
+{% block realtime %}
+	{% load drealtimetags %}	
+	{%ishout_js%}
+{% endblock realtime %}
+{% block files_js %}	
+	<script type="text/javascript" src="/media/js/helpdeskunl/centro_asistencia.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/usuarios.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/incidencia.js"></script>
+{% endblock files_js %}
+{% load validadores_template %}
+{% block contenido %}
+	<script>
+	{% for message in messages %}
+	$(document).ready(function() {		
+		var stack_bottomright = {"dir1":"bottom", "dir2":"right", "push":"top"};
+	    new PNotify({	      
+			text: '{{ message }}.',		
+			icon: 'glyphicon glyphicon-wrench',
+			type: '{{ message.tags }}'			
+	    });
+	});
+	{% endfor %}
+	</script>
+	<br>
+	<blockquote class="blockquote-reverse" ><b><i>Detalle de Incidencia</i></b><br>
+		{% url 'incidencia_list' as incidencia_list %}
+		<a href="{{incidencia_list}}" class="small small"><i>Mis incidencias</i></a>
+	</blockquote> 	
+
+	<div class="panel panel-success">
+		<div class="panel-heading">
+			<h3 class="panel-title"><b>{{object.titulo}}</b></h3>					
+		</div>
+		<div class="panel-body form-horizontal">
+			<div class="form-group">
+				<div class="col-sm-3 text-right">
+					<small><p><b>Centro de Asistencia: </b></p></small>
+				</div>
+				<div class="col-sm-9">
+					<small><p>{{object.centro_asistencia}}</p></small>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-3 text-right">
+					<small><p><b>Técnicos Asignados: </b></p></small>
+				</div>
+				<div class="col-sm-9">
+					{% for tecnico in object.tecnicos.all %}
+						<small><a href="">{{tecnico.get_full_name}},</a></small>
+					{% endfor %}					
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-3 text-right">
+					<small><p><b>Estado: </b></p></small>
+				</div>
+				<div class="col-sm-9">
+					<small><p>{{object.get_estado_incidencia_display}}</p></small>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-3 text-right">
+					<small><p><b>Diagnostico Inicial: </b></p></small>
+				</div>
+				<div class="col-sm-9">
+					{% if object.diagnostico_inicial_set.all %}
+						{% for diagnostico in object.diagnostico_inicial_set.all %}
+							<small><p>{{diagnostico.diagnostico}}</p></small>
+						{% endfor %}					
+					{% else %}
+						<small><p><i>Aún no se realiza un diagnostico inicial.</i></p> </small>
+					{% endif %}					
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-3 text-right">
+					<small><p><b>Acciones realizadas: </b></p></small>
+				</div>
+				<div class="col-sm-9">
+					{% if  object.accion_set.all %}
+						<table id="tbl-mis-acciones" class="table table-bordered table-hover table-condensed" cellspacing="0" width="100%">
+							<thead>
+								<tr>								
+									<th class = 'col-sm-3'>Fecha</th>
+									<th class = 'col-sm-5'>Titulo</th>
+									<th class = 'col-sm-4'>Realizador por</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for accion in object.accion_set.all %}
+									{% if accion.visible_usuario %}
+										<tr>										
+											<td><small>{{accion.creado_en|date:"SHORT_DATE_FORMAT"}} {{accion.creado_en|time:"H:i"}}</small></td>
+											<td><small>{{accion.titulo}}</small></td>
+											<td><small>{{accion.tecnico.get_full_name}}</small></td>
+										</tr>
+									{% endif %}									
+								{% endfor %}
+							</tbody>
+						</table>					
+					{% else %}
+						<small><p> <i>Aún no se ha registrado acciones.</i> </p></small>
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-3 text-right">
+					<small><p><b>Solicitud de recursos: </b></p></small>
+				</div>
+				<div class="col-sm-9">					
+					{% if  solicitudes %}
+						<table id="tbl-mis-solicitudes" class="table table-bordered table-hover table-condensed" cellspacing="0" width="100%">
+							<thead>
+								<tr>
+									<th class = 'col-sm-1'>Tipo</th>								
+									<th class = 'col-sm-6'>Detalle</th>
+									<th class = 'col-sm-2'>Solicita</th>									
+									<th class = 'col-sm-3'>Proveedor</th>									
+								</tr>
+							</thead>
+							<tbody>
+								{% for recurso in solicitudes %}
+									<tr>
+										<td><small>{{recurso.get_tipo_display}}</small></td>					
+										<td><small>{{recurso.recurso}}</small></td>
+										<td><small>{{recurso.tecnico.get_full_name}}</small></td>			
+										<td><small>{{recurso.proveedor}}</small></td>
+									</tr>
+								{% endfor %}
+							</tbody>
+						</table>					
+					{% else %}
+						<small><p> <i>Aún no se ha registrado solicitudes de recurso.</i> </p></small>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	</div>
+	
+{% endblock contenido %}

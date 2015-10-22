@@ -18,6 +18,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import user_passes_test
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic import TemplateView,ListView
 from django.core.urlresolvers import reverse_lazy
 from django import forms
 from django.contrib import messages
@@ -34,6 +35,8 @@ ishout_client = iShoutClient()
 ##############################
 # MODEL CENTRO DE ASISTENCIA #
 ##############################
+
+
 
 def permiso_requerido(user):
 	agregar = user.has_perm('centro_asistencia.add_centro_asistencia')
@@ -179,6 +182,22 @@ class Centro_AsistenciaDelete(DeleteView):
 		ctx = {'respuesta': 'ok', 'id':id_centro_asistencia,}
 		return HttpResponse(json.dumps(ctx), content_type='application/json')
  	
+
+class Centro_Asistencia_General(ListView):
+	model = Centro_Asistencia
+	template_name = 'centro_asistencia/centros_asistencia_generalist.html'
+	context_object_name = 'centros_asistencia'
+
+	def get_queryset(self):		
+		queryset = Centro_Asistencia.objects.filter(estado=True)		
+		return queryset
+
+	@method_decorator(login_required)	
+	def dispatch(self, *args, **kwargs):
+		return super(Centro_Asistencia_General, self).dispatch(*args, **kwargs)
+
+
+
 		
 ##################
 # MODEL SERVICIO #
@@ -250,7 +269,8 @@ class ServicioDelete(DeleteView):
 	def delete(self, request, *args, **kwargs):	
 		self.object = self.get_object()
 		id_servicio = self.object.id
-		self.object.delete()
+		self.object.estado = False
+		self.object.save()
 		ctx = {'respuesta': 'ok', 'id':id_servicio,}
 		return HttpResponse(json.dumps(ctx), content_type='application/json')
 

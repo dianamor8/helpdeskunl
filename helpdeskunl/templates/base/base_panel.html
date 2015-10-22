@@ -19,7 +19,9 @@
 	<link rel="stylesheet" href="/media/css/efectos.css">
 	<link rel="stylesheet" href="/media/css/multi-select.css">	
 	<link rel="stylesheet" href="/media/css/pnotify.custom.min.css">
-	<link rel="stylesheet" href="/media/css/jquery.countdown.css">	
+	<link rel="stylesheet" href="/media/css/jquery.countdown.css">
+	<link rel="stylesheet" href="/media/css/font-awesome.css">	
+	<link rel="stylesheet" href="/media/css/jquery.bootstrap-touchspin.css">
 	
 	{% block files_css %}{% endblock files_css %}
 	<!--BLOQUE DE REFERENCIA A ARCHIVOS JS-->
@@ -34,6 +36,7 @@
 	<script type="text/javascript" src='/media/js/pnotify.custom.min.js'></script>
 	<script type="text/javascript" src='/media/js/jquery.plugin.js'></script>
 	<script type="text/javascript" src='/media/js/jquery.countdown.js'></script>
+	<script type="text/javascript" src='/media/js/jquery.bootstrap-touchspin.js'></script>
 	
 	<!--FORMULARIOS-->
 	<script type="text/javascript" src="/media/js/jquery.form.js"></script>
@@ -84,10 +87,11 @@
 								<div id="navbar" class="navbar-collapse collapse">
 									<ul class="nav navbar-nav navbar-right">
 										{% block navbar_dinamico %}{% endblock navbar_dinamico %}
-										{% url 'incidencia_recordatorio_list' as incidencias_list %}
-										<li><a href="{{incidencias_list}}">Recordatorio</a></li>
+																	
+										
 										{% url 'notificacion_list' as notificaciones_list %}
-										<li role="presentation"><a href="{{notificaciones_list}}">Notificaciones <span class="badge">3</span></a></li>					
+										<li role="presentation"><a href="{{notificaciones_list}}">Notificaciones <span id="contador" class="badge">{{contador_notificaciones}}</span></a></li>					
+
 										<li class="dropdown">
 											<a href="#" class="dropdown-toggle" data-toggle="dropdown">
 												<b>{{user.nombres}}</b>
@@ -136,10 +140,10 @@
 				icon: 'glyphicon glyphicon-wrench',
 				type: 'info'
 				// stack: stack_bottomright
-			});
+			});			
 		});
 		ishout.init();
 	});
-	</script>
+	</script>	
 </html>
 

@@ -41,6 +41,13 @@ class Asesor_Tecnico_Manager(models.Manager):
 	def get_queryset(self):
 		return super(Asesor_Tecnico_Manager, self).get_queryset().filter(groups__name='ASESOR TECNICO')
 
+class Usuario_Final_Manager(models.Manager):
+	def get_queryset(self):		
+		return super(Usuario_Final_Manager, self).get_queryset().filter(groups__name='USUARIO FINAL')
+
+class Super_Administrador_Manager(models.Manager):
+	def get_queryset(self):		
+		return super(Super_Administrador_Manager, self).get_queryset().filter(groups__name='SUPER ADMINISTRADOR')	
 
 
 # Create your models here.
@@ -62,6 +69,8 @@ class Perfil(AbstractBaseUser, PermissionsMixin):
 	objects = PerfilUserManager()
 	jefes_departamento = Jefe_Departamento_Manager()
 	asesores_tecnicos = Asesor_Tecnico_Manager()
+	usuarios_finales = Usuario_Final_Manager()
+	super_administradores = Super_Administrador_Manager()
 
 	class Meta:
 		verbose_name = "Perfil"

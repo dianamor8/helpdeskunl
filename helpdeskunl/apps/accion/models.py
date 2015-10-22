@@ -4,8 +4,6 @@ from django.conf import settings
 from helpdeskunl.apps.centro_asistencia.models import *
 from helpdeskunl.apps.usuarios.models import *
 from helpdeskunl.apps.incidencia.models import *
-from helpdeskunl.apps.problema.models import *
-from helpdeskunl.apps.cambio.models import *
 from helpdeskunl.apps.home.models import *
 
 from helpdeskunl.apps.home.current_user import get_current_user
@@ -44,9 +42,9 @@ class Accion(TimeStampedModel):
 	descripcion = models.CharField(max_length=250, verbose_name='Descripción')		
 	visible_usuario= models.BooleanField(default=True)	
 	nivel = models.CharField(choices=NIVELES_CHOICES, max_length=2)	
-	problema = models.ForeignKey(Problema, on_delete=models.DO_NOTHING, blank=True, null=True)
+	# problema = models.ForeignKey(Problema, on_delete=models.DO_NOTHING, blank=True, null=True)
 	incidencia = models.ForeignKey(Incidencia, on_delete=models.DO_NOTHING, blank=True, null=True)
-	cambio = models.ForeignKey(Cambio, on_delete=models.DO_NOTHING, blank=True, null=True)
+	# cambio = models.ForeignKey(Cambio, on_delete=models.DO_NOTHING, blank=True, null=True)
 	tecnico = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING)	#TÉCNICO QUE CREA LA ACCION
 
 	class Meta:
@@ -64,7 +62,7 @@ class Solicitud_Recurso(TimeStampedModel):
 	proveedor = models.ForeignKey(Contacto, on_delete=models.DO_NOTHING, blank=True, null=True) # CUANDO LA SOLICITUD VIENE DIRECTO DE ACCION AGREGAR EL PROVEEDOR, SI VIENE DE UN PROBLEMA 
 	recurso = models.CharField(max_length=250, verbose_name='detalle')	
 	accion = models.ForeignKey(Accion, on_delete=models.DO_NOTHING, blank=True, null=True)
-	cambio = models.ForeignKey(Cambio, on_delete=models.DO_NOTHING, blank=True, null=True)
+	# cambio = models.ForeignKey(Cambio, on_delete=models.DO_NOTHING, blank=True, null=True)
 	bien = models.ForeignKey(Bien, blank=True, null=True)	
 	despachado = models.BooleanField(default=False,  choices=BOOL_CHOICES)
 	tecnico = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, blank=True, null=True)	

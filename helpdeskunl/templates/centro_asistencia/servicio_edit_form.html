@@ -3,14 +3,14 @@
 	<form id="servicio_update_form" method='post' class="form form-horizontal" role="form" action='{{url_edit_servicio}}' onsubmit="return validateForm()">
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-			<h4 class="modal-title" id="myModalLabel">Editar Servicio</h4>
+			<h4 class="modal-title" id="myModalLabel"><b>Editar Servicio</b></h4>
 		</div>
 {% else %}
 	{% url 'servicio_add' centro=centro as url_add_servicio %}
-	<form id="servicio_create_form" method='post' class="form form-horizontal" role="form" action='{{url_add_servicio}}' onsubmit="return validateForm()" >
+	<form id="servicio_create_form" method='post' class="form form-horizontal" role="form" action='{{url_add_servicio}}' onsubmit="return validateForm()">
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-			<h4 class="modal-title" id="myModalLabel">Nuevo Servicio</h4>
+			<h4 class="modal-title" id="myModalLabel"><b>Nuevo Servicio</b></h4>
 		</div>
 {% endif %}	
 	<div class="modal-body">		
@@ -24,8 +24,7 @@
 					{% endfor %}					
 				</div>
 			{% endif %}
-			<div id="mensaje{{formulario.name}}">				
-			</div>
+			
 			<div class="form-group">
 				<label class="control-label col-sm-3">{{formulario.label}}</label>
 				<div class="col-sm-8">
@@ -33,7 +32,61 @@
 					<p class="help-block small">{{formulario.help_text}}</p>			
 				</div>						
 			</div>
-		{%endfor%}		
+		{%endfor%}	
+		<div id="mensaje_tiempo_min"></div>
+		<div id="div-tiempos" class="form-group">
+			<label class="control-label col-sm-3">Tiempo mínimo de solución:</label>
+			<div class="row-fluid col-sm-8">
+				<div class="col-sm-3">
+					días:<input id="diasmin" type="text" value="{{object.t_minimo.days}}" class="dias spinner" maxlength="2" data-tipo="minimo">
+				</div>
+				<div class="col-sm-3">
+					horas:<input id="horasmin" type="text" value="{{object.get_min|slice:":1"|first}}" class="horas spinner"  maxlength="2" data-tipo="minimo">
+				</div>
+				<div class="col-sm-3">
+					minutos:<input id="minutosmin" type="text" value="{{object.get_min|slice:"1:2"|first}}" class="minutos spinner"  maxlength="2" data-tipo="minimo">
+				</div>
+				<div class="col-sm-3">
+					segundos:<input id="segundosmin" type="text" value="{{object.get_min|slice:"2:3"|first}}" class="segundos spinner"  maxlength="2" data-tipo="minimo">
+				</div>	
+			</div>						
+		</div>
+		<div id="mensaje_tiempo_nor"></div>
+		<div class="form-group">
+			<label class="control-label col-sm-3">Tiempo normal de solución:</label>
+			<div class="row-fluid col-sm-8">
+				<div class="col-sm-3">
+					días:<input id="diasnor" type="text" value="{{object.t_normal.days}}" class="dias spinner"  maxlength="2" data-tipo="normal">
+				</div>
+				<div class="col-sm-3">
+					horas:<input id="horasnor" type="text" value="{{object.get_nor|slice:":1"|first}}" class="horas spinner" maxlength="2" data-tipo="normal">
+				</div>
+				<div class="col-sm-3">
+					minutos:<input id="minutosnor" type="text" value="{{object.get_nor|slice:"1:2"|first}}" class="minutos spinner" maxlength="2" data-tipo="normal">
+				</div>
+				<div class="col-sm-3">
+					segundos:<input id="segundosnor" type="text" value="{{object.get_nor|slice:"2:3"|first}}" class="segundos spinner"  maxlength="2" data-tipo="normal">
+				</div>	
+			</div>						
+		</div>		
+		<div id="mensaje_tiempo_max"></div>
+		<div class="form-group">
+			<label class="control-label col-sm-3">Tiempo máximo de solución:</label>
+			<div class="row-fluid col-sm-8">
+				<div class="col-sm-3">
+					días:<input id="diasmax" type="text" value="{{object.t_maximo.days}}" class="dias spinner"  maxlength="2" data-tipo="maximo">
+				</div>
+				<div class="col-sm-3">
+					horas:<input id="horasmax" type="text" value="{{object.get_max|slice:":1"|first}}" class="horas spinner"  maxlength="2" data-tipo="maximo">
+				</div>
+				<div class="col-sm-3">
+					minutos:<input id="minutosmax" type="text" value="{{object.get_max|slice:"1:2"|first}}" class="minutos spinner"  maxlength="2" data-tipo="maximo">
+				</div>
+				<div class="col-sm-3">
+					segundos:<input id="segundosmax" type="text" value="{{object.get_max|slice:"2:3"|first}}" class="segundos spinner"  maxlength="2" data-tipo="maximo">
+				</div>	
+			</div>						
+		</div>
 	</div>
 	<div class="modal-footer">
 		<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancelar" />
@@ -42,17 +95,19 @@
 </form>
 <!---->
 <script> 
+	var enviar = false;
+
 	var form_options = { 
 		target: '#modal .modal-content',
-		success: function(data, response){
-			console.log('entra on success' + response);
+		success: function(data, response){				
 			if (data.respuesta) {
 				if(data.respuesta == 'create'){
 					jQuery('#modal').modal('hide');			
 					// SI NO CONTIENE DATOS AGREGADOS AGREGAR LA TABLA
 					if(document.getElementById("tbl_servicios")==null){						
-						var tabla = '<table id="tbl_servicios" class="table table-bordered table-hover"><thead><tr><th class="col-sm-4">Servicio</th><th class="col-sm-7">Descripción</th><th class="col-sm-1">Acción</th></tr></thead>';
-						$('#div_servicios').html(tabla);					
+						// var tabla = '<table id="tbl_servicios" class="table table-bordered table-hover"><thead><tr><th class="col-sm-4">Servicio</th><th class="col-sm-7">Descripción</th><th class="col-sm-1">Acción</th></tr></thead>';
+						// $('#div_servicios').html(tabla);					
+						location.reload();
 					}					
 					//AGREGAR LA NUEVA FILA AL DOM	
 					if(document.getElementById("tr_servicio"+data.id)==null){
@@ -66,17 +121,87 @@
 					fila.innerHTML = data.fila;					
 				}	
 			}
-		},		
+		},
 	}
 	// EJECUTAR LA FUNCIÓN DE AJAX
 	$('#servicio_update_form').ajaxForm(form_options);	
 	$('#servicio_create_form').ajaxForm(form_options);	
 	// LIMPIAR CAMPOS DEL MODAL
 	$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
+
+
+	($('#tmax').parent('div')).parent('div').hide();
+	($('#tnor').parent('div')).parent('div').hide();
+	($('#tmin').parent('div')).parent('div').hide();
+
+	combo_dias('.dias');
+	combo_horas('.horas');
+	combo_minutos('.minutos');
+	combo_segundos('.segundos');	
+
+	function combo_dias (clase) {	
+		$(clase).TouchSpin({
+			min: 00,
+			max: 99,
+			step: 1,			
+			verticalbuttons: true,
+			verticalupclass: 'glyphicon glyphicon-plus',
+			verticaldownclass: 'glyphicon glyphicon-minus',			
+			initval: 0
+		});
+	}
+
+	function combo_horas (clase) {	
+		$(clase).TouchSpin({
+			min: 00,
+			max: 23,
+			step: 1,
+			initval: 00,
+			verticalbuttons: true,
+			verticalupclass: 'glyphicon glyphicon-plus',
+			verticaldownclass: 'glyphicon glyphicon-minus',
+		});
+	}
+
+	function combo_minutos (clase) {	
+		$(clase).TouchSpin({
+			min: 00,
+			max: 59,
+			step: 1,
+			initval: 0,
+			verticalbuttons: true,
+			verticalupclass: 'glyphicon glyphicon-plus',
+			verticaldownclass: 'glyphicon glyphicon-minus',			
+		});
+	}
+
+
+	function combo_segundos (clase) {	
+		$(clase).TouchSpin({
+			min: 00,
+			max: 59,
+			step: 1,
+			initval: 00,
+			verticalbuttons: true,
+			verticalupclass: 'glyphicon glyphicon-plus',
+			verticaldownclass: 'glyphicon glyphicon-minus',			
+		});
+	}
+
+	
+	$('.spinner').change(function(event) {
+		var input = $(this);
+		var campo = input.val();
+		if (parseInt(campo)<=9 && parseInt(campo)!=0) {
+			input.val('0'+campo);
+		};
+	});
+
+
 	
 	var duracion1 = $("#tmin").val();
-	var duracion2 = $("#id_t_normal").val();
-	var duracion3 = $("#id_t_maximo").val();
+	var duracion2 = $("#tnor").val();
+	var duracion3 = $("#tmax").val();
 	
 	function ejecutar_blur (este) {	
 		campo = '';			
@@ -162,17 +287,137 @@
 		campo = $(this).val();
 	});
 
+	
 	function validateForm() {
-		var verificacion1 = ejecutar_blur(document.getElementById("tmin"));
-		var verificacion2 = ejecutar_blur(document.getElementById("id_t_normal"));
-		var verificacion3 = ejecutar_blur(document.getElementById("id_t_maximo"));
+		$('#mensaje_tiempo_min').html('');
+		$('#mensaje_tiempo_nor').html('');
+		$('#mensaje_tiempo_max').html('');
 
-		if (verificacion1 && verificacion2 && verificacion3) {
-			return true;
+		var estadistica = $("select[id=id_estadistica] option:selected");
+		if (estadistica.val()=='') {	
+			retorno = false;		
+			return retorno;
+		};
+		
+		var mensaje = '<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> <small>Formato no permitido</small></div>';
+
+		var tiempo_min='';
+		var tiempo_nor='';
+		var tiempo_max='';
+
+		$('.spinner').each(function(index, el) {
+			if (!($(this).val())) {
+				if ($(this).data('tipo')=='minimo') {
+					$('#mensaje_tiempo_min').html(mensaje);
+					return false;
+				};
+				if ($(this).data('tipo')=='maximo') {
+					$('#mensaje_tiempo_max').html(mensaje);
+					return false;
+				};
+				if ($(this).data('tipo')=='normal') {
+					$('#mensaje_tiempo_nor').html(mensaje);
+					return false;
+				};
+			}else{
+				valor = $(this).val();
+				if (valor == '0' || valor.length == 1) {
+					valor = '0'+valor;
+				};
+
+				if (index<=3) {
+					if (index == 0) {
+						tiempo_min+= valor + ' ';
+					}else{
+						if (index==3) {
+							tiempo_min+=valor
+						}else{
+							tiempo_min+=valor+':'
+						};
+					};
+				}else{
+					if (index<=7) {
+						if (index == 4) {
+							tiempo_nor+= valor + ' ';
+						}else{
+							if (index==7) {
+								tiempo_nor+=valor
+							}else{
+								tiempo_nor+=valor+':'
+							};
+						};
+					}else{
+						if (index == 8) {
+							tiempo_max+= valor + ' ';
+						}else{
+							if (index==11) {
+								tiempo_max+=valor
+							}else{
+								tiempo_max+=valor+':'
+							};
+						};
+					};
+				};
+			};
+		});
+		
+		$("#tmin").val(tiempo_min);
+		$("#tnor").val(tiempo_nor);
+		$("#tmax").val(tiempo_max);
+
+		var verificacion1 = ejecutar_blur(document.getElementById("tmin"));
+		var verificacion2 = ejecutar_blur(document.getElementById("tnor"));
+		var verificacion3 = ejecutar_blur(document.getElementById("tmax"));
+		
+		
+
+		if (verificacion1 && verificacion2 && verificacion3) {						
+			var retorno = true;
+			$.ajax({				
+				url: '/rest/centro_asistencia/verificar_estadistica',
+				type: 'GET',				
+				data: {fecha_min: tiempo_min, fecha_max:tiempo_max, id_estadistica:estadistica.val(),},
+				async: false,
+				success : function(data) {	
+					if (data.minimo) {
+						retorno = false;
+						$('#mensaje_tiempo_min').html('<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> <small>'+data.minimo+'</small></div>');						
+					};
+					if (data.maximo) {
+						retorno = false;
+						$('#mensaje_tiempo_max').html('<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> <small>'+data.maximo+'</small></div>');						
+					};
+				},
+			});
+			$.ajax({
+				url: '/rest/centro_asistencia/verificar_duracion',
+				type: 'GET',				
+				data: {fecha_min: tiempo_min, fecha_nor:tiempo_nor, fecha_max:tiempo_max,},
+				async: false,
+				// beforeSend: function( xhr) {
+				// 	console.log("&&&&&");
+				// 	console.log(xhr.text);
+				// 	console.log(xhr.json);
+				// 	console.log(xhr.readyState);					
+				// 	retorno = false;
+				// },
+				success : function(data, xhr) {					
+					if (data.normal) {
+						retorno = false;
+						$('#mensaje_tiempo_nor').html('<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> <small>'+data.normal+'</small></div>');												
+					};
+					if (data.maximo) {
+						retorno = false;
+						$('#mensaje_tiempo_max').html('<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> <small>'+data.maximo+'</small></div>');						
+					};					
+				},							
+			});		
+			console.log(retorno);
+			return retorno;			
 		}else{	
 			return false;
 		};
-		// if (!ejecutar_blur(document.getElementById("tmin")) && !ejecutar_blur(document.getElementById("id_t_normal")) && !ejecutar_blur(document.getElementById("id_t_maximo")) ) {
+		// if (!ejecutar_blur(document.getElementById("tmin")) && !ejecutar_blur(document.getElementById("tnor")) && !ejecutar_blur(document.getElementById("tmax")) ) {
 		// 	return false;
 		// };		
 	}

@@ -1,0 +1,86 @@
+{% extends "home/home_general.html" %}
+{% block realtime %}
+	{% load drealtimetags %}	
+	{%ishout_js%}
+{% endblock realtime %}
+{% block files_js %}	
+	<script type="text/javascript" src="/media/js/helpdeskunl/centro_asistencia.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/usuarios.js"></script>
+	<script type="text/javascript" src="/media/js/helpdeskunl/incidencia.js"></script>
+{% endblock files_js %}
+{% load validadores_template %}
+{% block contenido %}
+	<script>
+	{% for message in messages %}
+	$(document).ready(function() {		
+		var stack_bottomright = {"dir1":"bottom", "dir2":"right", "push":"top"};
+	    new PNotify({	      
+			text: '{{ message }}.',		
+			icon: 'glyphicon glyphicon-wrench',
+			type: '{{ message.tags }}'			
+	    });
+	});
+	{% endfor %}
+	</script>
+	<br>
+	<blockquote class="blockquote-reverse" ><b><i>Centros de Asistencia</i></b><br>
+	{% url 'incidencia_asignada_list' as incidencia_list %}
+	<a href="/" class="small small"><i>Inicio</i></a>
+	</blockquote> 
+	{% if centros_asistencia %}		
+		{% for centro in centros_asistencia %}
+			<div class="panel panel-success">
+				<div class="panel-heading">
+					<h3 class="panel-title"><b>{{centro.nombre}}</b></h3>					
+				</div>
+				<div class="panel-body form-horizontal">
+					<div class="form-group">
+						<div class="col-sm-3 text-right">
+							<small><p><b>ACTIVIDAD: </b></p></small>
+						</div>
+						<div class="col-sm-9">
+							<small><p>{{centro.descripcion}}</p></small>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-sm-3 text-right">
+							<small><p><b>SERVICIOS DISPONIBLES: </b></p></small>
+						</div>
+						<div class="col-sm-9">
+							{% for servicio in centro.servicio_set.all %}
+								<li><small><b>{{servicio.nombre}}: </b>{{servicio.descripcion}}</small><br></li>
+							{% endfor %}							
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-sm-3 text-right">
+							<small><p><b>ADMINISTRADORES: </b></p></small>
+						</div>
+						<div class="col-sm-9">
+							{% for  administrador  in  centro.get_administradores %}
+								<small><a href="#">{{administrador.get_full_name}},</a></small>
+							{% endfor %}
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-sm-3 text-right">
+							<small><p><b>ASESORES TÉCNICOS: </b></p></small>
+						</div>
+						<div class="col-sm-9">
+							{% for  asesor  in  centro.get_asesores %}
+								<small><a href="#">{{asesor.get_full_name}},</a></small>
+							{% endfor %}
+						</div>
+					</div>
+				</div>				
+				<!--<div class="panel-footer">Panel footer</div>-->
+			</div>
+		{% endfor %}		
+	{% else %}
+
+	{% endif %}
+
+
+
+{% endblock contenido %}
+

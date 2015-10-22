@@ -10,8 +10,8 @@ from helpdeskunl.apps.accion.models import *
 from helpdeskunl.apps.home.models import *
 from helpdeskunl.apps.accion.reports import convertHtmlToPdf
 from helpdeskunl.apps.incidencia.models import *
-from helpdeskunl.apps.problema.models import *
-from helpdeskunl.apps.cambio.models import *
+# from helpdeskunl.apps.problema.models import *
+# from helpdeskunl.apps.cambio.models import *
 from django.conf import settings
 
 from django.views.generic import TemplateView,ListView
@@ -236,7 +236,7 @@ class AccionList(ListView):
 
 	def get_queryset(self):
 		incidencia = self.kwargs['incidencia_id']	
-		queryset = Accion.objects.filter(Q(estado=True), (Q(incidencia__id=incidencia)|Q(problema__incidencia__id=incidencia)|Q(cambio__problema__incidencia__id=incidencia)))		
+		queryset = Accion.objects.filter(Q(estado=True), (Q(incidencia__id=incidencia)))		
 		return queryset
 
 
@@ -505,14 +505,14 @@ class SolicitudCreate(SuccessMessageMixin, CreateView):
 		# ENVIAR CORREO ELECTRÓNICO INFORMANDO LA SOLICITUD
 		if self.object.notificar_email:
 			centro_asistencia = self.object.accion.incidencia.centro_asistencia
-			mensaje = "Se ha solicitado un recurso desde el %s, que se detalla en el siguiente archivo adjunto." %(centro_asistencia.nombre) 
-			if self.proveedor.perfil:
-				correo_para = self.proveedor.perfil.email
+			mensaje = u"Se ha solicitado adquirir el recurso %s desde el %s, con prioridad de atención %s. Mantengase pendiente a la recepción documento físico para despachar." %(self.object.recurso, centro_asistencia.nombre, self.object.accion.incidencia.get_prioridad_asignada_display()) 
+			if self.object.proveedor.perfil:
+				correo_para = self.object.proveedor.perfil.email
 			else:
 				correo_para = self.object.proveedor.correo
 			email = EmailMessage('SOLICITUD DE RECURSO', mensaje , settings.EMAIL_HOST_USER ,[correo_para]) 		
-			email.attach_file(convertHtmlToPdf(self.object.id))
-			email.send(fail_silently=False)
+			# email.attach_file(convertHtmlToPdf(self.object.id)) #SE REMUEVE EL ARCHIVO ADJUNTO			
+			print email.send(fail_silently=False)
 
 		else:
 			# NO SEN ENVIA EL EMAIL PERO SE CREA EL REPORTE

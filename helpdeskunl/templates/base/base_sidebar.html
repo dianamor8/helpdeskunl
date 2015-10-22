@@ -1,36 +1,57 @@
 <ul class="nav nav-sidebar">
-	<li>
-		{% url 'view_lista_centro_asistencia' as url_centro_asistencia %}
-		<a href="{{url_centro_asistencia}}">
-			<span class="glyphicon glyphicon-blackboard" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Centro de Asistencia
-		</a>
-	</li>
-
+	{% if es_jefe or es_superadmin %}
+		<li>		
+			{% url 'view_lista_centro_asistencia' as url_centro_asistencia %}
+			<a href="{{url_centro_asistencia}}">
+				<span class="glyphicon glyphicon-blackboard" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Panel de Centro de Asistencia
+			</a>
+		</li>
+	{% endif %}
 	<li>
 		{% url 'incidencia_list' as url_incidencias %}
 		<a href="{{url_incidencias}}">
 			<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Mis Indicencias
 		</a>
 	</li>
+	{% if es_asesor %}
+		<li>
+			{% url 'incidencia_asignada_list' as url_incidencias_asignadas %}
+			<a href="{{url_incidencias_asignadas}}">
+				<span class="glyphicon glyphicon-hand-right" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Indicencias Asignadas
+			</a>
+		</li>	
+		<li>
+			{% url 'incidencia_recordatorio_list' as incidencias_list %}
+			<a href="{{incidencias_list}}">
+				<span class="glyphicon glyphicon-time" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;
+				Recordatorio</a>
+		</li>										
+	{% endif %}
+
+	{% if es_jefe %}
+		<li>
+			{% url 'incidencia_centro_list' as url_incidencias_centro %}
+			<a href="{{url_incidencias_centro}}">
+				<span class="glyphicon glyphicon-random" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Administrador de Indicencias
+			</a>
+		</li>
+		<li>
+			{% url 'solicitud_reaperturar_list' as url_solicitudes_extender %}		
+			<a href="{{url_solicitudes_extender}}">
+				<span class="glyphicon glyphicon-file" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Solicitudes
+			</a>
+		</li>
+	{% endif %}
 	<li>
-		{% url 'incidencia_asignada_list' as url_incidencias_asignadas %}
-		<a href="{{url_incidencias_asignadas}}">
-			<span class="glyphicon glyphicon-hand-right" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Indicencias Asignadas
+		{% url 'centro_asistencia_list' as url_centros %}		
+		<a href="{{url_centros}}">
+			<span class="glyphicon glyphicon-paperclip" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Centros de Asistencia
 		</a>
 	</li>
-
-	<li>
-		{% url 'incidencia_centro_list' as url_incidencias_centro %}
-		<a href="{{url_incidencias_centro}}">
-			<span class="glyphicon glyphicon-random" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Administrador de Indicencias
-		</a>
-	</li>
+	
+<br>
+	
 
 
-	<li>
-		{% url 'solicitud_reaperturar_list' as url_solicitudes_extender %}		
-		<a href="{{url_solicitudes_extender}}">
-			<span class="glyphicon glyphicon-file" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Solicitudes
-		</a>
-	</li>
+	
 </ul>

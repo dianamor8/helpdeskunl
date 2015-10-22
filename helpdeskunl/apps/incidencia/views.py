@@ -489,6 +489,27 @@ class Incidencia_DetailView(DetailView):
 
 
 
+class Mi_Incidencia_DetailView(DetailView):
+	model = Incidencia
+	template_name = 'incidencia/incidencia/mi_incidencia_detail.html'
+
+	@method_decorator(login_required)	
+	def dispatch(self, *args, **kwargs):
+		self.incidencia_id = kwargs['pk']
+		if permiso_incidencia_detail(self):
+			return super(Mi_Incidencia_DetailView, self).dispatch(*args, **kwargs)
+		else:
+			raise PermissionDenied
+
+	def get_context_data(self, **kwargs):    
+		context = super(Mi_Incidencia_DetailView, self).get_context_data(**kwargs)
+		queryset = Solicitud_Recurso.objects.filter(Q(estado=True), Q(accion__incidencia=self.object))
+		context['solicitudes'] = queryset			
+		return context
+
+	
+
+
 
 class AsignarIncidencia(UpdateView):
 	model = Incidencia	
@@ -509,7 +530,14 @@ class AsignarIncidencia(UpdateView):
 		return kwargs
 
 	def form_valid(self, form):
+
 		incidencia = self.object
+
+		if incidencia.apertura_maxima:
+			messages.add_message(self.request, messages.ERROR, "La incidencia ya ha sido asignada")
+			ctx = {'respuesta':'ok', 'id':incidencia.id,}
+	 		return HttpResponse(json.dumps(ctx),content_type="application/json")
+
 		tecnicos = form.cleaned_data['tecnicos']
 
 		asignaciones = incidencia.asignacion_incidencia_set.all()
@@ -852,19 +880,20 @@ class Cierre_Incidencia_Create(SuccessMessageMixin, CreateView):
 							else:
 								self.object.cerrado_tecnico = False
 			
-							apertura = Apertura_Incidencia.objects.filter(incidencia=incidencia).latest('id')
+							try:
+								apertura = Apertura_Incidencia.objects.filter(incidencia=incidencia).latest('id')
+							except Apertura_Incidencia.DoesNotExist:
+								apertura = None
+							
 							self.object.apertura_incidencia = apertura
 							self.object.save()		
 							messages.add_message(self.request, messages.SUCCESS, 'Incidencia cerrada con éxito')				
-
-							# CORREGIR
-							url = base64.encodestring(reverse_lazy('incidencia_centro_list'))	
-							# 
-
-							notificacion = Notificacion(remitente=self.request.user, destinatario = self.object.incidencia.solicitante, tipo = '12', dirigirse=url)
+							
+							url = base64.encodestring(reverse_lazy('mi_incidencia_detail', kwargs={'pk': self.object.incidencia.id}))							
+							notificacion = Notificacion(remitente=self.request.user, destinatario = self.object.incidencia.solicitante, tipo = '12', dirigirse=url)							
 							notificacion.save()			
 							notificacion.construir_notificacion(extra=self.object.incidencia.titulo)
-
+							
 							if self.object.incidencia.solicitante.id == self.request.user.id:
 								messages.add_message(self.request, messages.INFO, notificacion.mensaje)
 							else:
@@ -968,9 +997,9 @@ class Reabrir_Incidencia_Create(SuccessMessageMixin, UpdateView):
 					historial_aux.save()
 
 			else:
-				messages.add_message(self.request, messages.ERROR, 'No es posible reabrir, no existe una solicitud de reapertura')
+				messages.add_message(self.request, messages.ERROR, 'No es posible reaperturar, no existe una solicitud de reapertura')
 		else:
-			messages.add_message(self.request, messages.ERROR, 'No es posible reabrir, la incidencia no está cerrada')				
+			messages.add_message(self.request, messages.ERROR, 'No es posible reaperturar, la incidencia no está cerrada')				
 		ctx = {'respuesta':'cerrar',}	
 	 	return HttpResponse(json.dumps(ctx),content_type="application/json")
 		

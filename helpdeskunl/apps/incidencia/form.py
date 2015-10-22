@@ -167,7 +167,8 @@ class AsignacionForm(forms.ModelForm):
 		widgets = {		
 			'prioridad_asignada': forms.Select(attrs={'class':'form-control required'}),	
 			'servicio': forms.Select(attrs={'class':'form-control required'}),			
-			'apertura_maxima': forms.TextInput(attrs={'class':'form-control', 'id':'apertura_maxima',}),
+			# 'apertura_maxima': forms.TextInput(attrs={'class':'form-control', 'id':'apertura_maxima',}),
+			'apertura_maxima': forms.HiddenInput(attrs={'class':'form-control', 'id':'apertura_maxima',}),
 		}	
 		labels = {
 			'tecnicos': ('Técnicos:'),

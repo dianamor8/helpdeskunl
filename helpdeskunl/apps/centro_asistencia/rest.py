@@ -7,6 +7,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from helpdeskunl.apps.centro_asistencia.forms import *
 from helpdeskunl.apps.centro_asistencia.models import *
 from helpdeskunl.apps.usuarios.models import *
+from helpdeskunl.apps.home.models import *
 
 @login_required
 @permission_required('centro_asistencia.add_centro_asistencia',raise_exception=True)
@@ -107,5 +108,73 @@ def eliminar_usuario(request):
 			print e
 			ctx={'respuesta':'ERROR. ', 'mensaje':'Hubo un error al eliminar.'}
 			return HttpResponse(json.dumps(ctx), content_type='application/json')
+	else:
+		raise Http404
+
+
+
+@login_required
+def verificar_duracion(request):	
+	if request.is_ajax():				
+		fecha_min = request.GET.get('fecha_min')
+		fecha_nor = request.GET.get('fecha_nor')
+		fecha_max = request.GET.get('fecha_max')
+		
+		minimo = parse_duration(str(fecha_min))
+		maximo = parse_duration(str(fecha_max))
+		normal = parse_duration(str(fecha_nor))
+
+		msg_normal=""
+		msg_maximo= ""
+
+		if  normal < minimo:
+			msg_normal = "El tiempo normal debe ser mayor o igual que el tiempo mínimo."			
+
+		if  maximo < normal:
+			msg_maximo = "El tiempo máximo debe ser mayor o igual que el tiempo normal."
+
+		ctx = {'normal':msg_normal,'maximo':msg_maximo,}	
+	 	return HttpResponse(json.dumps(ctx),content_type="application/json")
+	else:
+		raise Http404
+
+
+
+@login_required
+def verificar_estadistica(request):
+	if request.is_ajax():		
+		
+		estadistica = Estadistica_Sla.objects.get(pk=int(request.GET.get('id_estadistica')))
+		fecha_min = request.GET.get('fecha_min')
+		fecha_max = request.GET.get('fecha_max')		
+		
+		minimo = parse_duration(str(fecha_min))
+		maximo = parse_duration(str(fecha_max))
+
+		minimo_estadistica = parse_duration(str(estadistica.minima_duracion))
+		maximo_estadistica = parse_duration(str(estadistica.maxima_duracion))
+		
+		msg_minimo=""
+		msg_maximo=""
+
+		if minimo_estadistica > minimo:
+			msg_minimo = "La estadística mínima para este servicio es %s." %(estadistica.minima_duracion)			
+
+		if  maximo > maximo_estadistica :
+			msg_maximo = "La estadística máxima para este servicio es %s." %(estadistica.maxima_duracion)
+			
+		ctx = {'minimo':msg_minimo,'maximo':msg_maximo,}	
+	 	return HttpResponse(json.dumps(ctx),content_type="application/json")
+	else:
+		raise Http404
+
+
+
+@login_required
+def get_notificaciones(request):
+	if request.is_ajax():				
+		contador_notificaciones = Notificacion.objects.filter(estado=True, destinatario__id=request.user.id, visto=False).count()
+		ctx = {'contador_notificaciones':contador_notificaciones,}	
+	 	return HttpResponse(json.dumps(ctx),content_type="application/json")
 	else:
 		raise Http404

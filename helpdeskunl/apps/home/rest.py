@@ -14,8 +14,11 @@ from django.shortcuts import get_object_or_404
 from django.utils import formats
 
 @login_required
-def notificacion_visto(request, pk):	
+def notificacion_visto(request, pk):
 	notificacion = Notificacion.objects.get(id=int(pk))
 	notificacion.visto = True
 	notificacion.save()
-	return HttpResponse(json, content_type='application/json')
+
+	contador = Notificacion.objects.filter(estado=True, destinatario=request.user, visto=False).count()
+	ctx = {'contador': contador,}
+	return HttpResponse(json.dumps(ctx), content_type='application/json')

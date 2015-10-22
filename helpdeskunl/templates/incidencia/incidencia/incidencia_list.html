@@ -36,7 +36,7 @@
 		{% endif %}
   		
 	</ul>	
-	<div class="panel panel-default">
+	<div class="panel panel-success">
 		<div class="panel-heading container-fluid">
 			<div class="col-sm-9 col-md-10" style="padding: 1%;">
 				<h3 class="panel-title">	
@@ -72,20 +72,24 @@
 								<td>{{incidencia.centro_asistencia}}</td>
 								<td>{{incidencia.titulo}}</td>
 								<td>
-									<div class="row-fluid">
-										<div class="col-sm-5">
+									<div class="text-center">
+										{% if incidencia.estado_incidencia != '0' %}
+											{% url 'mi_incidencia_detail' pk=incidencia.id as url_edit_incidencia %}
+											<a href="{{url_edit_incidencia}}" title="Inspeccionar" class="btn btn-default "><small><span class="glyphicon glyphicon-zoom-in">&nbsp;Inspeccionar</small></a>
+										{% else %}
+
 											{% if perms.incidencia.change_incidencia %}
 												{% url 'incidencia_update' pk=incidencia.id as url_edit_incidencia %}
-												<a href="{{url_edit_incidencia}}" title="Editar Incidencia" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></a>
+												<a href="{{url_edit_incidencia}}" title="Editar Incidencia" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></a>&nbsp;&nbsp;
 											{% endif %}
-										</div>
-										<div class="col-sm-5">
+										
 											{% if perms.incidencia.delete_incidencia %}
 												{% url 'incidencia_delete' pk=incidencia.id as url_delete_incidencia %}
 												<a data-toggle="modal" href="{{url_delete_incidencia}}" data-target="#delele_modal_i" title="Eliminar" data-tooltip class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span>
-												</a>
-											{% endif %}										
-										</div>
+												</a>&nbsp;&nbsp;
+											{% endif %}
+										{% endif %}										
+									</div>
 								</td>							
 							</tr>
 						{% endfor %}
@@ -96,7 +100,6 @@
 			{% endif %}			
 		</div>
 	</div>
-
 <!--MODAL PARA ELIMINAR INCIDENCIA-->
 <div id="delele_modal_i" class="modal fade" role="dialog" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">		
 	<div class="modal-dialog">
@@ -104,6 +107,7 @@
 		</div>
 	</div>
 </div>
+
 {% endblock contenido %}
 
 

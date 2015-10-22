@@ -1,5 +1,5 @@
 {% url 'asignarincidencia_update' pk=object.id as url_asignarincidencia %}
-<form id="asignarincidencia_form" method='post' class="form form-horizontal" role="form" action="{{url_asignarincidencia}}">		
+<form id="asignarincidencia_form" method='post' class="form form-horizontal" role="form" action="{{url_asignarincidencia}}" onsubmit="return validateForm()">		
 	<div class="modal-header">
 		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 		<h4 class="modal-title" id="myModalLabel">
@@ -24,7 +24,25 @@
 					<p class="help-block small">{{formulario.help_text}}</p>			
 				</div>						
 			</div>
-		{%endfor%}		
+		{%endfor%}	
+		<div id="mensaje_apertura_maxima"></div>
+		<div class="form-group">
+			<label class="control-label col-sm-3">Aperturar máximo en:</label>
+			<div class="row-fluid col-sm-8">
+				<div class="col-sm-3">
+					días:<input id="diasmax" type="text" value="00" class="dias spinner"  maxlength="2" data-tipo="maximo">
+				</div>
+				<div class="col-sm-3">
+					horas:<input id="horasmax" type="text" value="00" class="horas spinner"  maxlength="2" data-tipo="maximo">
+				</div>
+				<div class="col-sm-3">
+					minutos:<input id="minutosmax" type="text" value="00" class="minutos spinner"  maxlength="2" data-tipo="maximo">
+				</div>
+				<div class="col-sm-3">
+					segundos:<input id="segundosmax" type="text" value="00" class="segundos spinner"  maxlength="2" data-tipo="maximo">
+				</div>	
+			</div>						
+		</div>	
 	</div>
 	<div class="modal-footer">
 		<input type="button" class="btn btn-default" data-dismiss="modal" value="Cancelar" />
@@ -33,16 +51,147 @@
 </form>
 <!---->
 <script>
+	($('#apertura_maxima').parent('div')).parent('div').hide();
 	var form_options = {target: '#modal_asignarincidencia .modal-content',
 						success: function(data){
 							if(data.respuesta == 'ok'){
 								jQuery('#modal_asignarincidencia').modal('hide');							
 								location.reload();
-							}
+							}							
 						},
 					}	
 	$('#asignarincidencia_form').ajaxForm(form_options);
 	$('#id_tecnicos').multiSelect();
 	// LIMPIAR CAMPOS DEL MODAL
 	$('body').on('hidden.bs.modal', '.modal', function () {$(this).removeData('bs.modal');});
+
+	
+
+	combo_dias('.dias');
+	combo_horas('.horas');
+	combo_minutos('.minutos');
+	combo_segundos('.segundos');	
+
+	function combo_dias (clase) {	
+		$(clase).TouchSpin({
+			min: 00,
+			max: 99,
+			step: 1,			
+			verticalbuttons: true,
+			verticalupclass: 'glyphicon glyphicon-plus',
+			verticaldownclass: 'glyphicon glyphicon-minus',			
+			initval: 0
+		});
+	}
+
+	function combo_horas (clase) {	
+		$(clase).TouchSpin({
+			min: 00,
+			max: 23,
+			step: 1,
+			initval: 00,
+			verticalbuttons: true,
+			verticalupclass: 'glyphicon glyphicon-plus',
+			verticaldownclass: 'glyphicon glyphicon-minus',
+		});
+	}
+
+	function combo_minutos (clase) {	
+		$(clase).TouchSpin({
+			min: 00,
+			max: 59,
+			step: 1,
+			initval: 0,
+			verticalbuttons: true,
+			verticalupclass: 'glyphicon glyphicon-plus',
+			verticaldownclass: 'glyphicon glyphicon-minus',			
+		});
+	}
+
+
+	function combo_segundos (clase) {	
+		$(clase).TouchSpin({
+			min: 00,
+			max: 59,
+			step: 1,
+			initval: 00,
+			verticalbuttons: true,
+			verticalupclass: 'glyphicon glyphicon-plus',
+			verticaldownclass: 'glyphicon glyphicon-minus',			
+		});
+	}
+
+	$('.spinner').change(function(event) {
+		var input = $(this);
+		var campo = input.val();
+		if (parseInt(campo)<=9 && parseInt(campo)!=0){
+			input.val('0'+campo);
+		};
+	});
+
+	function validateForm() {
+		$('#mensaje_apertura_maxima').html('');		
+		
+		var mensaje = '<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> <small>Formato no permitido</small></div>';
+
+		var tiempo_max='';
+
+		$('.spinner').each(function(index, el) {
+			if (!($(this).val())) {
+				if ($(this).data('tipo')=='maximo') {
+					$('#mensaje_apertura_maxima').html(mensaje);
+					return false;
+				};				
+			}else{
+				valor = $(this).val();
+				if (valor == '0' || valor.length == 1) {
+					valor = '0'+valor;
+				};
+
+				if (index == 0) {
+					tiempo_max+= valor + ' ';
+				}else{
+					if (index==3) {
+						tiempo_max+=valor
+					}else{
+						tiempo_max+=valor+':'
+					};
+				};
+				
+			};
+		});
+				
+		$("#apertura_maxima").val(tiempo_max);
+
+		var verificacion3 = ejecutar_blur(document.getElementById("apertura_maxima"));		
+
+		if (verificacion3) {									
+			return true;			
+		}else{	
+			return false;
+		};		
+	}
+
+	var duracion3 = $("#apertura_maxima").val();
+	function ejecutar_blur (este) {	
+		campo = '';			
+		var value = $(este).val();
+		var name = $(este).attr("name");
+		if (isValidTime(value)){
+			if(name == 'apertura_maxima'){
+				duracion3 = value;
+			};
+			$('#mensaje'+name).html('');
+			return true;	
+		}else{
+			var mensaje = '<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> <small>Formato no permitido</small></div>';
+			$('#mensaje'+name).html(mensaje);			
+			return false;
+		};	
+	}
+	function isValidTime(text) {
+		var regexp = new RegExp(/^([0-9]+ )?([0-9][0-9]+):([0-5][0-9]):([0-5][0-9])$/)
+		return regexp.test(text);
+	}
+
 </script>

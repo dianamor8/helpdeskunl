@@ -107,14 +107,18 @@ class Notificacion(TimeStampedModel):
 			mensaje = "%s ha aceptado extener el tiempo de apertura de incidencia" % (self.remitente) 
 
 		if self.tipo == '12': #CIERRE DE INCIDENCIA
-			mensaje = "La atención a la incidencia %s ha terminado" % (extra) 
+			mensaje = u"La atención a la incidencia %s ha terminado" % (extra) 
 
 		if self.tipo == '13': #CIERRE DE INCIDENCIA SOLICITANTE
 			mensaje = "Se ha reaperturado la incidencia %s" % (extra) 
 
-
+		print "############"
+		print mensaje
+		
 		self.mensaje = mensaje.upper()
 		self.save()		
+		print self.mensaje
+		print "############"
 		
 	def notificar(self):
 		ishout_client.emit(self.destinatario.id, 'notificaciones', data = {'msg': self.mensaje, 'tipo':self.get_tipo_display()})

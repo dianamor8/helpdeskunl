@@ -42,13 +42,10 @@ INSTALLED_APPS = (
     'helpdeskunl.apps.tiposoporte',
     'helpdeskunl.apps.incidencia',
     'helpdeskunl.apps.home',
-    'helpdeskunl.apps.centro_asistencia',
-    'helpdeskunl.apps.base_conocimiento',
+    'helpdeskunl.apps.centro_asistencia',    
     'helpdeskunl.apps.usuarios',
-    'helpdeskunl.apps.accion',
-    'helpdeskunl.apps.problema',
-    'helpdeskunl.apps.cambio',
-    'drealtime',
+    'helpdeskunl.apps.accion',    
+    'drealtime',    
 )
 
 MIDDLEWARE_CLASSES = (
@@ -65,17 +62,15 @@ MIDDLEWARE_CLASSES = (
     #'django.middleware.cache.FetchFromCacheMiddleware',
 )
 
-# TEMPLATE_CONTEXT_PROCESSORS = (
-#     # 'django.core.context_processors.request',
-#     # 'django.contrib.auth.context_processors.auth',
-# )
-#     "django.contrib.auth.context_processors.auth",
-#     "django.core.context_processors.debug",
-#     "django.core.context_processors.i18n",
-#     "django.core.context_processors.media",
-#     "django.core.context_processors.static",
-#     "django.core.context_processors.tz",
-#     "django.contrib.messages.context_processors.messages")
+TEMPLATE_CONTEXT_PROCESSORS = (
+    "django.contrib.auth.context_processors.auth",
+    "django.template.context_processors.i18n",
+    "django.template.context_processors.media",
+    "django.template.context_processors.static",
+    "django.template.context_processors.tz",
+    "django.contrib.messages.context_processors.messages",
+    "helpdeskunl.apps.context_processors.tipo_usuario",
+)
 
 
 ROOT_URLCONF = 'helpdeskunl.urls'
@@ -148,6 +143,7 @@ EMAIL_USE_TLS = True
 #    #     },
 #   },
 #}
+
 
 
 

@@ -115,7 +115,7 @@
 				{% endif %}
 			</div>	
 		</div>	
-		<div id="div_servicios"  class="panel-body">
+		<div id="div_servicios"  class="panel-body">			
 			{% if object.servicio_set.all %}
 				<table id="tbl_servicios" class='table table-bordered table-hover'>
 					<thead>
@@ -127,24 +127,26 @@
 							<th class="col-sm-1 text-center">Acción</th>	
 						</tr>
 					</thead>
-					{% for servicio in object.servicio_set.all %}					
-						<tbody>
-							<tr id="tr_servicio{{servicio.id}}">						
-								<td>
-									{% url 'servicio_update' pk=servicio.id as url_edit_servicio %}
-									<a data-toggle="modal" href="{{url_edit_servicio}}" data-target="#modal" title="Editar Servicio" data-tooltip>
-									{{servicio.nombre}}</a></td>
-								<td>{{servicio.t_minimo|timedeltaformat}}</td>
-								<td>{{servicio.t_normal|timedeltaformat}}</td>
-								<td>{{servicio.t_maximo|timedeltaformat}}</td>
-								<td>
-									{% url 'servicio_delete' pk=servicio.id as url_delete_servicio %}
-									<a href="{{url_delete_servicio}}" role="button" class="btn btn-danger delete" data-toggle="modal" data-target="#delele_modal" title="Eliminar Servicio" data-nombre="{{servicio.nombre}}" data-id='{{servicio.id}}'>
-									<span class="glyphicon glyphicon-trash"></span></a>
-								</td>
-							</tr>
-						</tbody>
-					{% endfor %}
+					<tbody>
+						{% for servicio in object.servicio_set.all %}
+							{% if servicio.estado %}
+								<tr id="tr_servicio{{servicio.id}}">						
+									<td>
+										{% url 'servicio_update' pk=servicio.id as url_edit_servicio %}
+										<a data-toggle="modal" href="{{url_edit_servicio}}" data-target="#modal" title="Editar Servicio" data-tooltip>
+										{{servicio.nombre}}</a></td>
+									<td>{{servicio.t_minimo|timedeltaformat}}</td>
+									<td>{{servicio.t_normal|timedeltaformat}}</td>
+									<td>{{servicio.t_maximo|timedeltaformat}}</td>
+									<td>
+										{% url 'servicio_delete' pk=servicio.id as url_delete_servicio %}
+										<a href="{{url_delete_servicio}}" role="button" class="btn btn-danger delete" data-toggle="modal" data-target="#delele_modal" title="Eliminar Servicio" data-nombre="{{servicio.nombre}}" data-id='{{servicio.id}}'>
+										<span class="glyphicon glyphicon-trash"></span></a>
+									</td>
+								</tr>
+							{% endif %}
+						{% endfor %}
+					</tbody>					
 				</table>
 			{% else %}
 				<i><h5>Aún no se han agregado servicios.</h5></i>	

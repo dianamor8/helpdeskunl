@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import Group
 from helpdeskunl.apps.centro_asistencia.managers import *
+from helpdeskunl.apps.usuarios.models import *
 from datetime import timedelta
 from helpdeskunl.apps.home.current_user import get_current_user
 
@@ -28,11 +29,12 @@ class Estadistica_Sla(TimeStampedModel):
 	def __unicode__(self):
 		return u'%s'%(self.tipo)
 
-class Centro_Asistencia(models.Model):
+class Centro_Asistencia(TimeStampedModel):
 	nombre = models.CharField(max_length=100)
 	descripcion = models.CharField(max_length=250)	
-	estado = models.BooleanField(default=True)
 	usuarios = models.ManyToManyField(settings.AUTH_USER_MODEL, through='Personal_Operativo')
+	email = models.EmailField(max_length=254, blank=True, null=True)
+	contacto = models.CharField(max_length=100, blank=True, null=True)
 
 	objects = Centro_Asistencia_Manager()
 	
@@ -43,9 +45,16 @@ class Centro_Asistencia(models.Model):
 	def __unicode__(self):
 		return u'%s'%(self.nombre)
 	def get_absolute_url(self):
-		return '/centro_asistencia/%i' %(self.id)	
+		return '/centro_asistencia/%i' %(self.id)
+	def get_administradores(self):
+		administradores = Perfil.jefes_departamento.filter(personal_operativo__centro_asistencia = self).distinct()
+		return administradores
+	def get_asesores(self):
+		asesores = Perfil.asesores_tecnicos.filter(personal_operativo__centro_asistencia = self).distinct()
+		return asesores
+		
 
-class Servicio(models.Model):
+class Servicio(TimeStampedModel):
 	estadistica = models.ForeignKey(Estadistica_Sla, on_delete=models.DO_NOTHING)
 	nombre = models.CharField(max_length=100)
 	descripcion = models.CharField(max_length=250)
@@ -68,6 +77,24 @@ class Servicio(models.Model):
 		#http://www.jqueryscript.net/form/Input-Number-Spinner-with-jQuery-Bootstrap-Spinner.html
 		#http://www.jqueryscript.net/form/Touch-Friendly-jQuery-Input-Spinner-Plugin-For-Bootstrap-3-TouchSpin.html
 		#www.virtuosoft.eu/code/bootstrap-touchspin/
+
+	def get_min(self):
+		horas = str(self.t_minimo)
+		horas = horas[-8:]		
+		horas = horas.split(':')
+		return horas
+
+	def get_nor(self):
+		horas = str(self.t_normal)
+		horas = horas[-8:]		
+		horas = horas.split(':')
+		return horas
+
+	def get_max(self):
+		horas = str(self.t_maximo)
+		horas = horas[-8:]		
+		horas = horas.split(':')
+		return horas
 
 
 class Personal_Operativo(models.Model):

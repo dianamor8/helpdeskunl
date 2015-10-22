@@ -68,8 +68,9 @@
 			<div class="panel-footer text-right">
 				{% url 'solicitudes_list' accion_id=accion.id incidencia_id=accion.incidencia.id as url_solicitudes_list %}	
 				<a href="{{url_solicitudes_list}}" class='btn btn-default'>Cancelar</a>
-				<input type="submit" value="Guardar" class='btn btn-primary'>
+				<input id="guardar_solicitud" type="submit" value="Guardar" class='btn btn-primary'>
 			</div>
 		</div>	
 	</form>	
+	
 {% endblock contenido %}

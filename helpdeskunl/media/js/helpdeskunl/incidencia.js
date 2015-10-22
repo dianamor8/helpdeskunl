@@ -10,13 +10,14 @@ function my_ready () {
 	configuracion_tabla($('#tbl-solicitudes-extension'));	
 	configuracion_tabla($('#tbl-solicitudes-reapertura'));	
 	configuracion_tabla($('#tbl-notificaciones'));	
-	
+	configuracion_tabla($('#tbl-mis-acciones'));	
+	configuracion_tabla($('#tbl-mis-solicitudes'));	
+		
 	hacer_visible();
 	cambiar_opcion();	
 	multiselect_bienes();	
 	$('input[type=file]').bootstrapFileInput();
 	$('.file-inputs').bootstrapFileInput();
-
 	temporizador();
 	// configuracion_tabla($('#example'));
 	// $('#tbl-incidencias').dataTable();
@@ -340,10 +341,15 @@ function eliminar_bien () {
 }
 
 function ver_notificacion () {
-	$('.ver').click(function(event) {					
+	$(document).on('click', '.ver', function(event) {		
+		var enlace = $(this).data('enlace');			
 		$.ajax({
 			url: '/notificacion/ver/'+$(this).data('id'),			
-			type: 'GET',			
+			type: 'GET',
+			success : function(data) {				
+				$('#contador').val(data.contador);					
+				window.location.replace(enlace);				
+			},	
 		});
 	});
 }
@@ -493,6 +499,8 @@ function eliminar_parametros () {
 
 			};
 		};
+		console.log('##################');
+		console.log($('#star').raty('score'));
 	});	
 }
 

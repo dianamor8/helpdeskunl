@@ -5,7 +5,7 @@ $(document).ready(function() {
 
 	// CARGAR DATA-
 	modalDatosEliminar('.delete');
-	validar_inputs_duracion();	
+	validar_inputs_duracion();		
 });
 
 // function clear_data_modal (idModal) {
@@ -126,3 +126,4 @@ function isValidTime(text) {
 	return regexp.test(text);
 }
 	// body...
+

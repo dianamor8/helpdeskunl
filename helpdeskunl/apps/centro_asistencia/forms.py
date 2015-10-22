@@ -15,19 +15,24 @@ from django.shortcuts import get_object_or_404
 class form_agregar_centro_asistencia(ModelForm):	
 	class Meta:
 		model = Centro_Asistencia
-		exclude = 'usuarios', 'estado'
+		fields = 'nombre', 'descripcion', 'email', 'contacto',
 		labels = {
 			'nombre': ('Nombre:'),
-			'descripcion': ('Descripción:'),			
+			'descripcion': ('Actividad:'),			
+			'email': ('Correo Electrónico:'),			
+			'contacto': ('Contacto:'),			
 		}
 		error_messages = {
 			'nombre': {'required': u"Este campo no puede estar vacío.",},
 			'descripcion': {'required': u"Este campo no puede estar vacío.",},			
+			'email': {'invalid': u"Ingrese un valor válido.",},			
 		}
 		widgets = {
 			'nombre': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Nombre del centro de asistencia.',}),			
 			'descripcion': forms.Textarea(attrs={'class':'form-control', 'placeholder':'Descripción del centro de asistencia.',}),				
 			# 'administradores': forms.Select(attrs={'class':'form-control required'}),
+			'email': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Dirección de correo electrónico de contacto.',}),
+			'contacto': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Números de contacto.',}),
 		}
 	
 	def clean_nombre(self):
@@ -41,19 +46,25 @@ class form_agregar_centro_asistencia(ModelForm):
 class Centro_Asistencia_UpdateForm(ModelForm):	
 	class Meta:
 		model = Centro_Asistencia
-		exclude = 'usuarios', 'estado'
+		fields = 'nombre', 'descripcion', 'email', 'contacto',
 		labels = {
 			'nombre': ('Nombre:'),
-			'descripcion': ('Descripción:'),			
+			'descripcion': ('Actividad:'),			
+			'email': ('Correo Electrónico:'),			
+			'contacto': ('Contacto:'),			
 		}
 		error_messages = {
 			'nombre': {'required': u"Este campo no puede estar vacío.", },
 			'descripcion': {'required': u"Este campo no puede estar vacío.",},
+			'email': {'invalid': u"Ingrese un valor válido.",},			
 			'NON_FIELD_ERRORS': {'duplicado': u'Ya existe un centro de asistencia con este nombre.',},			
-		}
+		}		
 		widgets = {
 			'nombre': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Nombre del centro de asistencia.',}),			
-			'descripcion': forms.Textarea(attrs={'class':'form-control', 'placeholder':'Descripción del centro de asistencia.',}),			
+			'descripcion': forms.Textarea(attrs={'class':'form-control', 'placeholder':'Descripción del centro de asistencia.',}),				
+			# 'administradores': forms.Select(attrs={'class':'form-control required'}),
+			'email': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Dirección de correo electrónico de contacto.',}),
+			'contacto': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Números de contacto.',}),
 		}
 
 	def registro_nombre_duplicado(self, id_centro):		
@@ -71,11 +82,11 @@ class Centro_Asistencia_UpdateForm(ModelForm):
 class ServicioForm(ModelForm):
 	def __init__(self, *args, **kwargs):
 		super(ServicioForm, self).__init__(*args, **kwargs)
-		self.fields['estadistica'].empty_label = ">>>SELECCIONE<<<"
+		self.fields['estadistica'].empty_label = ">>>SELECCIONE<<<"		
 
 	class Meta:
 		model = Servicio
-		exclude = 'centro',
+		exclude = 'centro', 'estado','creado_por',
 		labels = {
 			'estadistica': ('Estadística:'),
 			'nombre': ('Nombre:'),
@@ -97,49 +108,52 @@ class ServicioForm(ModelForm):
 			'estadistica': forms.Select(attrs={'class':'form-control required'}),
 			'nombre': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Nombre del servicio.',}),			
 			'descripcion': forms.Textarea(attrs={'class':'form-control expandable', 'placeholder':'Descripción del servicio.',}),				
-			't_minimo': forms.TextInput(attrs={'class':'form-control duracion', 'id':'tmin','placeholder':'Formato > DD HH:MM:SS > Ej. 2 30:25:00',}),
-			't_normal': forms.TextInput(attrs={'class':'form-control duracion', 'placeholder':'Formato > DD HH:MM:SS > Ej. 2 30:25:00',}),
-			't_maximo': forms.TextInput(attrs={'class':'form-control duracion', 'placeholder':'Formato > DD HH:MM:SS > Ej. 2 30:25:00',}),
+			't_minimo': forms.HiddenInput(attrs={'class':'form-control', 'id':'tmin',}),
+			't_normal': forms.HiddenInput(attrs={'class':'form-control', 'id':'tnor',}),
+			't_maximo': forms.HiddenInput(attrs={'class':'form-control', 'id':'tmax',}),
+			# 't_normal': forms.TextInput(attrs={'class':'form-control duracion', 'placeholder':'Formato > DD HH:MM:SS > Ej. 2 30:25:00',}),
+			# 't_maximo': forms.TextInput(attrs={'class':'form-control duracion', 'placeholder':'Formato > DD HH:MM:SS > Ej. 2 30:25:00',}),
+			
 		}
 	
 
-	def clean(self):
-		cleaned_data = super(ServicioForm, self).clean()
-		try:
-			t_minimo = cleaned_data.get("t_minimo")
-			t_normal = cleaned_data.get("t_normal")
-			t_maximo = cleaned_data.get("t_maximo")
-			estadistica = cleaned_data.get("estadistica")
+	# def clean(self):
+	# 	cleaned_data = super(ServicioForm, self).clean()
+	# 	try:
+	# 		t_minimo = cleaned_data.get("t_minimo")
+	# 		t_normal = cleaned_data.get("t_normal")
+	# 		t_maximo = cleaned_data.get("t_maximo")
+	# 		estadistica = cleaned_data.get("estadistica")
 
-			minimo = parse_duration(str(t_minimo))
-			maximo = parse_duration(str(t_maximo))
-			normal = parse_duration(str(t_normal))
+	# 		minimo = parse_duration(str(t_minimo))
+	# 		maximo = parse_duration(str(t_maximo))
+	# 		normal = parse_duration(str(t_normal))
 
-			minimo_estadistica = parse_duration(str(estadistica.minima_duracion))
-			maximo_estadistica = parse_duration(str(estadistica.maxima_duracion))
+	# 		minimo_estadistica = parse_duration(str(estadistica.minima_duracion))
+	# 		maximo_estadistica = parse_duration(str(estadistica.maxima_duracion))
 
-			if  normal < minimo:
-				msg = "El tiempo normal debe ser mayor o igual que el tiempo mínimo."
-				self.add_error('t_normal', msg)
+	# 		if  normal < minimo:
+	# 			msg = "El tiempo normal debe ser mayor o igual que el tiempo mínimo."
+	# 			self.add_error('t_normal', msg)
 
-			if  maximo < normal:
-				msg = "El tiempo máximo debe ser mayor o igual que el tiempo normal."
-				self.add_error('t_maximo', msg)
+	# 		if  maximo < normal:
+	# 			msg = "El tiempo máximo debe ser mayor o igual que el tiempo normal."
+	# 			self.add_error('t_maximo', msg)
 
-			print maximo_estadistica
-			print maximo
+	# 		print maximo_estadistica
+	# 		print maximo
 
-			if minimo_estadistica > minimo:
-				msg = "La estadística mínima para este servicio es %s." %(estadistica.minima_duracion)
-				self.add_error('t_minimo', msg)
+	# 		if minimo_estadistica > minimo:
+	# 			msg = "La estadística mínima para este servicio es %s." %(estadistica.minima_duracion)
+	# 			self.add_error('t_minimo', msg)
 
-			if  maximo > maximo_estadistica :
-				msg = "La estadística máxima para este servicio es %s." %(estadistica.maxima_duracion)
-				self.add_error('t_maximo', msg)
+	# 		if  maximo > maximo_estadistica :
+	# 			msg = "La estadística máxima para este servicio es %s." %(estadistica.maxima_duracion)
+	# 			self.add_error('t_maximo', msg)
 					
-		except Exception, e:
-			print e
-			return cleaned_data
+	# 	except Exception, e:
+	# 		print e
+	# 		return cleaned_data
 
 
 
